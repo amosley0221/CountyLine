@@ -40,4 +40,18 @@ The detailed desk UI test used Unreal's development console to set a repeatable 
 
 ## Limits
 
-This is an uncooked prototype running with the installed editor runtime. No packaged standalone Windows build, physical controller test, performance certification, production Reed rig, or retargeted user FBX set has been completed. Map and Payroll pages identify unfinished systems. Changes are local; no GitHub push was made.
+This is an uncooked prototype running with the installed editor runtime. No packaged standalone Windows build, physical controller test, performance certification, production Reed rig, or retargeted user FBX set has been completed. Map and Payroll pages identify unfinished systems. The initial prototype and source/reference backups were subsequently pushed to GitHub on 19 September.
+
+## Office conversation and controller pass — 19 September 2026
+
+Implemented in an isolated `feature/office-conversation-controller` worktree, leaving Claude's `Source/CountyLine/Tests/CLPrototypeTests.cpp` edits untouched. Sam Reed remains the player; Deputy Pruitt introduces the report through prototype-authored text. The existing map receives the deputy, idle animation, collision, reading light, book, ink bottle, and other desk props through native components.
+
+The editor target builds successfully with UE 5.8.2 (`-NoPCH -NoUBA` on this machine). Explicit mesh and input-component includes also allow compilation without relying on precompiled headers. The three existing automation tests passed. Runtime verification includes simulated controller events routed through Slate; this does not substitute for testing an actual connected controller. Xbox-style labels are used, with no claim of native PlayStation glyphs or controller rumble.
+
+Visually checked the office, the Pruitt interaction prompt, both conversation pages, and visible keyboard focus at 1440 x 900. Character art and speech remain temporary mannequin/text presentation.
+
+The expanded runtime smoke test passed all 22 checks, including Pruitt's mesh/idle, conversation cancel/advance/finish, report entry, D-pad fact selection, left-stick focus, closing-line focus retention, HOLD with an omitted fact, shoulder-page navigation, and B returning to gameplay. A first run caught Slate consuming analog events on child controls; custom book controls now let the book handle those events. Simulated events use Slate's normal input routing.
+
+Interactive checks also covered report entry, focus wrapping, automatic scrolling to HOLD, disabled choices after submission, writing the date, and marking the state unsaved after changing copy preference. Superseded save notices are cleared when an editable choice changes.
+
+The final notice-cleanup build passed the same 22 runtime checks. Relaunching loaded the held report and displayed the saved-completion objective. The QA save was archived outside the active slot under Saved/Verification so the delivered office starts fresh.

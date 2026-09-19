@@ -15,6 +15,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Engine/GameInstance.h"
+#include "Engine/Engine.h"
+#include "Components/InputComponent.h"
+#include "Components/CapsuleComponent.h"
 
 void ACLPlayerController::BeginPlay()
 {
@@ -27,13 +30,13 @@ void ACLPlayerController::BeginPlay()
     if(!IsLocalController() || !GEngine || !GEngine->GameViewport) return;
     HUD=SNew(SOverlay)
         +SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(32)
-        [SNew(STextBlock).Text(FText::FromString(TEXT("THE COUNTY LINE\nJail office  /  playable study"))).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ColorAndOpacity(FLinearColor(0.88f,0.82f,0.68f))]
+        [SNew(STextBlock).Text_Lambda([this]{return FText::FromString(FString(TEXT("THE COUNTY LINE\n"))+ObjectiveText());}).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.88f,0.82f,0.68f))]
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24,24,24,88)
         [SNew(SBorder).Padding(14).BorderBackgroundColor(FLinearColor(0.035f,0.03f,0.02f,0.9f))
-            .Visibility_Lambda([this]{return bPromptAvailable&&!IsBookOpen()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
-            [SNew(STextBlock).Text(FText::FromString(TEXT("[ E / A ]   Read   ·   Reed's report"))).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
+            .Visibility_Lambda([this]{return (bPromptAvailable||bDeputyAvailable)&&!IsBookOpen()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
+            [SNew(STextBlock).Text_Lambda([this]{return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24)
-        [SNew(STextBlock).Text(FText::FromString(TEXT("WASD  Walk     Mouse  Look     E  Interact     Tab  County Book     Esc  Pause"))).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.93f,0.88f,0.77f))];
+        [SNew(STextBlock).Text(FText::FromString(TEXT("WASD / LS  Walk     Mouse / RS  Look\nE / A  Interact     Tab / View  Book     Esc / Menu  Pause"))).Justification(ETextJustify::Center).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.93f,0.88f,0.77f))];
     GEngine->GameViewport->AddViewportWidgetContent(HUD.ToSharedRef(),0);
 }
 
@@ -60,6 +63,7 @@ void ACLPlayerController::PlayerTick(float DeltaSeconds)
 {
     Super::PlayerTick(DeltaSeconds);
     bPromptAvailable=CanReachReport();
+    bDeputyAvailable=CanReachDeputy();
 }
 
 bool ACLPlayerController::WithinInteractionGate(FVector PawnPosition,FVector Eye,FVector Forward,FVector Target)
@@ -87,21 +91,49 @@ bool ACLPlayerController::CanReachReport() const
 }
 
 UCLCaseState* ACLPlayerController::Case() const {return GetGameInstance()->GetSubsystem<UCLCaseState>();}
-void ACLPlayerController::Interact() {if(!IsBookOpen() && CanReachReport()) ShowBook(!Case()->Report.bRead);}
+bool ACLPlayerController::CanReachDeputy() const
+{
+    if(!Office.IsValid() || !GetPawn()) return false;
+    FVector Eye; FRotator View; GetPlayerViewPoint(Eye,View);
+    const FVector Target=Office->DeputyLocation();
+    if(!WithinInteractionGate(GetPawn()->GetActorLocation(),Eye,View.Vector(),Target)) return false;
+    FHitResult Hit;
+    FCollisionQueryParams Params(SCENE_QUERY_STAT(DeputyInteraction),false,GetPawn());
+    const bool bHit=GetWorld()->LineTraceSingleByChannel(Hit,Eye,Target,ECC_Visibility,Params);
+    return !bHit || Hit.GetComponent()==Office->DeputyCollision;
+}
+
+FString ACLPlayerController::ObjectiveText() const
+{
+    const UCLCaseState* State=Case();
+    if(!State) return TEXT("Jail office");
+    if(State->Report.Status!=ECLReportStatus::Draft)
+        return State->IsCurrentStateSaved()?TEXT("Date written. This office study is complete."):TEXT("Write the date at the desk to save your decision.");
+    if(State->Report.bRead) return TEXT("At the desk: review the facts, then SIGN or HOLD.");
+    if(State->Report.bBriefedByPruitt) return TEXT("Read the cream report on the desk.");
+    return TEXT("Speak with Deputy Pruitt, to the left of the desk.");
+}
+
+void ACLPlayerController::Interact()
+{
+    if(IsBookOpen()) return;
+    if(CanReachDeputy()) ShowBook(false,false,true);
+    else if(CanReachReport()) ShowBook(!Case()->Report.bRead);
+}
 void ACLPlayerController::ToggleBook() {if(IsBookOpen()) CloseBook(); else ShowBook();}
 void ACLPlayerController::PauseMenu() {if(IsBookOpen()) CloseBook(); else ShowBook(false,true);}
 
-void ACLPlayerController::ShowBook(bool bReportCover,bool bPause)
+void ACLPlayerController::ShowBook(bool bReportCover,bool bPause,bool bConversation)
 {
     if(IsBookOpen() || !GEngine || !GEngine->GameViewport) return;
     if(ACharacter* C=Cast<ACharacter>(GetPawn())) C->GetCharacterMovement()->StopMovementImmediately();
     SetIgnoreMoveInput(true);SetIgnoreLookInput(true);
-    Book=SNew(SCLCountyBook).Owner(this).ReportCover(bReportCover).Pause(bPause);
+    Book=SNew(SCLCountyBook).Owner(this).ReportCover(bReportCover).Pause(bPause).Conversation(bConversation);
     GEngine->GameViewport->AddViewportWidgetContent(Book.ToSharedRef(),10);
     bShowMouseCursor=true;
     FInputModeUIOnly Mode;Mode.SetWidgetToFocus(Book->InitialFocus());Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);SetInputMode(Mode);
     SetPause(true);
-    FSlateApplication::Get().SetKeyboardFocus(Book->InitialFocus(),EFocusCause::SetDirectly);
+    FSlateApplication::Get().SetAllUserFocus(Book->InitialFocus(),EFocusCause::SetDirectly);
 }
 
 void ACLPlayerController::CloseBook()

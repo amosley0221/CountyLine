@@ -13,10 +13,12 @@ public:
     virtual void SetupInputComponent() override;
     virtual void PlayerTick(float DeltaSeconds) override;
     bool CanReachReport() const;
+    bool CanReachDeputy() const;
+    FString ObjectiveText() const;
     bool IsAtDesk() const;
     void Interact();
     void ToggleBook();
-    void ShowBook(bool bReportCover = false, bool bPause = false);
+    void ShowBook(bool bReportCover = false, bool bPause = false, bool bConversation = false);
     void CloseBook();
     bool IsBookOpen() const { return Book.IsValid(); }
     class UCLCaseState* Case() const;
@@ -27,4 +29,5 @@ private:
     TSharedPtr<class SWidget> HUD;
     TSharedPtr<class SCLCountyBook> Book;
     bool bPromptAvailable = false;
+    bool bDeputyAvailable = false;
 };

@@ -6,7 +6,7 @@ The supplied design proposes a narrative lawman simulation in fictional Rivas Co
 
 ## Current state
 
-A jail-office gameplay prototype built for UE 5.8.2: third-person movement, report interaction, County Book, SIGN/HOLD choices, and desk-only saving. The character and world art are placeholders. See `Docs/JAIL_PROTOTYPE.md` for controls and scope, and `Docs/VERIFICATION.md` for verification status.
+A jail-office gameplay prototype built for UE 5.8.2: third-person movement, Deputy Pruitt's introduction, report interaction, County Book, SIGN/HOLD choices, desk-only saving, and controller navigation throughout. The character and world art are placeholders. See `Docs/JAIL_PROTOTYPE.md` for controls and scope, and `Docs/VERIFICATION.md` for verification status.
 
 ## Open and build
 

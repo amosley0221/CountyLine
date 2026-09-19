@@ -7,6 +7,8 @@
 #include "Animation/AnimSingleNodeInstance.h"
 #include "Animation/BlendSpace.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Components/InputComponent.h"
+#include "Engine/SkeletalMesh.h"
 
 ACLReedCharacter::ACLReedCharacter()
 {

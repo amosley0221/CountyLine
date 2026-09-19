@@ -36,6 +36,8 @@ void UCLCaseState::Initialize(FSubsystemCollectionBase& Collection)
         Report = Save->Report;
         bTypedCopy = Save->bTypedCopy;
         bHasWrittenDate = true;
+        SavedReport = Report;
+        bSavedTypedCopy = bTypedCopy;
     }
 }
 
@@ -46,7 +48,18 @@ bool UCLCaseState::WriteDate()
     Save->Report = Report;
     Save->bTypedCopy = bTypedCopy;
     bHasWrittenDate = UGameplayStatics::SaveGameToSlot(Save, TEXT("CountyLine_JailPrototype"), 0);
+    if (bHasWrittenDate)
+    {
+        SavedReport = Report;
+        bSavedTypedCopy = bTypedCopy;
+    }
     return bHasWrittenDate;
+}
+
+bool UCLCaseState::IsCurrentStateSaved() const
+{
+    return bHasWrittenDate && bTypedCopy == bSavedTypedCopy &&
+        FCLReportState::StaticStruct()->CompareScriptStruct(&Report, &SavedReport, 0);
 }
 
 FString UCLCaseState::StatusText(ECLReportStatus Status)

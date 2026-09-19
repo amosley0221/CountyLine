@@ -15,6 +15,7 @@ struct FCLReportState
     GENERATED_BODY()
     UPROPERTY() ECLReportStatus Status = ECLReportStatus::Draft;
     UPROPERTY() bool bRead = false;
+    UPROPERTY() bool bBriefedByPruitt = false;
     UPROPERTY() bool bIncludeFinder = true;
     UPROPERTY() bool bIncludeBottle = true;
     UPROPERTY() int32 ClosingLine = 0;
@@ -44,6 +45,10 @@ public:
     bool bTypedCopy = true;
     bool bHasWrittenDate = false;
     bool WriteDate();
+    bool IsCurrentStateSaved() const;
     static FString StatusText(ECLReportStatus Status);
     static const TCHAR* ClosingLines[3];
+private:
+    FCLReportState SavedReport;
+    bool bSavedTypedCopy = true;
 };

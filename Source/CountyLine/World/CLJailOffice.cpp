@@ -4,6 +4,11 @@
 #include "Components/PointLightComponent.h"
 #include "Components/RectLightComponent.h"
 #include "Materials/MaterialInterface.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Animation/BlendSpace.h"
+#include "Engine/StaticMesh.h"
+#include "Engine/SkeletalMesh.h"
 
 UStaticMeshComponent* ACLJailOffice::Shape(const FString& Name, const TCHAR* Mesh, FVector Position, FVector Size, const TCHAR* Material, bool Collision)
 {
@@ -35,6 +40,19 @@ void ACLJailOffice::Label(const FString& Name, const FString& Text, FVector Posi
 ACLJailOffice::ACLJailOffice()
 {
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Office"));
+    // Pruitt waits clear of the entrance-to-desk route. Both characters use temporary art.
+    DeputyCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("DeputyCollision"));
+    DeputyCollision->SetupAttachment(RootComponent);
+    DeputyCollision->SetRelativeLocation(FVector(-120,-310,90));
+    DeputyCollision->InitCapsuleSize(32,90);
+    DeputyCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+    DeputyMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DeputyPruitt"));
+    DeputyMesh->SetupAttachment(RootComponent);
+    DeputyMesh->SetRelativeLocation(FVector(-120,-310,0));
+    DeputyMesh->SetRelativeRotation(FRotator(0,0,0));
+    DeputyMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    DeputyMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr,TEXT("/Game/Mannequin/Character/Mesh/SK_Mannequin.SK_Mannequin")));
+    DeputyMesh->SetAnimationMode(EAnimationMode::AnimationSingleNode);
     Shape(TEXT("Floor"), TEXT("Cube"), FVector(0,0,-12), FVector(1120,920,24), TEXT("Wood"));
     for (int32 I = 0; I < 23; ++I)
         Shape(FString::Printf(TEXT("FloorJoint%d"), I), TEXT("Cube"), FVector(0,-440+I*40,0.15f), FVector(1100,1,0.3f), TEXT("Ink"), false);
@@ -98,6 +116,23 @@ ACLJailOffice::ACLJailOffice()
     Shape(TEXT("NoticeBoard"),TEXT("Cube"),FVector(160,-444,208),FVector(180,8,91),TEXT("Wood"),false);
     Label(TEXT("OfficeSign"),TEXT("RIVAS COUNTY\nACTING SHERIFF S. REED"),FVector(160,-438,211),FRotator(0,90,0),12,FColor(239,229,204));
     Label(TEXT("CellSign"),TEXT("COUNTY JAIL  /  REGISTER AT DESK"),FVector(250,170,308),FRotator(0,-90,0),9,FColor(239,229,204));
+    // Small authored props give the report and save station readable silhouettes.
+    Shape(TEXT("CountyBookCover"),TEXT("Cube"),FVector(151,-46,86),FVector(34,45,3),TEXT("Ledger"),false);
+    Shape(TEXT("CountyBookPages"),TEXT("Cube"),FVector(151,-46,88),FVector(31,42,2),TEXT("Paper"),false);
+    Shape(TEXT("CountyBookTop"),TEXT("Cube"),FVector(151,-46,89.5f),FVector(34,45,1),TEXT("Ledger"),false);
+    Shape(TEXT("PenRest"),TEXT("Cube"),FVector(131,-78,85.5f),FVector(22,3,2),TEXT("Brass"),false);
+    Shape(TEXT("InkBottle"),TEXT("Cylinder"),FVector(168,-76,89),FVector(7,7,10),TEXT("Ink"),false);
+    Shape(TEXT("DeskLampBase"),TEXT("Cylinder"),FVector(184,-35,86),FVector(20,20,4),TEXT("Brass"),false);
+    Shape(TEXT("DeskLampStem"),TEXT("Cylinder"),FVector(184,-35,103),FVector(3,3,32),TEXT("Brass"),false);
+    Shape(TEXT("DeskLampShade"),TEXT("Cone"),FVector(184,-35,121),FVector(29,29,16),TEXT("Ledger"),false);
+    auto* DeskLight=CreateDefaultSubobject<UPointLightComponent>(TEXT("DeskReadingLight"));
+    DeskLight->SetupAttachment(RootComponent); DeskLight->SetRelativeLocation(FVector(177,-45,112));
+    DeskLight->SetIntensity(140); DeskLight->SetAttenuationRadius(240);
+    DeskLight->SetLightColor(FLinearColor(1.f,0.78f,0.46f)); DeskLight->SetCastShadows(false);
+    DeskLight->SetMobility(EComponentMobility::Movable);
+    Shape(TEXT("EntryRunner"),TEXT("Cube"),FVector(-265,-115,0.6f),FVector(330,155,1),TEXT("Ledger"),false);
+    Shape(TEXT("NoticePaper"),TEXT("Cube"),FVector(438,-441,204),FVector(48,1,66),TEXT("Paper"),false);
+    Label(TEXT("NoticeText"),TEXT("COUNTY BUSINESS\nOFFICE HOURS\n8 TO 5"),FVector(438,-439,205),FRotator(0,90,0),6,FColor(42,37,32));
     // Practical electric interior, with cool fill from the window wall.
     auto* Lamp=CreateDefaultSubobject<UPointLightComponent>(TEXT("OfficeBulb"));
     Lamp->SetupAttachment(RootComponent); Lamp->SetRelativeLocation(FVector(70,-90,285));
@@ -113,4 +148,11 @@ ACLJailOffice::ACLJailOffice()
     Ambient->SetupAttachment(RootComponent); Ambient->SetRelativeLocation(FVector(-300,0,260));
     Ambient->SetIntensity(1300); Ambient->SetAttenuationRadius(1150); Ambient->SetCastShadows(false);
     Ambient->SetLightColor(FLinearColor(0.73f,0.8f,1.f)); Ambient->SetMobility(EComponentMobility::Movable);
+}
+
+void ACLJailOffice::BeginPlay()
+{
+    Super::BeginPlay();
+    if (UBlendSpace* Idle=LoadObject<UBlendSpace>(nullptr,TEXT("/Game/Mannequin/Animations/ThirdPerson_IdleRun_2D.ThirdPerson_IdleRun_2D")))
+        DeputyMesh->PlayAnimation(Idle,true);
 }
