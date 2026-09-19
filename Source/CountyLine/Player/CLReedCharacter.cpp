@@ -31,7 +31,7 @@ ACLReedCharacter::ACLReedCharacter()
     FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
     FollowCamera->SetupAttachment(CameraArm);
     FollowCamera->FieldOfView = 70.f;
-    static ConstructorHelpers::FObjectFinder<USkeletalMesh> Body(TEXT("/Game/Mannequin/Character/Mesh/SK_Mannequin.SK_Mannequin"));
+    static ConstructorHelpers::FObjectFinder<USkeletalMesh> Body(TEXT("/Game/Art/Characters/SK_Reed_Period.SK_Reed_Period"));
     static ConstructorHelpers::FObjectFinder<UBlendSpace> Locomotion(TEXT("/Game/Mannequin/Animations/ThirdPerson_IdleRun_2D.ThirdPerson_IdleRun_2D"));
     GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
     GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));

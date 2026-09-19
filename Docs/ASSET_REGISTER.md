@@ -1,5 +1,13 @@
 # Prototype asset register
 
+## Original visual-pass assets
+
+`Content/Art` and `SourceAssets/Authored` contain the original Bend Lateral scenery,
+Reed and Salazar period meshes, materials, Blender scenes and FBX exports. See
+`Docs/VISUAL_PASS.md` for references, reproduction and remaining art limitations.
+The character meshes use the existing Epic template skeleton and locomotion;
+the original mannequin/animations retain their applicable Unreal license.
+
 ## Included in the project
 
 - `Content/Mannequin`: Epic Unreal Engine template mannequin, skeleton, materials, and locomotion, copied from the locally installed UE 5.8.2 `Templates/TemplateResources/Standard/Mannequin/Content`. These remain Epic content governed by the applicable Unreal license. Temporary player representation only; not Reed's final appearance.

@@ -5,6 +5,9 @@
 #include "Player/CLPlayerController.h"
 #include "Paper/CLCaseState.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/SkeletalMesh.h"
+#include "Engine/StaticMesh.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
@@ -60,7 +63,12 @@ void ACLPrototypeGameMode::RunSmokeTest()
     if(Reed)
     {
         Check(Reed->GetActorLocation().X-SmokeStart.X>80,TEXT("Movement input advances character across floor"));
-        Check(Reed->GetMesh()->GetSkeletalMeshAsset()!=nullptr,TEXT("Placeholder skeletal mesh loaded"));
+        const USkeletalMesh* ReedArt=Reed->GetMesh()->GetSkeletalMeshAsset();
+        Check(ReedArt && ReedArt->GetName()==TEXT("SK_Reed_Period"),TEXT("Reed period character mesh loaded"));
+        Check(ReedArt && ReedArt->GetBounds().BoxExtent.Z>75.f && ReedArt->GetBounds().BoxExtent.Z<110.f,TEXT("Imported Reed mesh retains human scale"));
+        bool bReedMaterials=Reed->GetMesh()->GetNumMaterials()>0;
+        for(int32 I=0;I<Reed->GetMesh()->GetNumMaterials();++I) bReedMaterials &= Reed->GetMesh()->GetMaterial(I)!=nullptr;
+        Check(bReedMaterials,TEXT("Reed has all authored garment and skin materials"));
         Check(Reed->GetMesh()->GetSingleNodeInstance()!=nullptr,TEXT("Locomotion animation instance loaded"));
         Check(Reed->GetCharacterMovement()->IsMovingOnGround(),TEXT("Character grounded on office floor"));
         const FVector Initial=SmokeStart;
@@ -124,6 +132,21 @@ void ACLPrototypeGameMode::RunSmokeTest()
         ACLBendLateral* Bend=nullptr;
         for(TActorIterator<ACLBendLateral> It(GetWorld());It;++It) {Bend=*It;break;}
         Check(Bend && Bend->Markers.Num()==4 && Bend->Salazar->GetSingleNodeInstance(),TEXT("Bend Lateral has interaction targets and animated witness"));
+        if(Bend)
+        {
+            const USkeletalMesh* WitnessArt=Bend->Salazar->GetSkeletalMeshAsset();
+            Check(WitnessArt && WitnessArt->GetName()==TEXT("SK_Salazar_Period"),TEXT("Salazar period character mesh loaded"));
+            TArray<UStaticMeshComponent*> Scenery;Bend->GetComponents(Scenery);
+            int32 LoadedArt=0;
+            bool bWaterAligned=false;
+            for(const UStaticMeshComponent* Mesh:Scenery)
+            {
+                if(Mesh->GetName().StartsWith(TEXT("SM_Bend")) && Mesh->GetStaticMesh()) ++LoadedArt;
+                if(Mesh->GetName()==TEXT("SM_BendWater") && Mesh->GetStaticMesh()) bWaterAligned=Mesh->GetStaticMesh()->GetBounds().Origin.Y>400.f;
+            }
+            Check(LoadedArt==6,TEXT("All six authored landscape meshes are available"));
+            Check(bWaterAligned,TEXT("Imported channel aligns with the gameplay bank"));
+        }
         PC->ShowBook(false,false,false,1);Press(EKeys::Gamepad_FaceButton_Right);
         Check(PC->Case()->Report.FieldNotes.IsEmpty(),TEXT("Canceling witness interaction awards no evidence"));
         for(int32 I=1;I<=3;++I)

@@ -73,3 +73,11 @@ Reviewed Claude's commit `f4f456ebaff281276c2901527ab9a020e41367a9` and connecte
 The runner now requires all seven named automation suites, including the four new validation suites. Validation fixtures use memory-only serialization; integration verification does not overwrite the player's save slot. The runtime smoke bypasses disk loading, so it checks gameplay regressions rather than exercising the disk-load path. Packaged-build and wrong-save-class fixture coverage remain outside this integration.
 
 Integrated verification (19 September 2026): UE 5.8.2 CountyLineEditor Win64 Development built successfully with `-NoPCH -NoUBA -NoHotReloadFromIDE`. `Scripts/Test-Prototype.ps1` exited 0: seven named automation suites succeeded and all 29 runtime smoke assertions passed. Existing playable checkout and desktop shortcut use the rebuilt module.
+
+## Bend Lateral visual pass — 19 September 2026
+
+UE 5.8.2 CountyLineEditor Win64 Development built successfully without precompiled headers. Scripts/Test-Prototype.ps1 exited 0: all seven named automation suites and all 34 runtime smoke assertions passed. New checks cover Reed's imported scale and material assignments, both period character meshes, six scenery meshes and channel alignment with gameplay coordinates.
+
+The running game was inspected after the final asset import. Reed and Salazar display their authored clothing colors and animate on the existing skeleton. Office-to-field travel, Salazar's contextual prompt/conversation, and the bottle's visible placement/prompt/examination were checked interactively. Repeatable development-console positions were used for the witness and bottle checks. No player save was written. Return travel and field-note preservation passed the runtime smoke test.
+
+This remains an initial stylized art pass: simplified faces, rounded shoulder joins, basic garment deformation, static water and placeholder foliage. Pruitt still uses the mannequin. This verification does not establish production animation quality, physical-controller operation or packaged-build compatibility. Editable art sources and reproduction steps are recorded in Docs/VISUAL_PASS.md.

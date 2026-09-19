@@ -18,3 +18,6 @@ Saved/
 .env.*
 !.env.example
 .claude/settings.local.json
+# Blender's automatic previous-save copies; authored .blend sources are tracked.
+*.blend1
+*.blend2
