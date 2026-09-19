@@ -55,3 +55,13 @@ The expanded runtime smoke test passed all 22 checks, including Pruitt's mesh/id
 Interactive checks also covered report entry, focus wrapping, automatic scrolling to HOLD, disabled choices after submission, writing the date, and marking the state unsaved after changing copy preference. Superseded save notices are cleared when an editable choice changes.
 
 The final notice-cleanup build passed the same 22 runtime checks. Relaunching loaded the held report and displayed the saved-completion objective. The QA save was archived outside the active slot under Saved/Verification so the delivered office starts fresh.
+
+## Claude test integration — 19 September 2026
+
+Reviewed and integrated Claude's completed `CLPrototypeTests.cpp` changes from `claude/report-save-tests`. The suite checks all 24 fact/closing-line/submission combinations, rejected submissions without mutation, locked carbon copies, draft round trips, and byte-identical saves after rejected attempts. Save/load tests operate in memory and do not touch the player's save slot.
+
+Integration adds field-by-field comparison of `bBriefedByPruitt` and both introduction states to the submitted-save matrix: 96 combinations across facts, closing lines, outcome, copy preference, and introduction state. The existing three automation test names are preserved for the test runner.
+
+The combined editor target built successfully with `-NoPCH -NoUBA`, confirming the earlier missing-include issue is resolved. The inline version/range checks in `UCLCaseState::Initialize` still lack direct malformed-save tests; this integration does not claim that coverage. Generated precompiled-header backups in the original checkout are unchanged and remain excluded from Git.
+
+Combined verification: Scripts/Test-Prototype.ps1 exited 0; all three expanded automation suites and all 22 runtime smoke checks passed against the merged office/controller build.
