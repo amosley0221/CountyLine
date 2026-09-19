@@ -9,6 +9,10 @@
 #include "Animation/BlendSpace.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/SkeletalMesh.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundWave.h"
+#include "Sound/SoundAttenuation.h"
+#include "Animation/AnimSequence.h"
 
 ACLBendLateral::ACLBendLateral()
 {
@@ -65,6 +69,24 @@ ACLBendLateral::ACLBendLateral()
     Sign->SetRelativeRotation(FRotator(0,-90,0));Sign->SetWorldSize(12);
     Sign->SetTextRenderColor(FColor(232,221,184));Sign->SetHorizontalAlignment(EHTA_Center);
     Sign->SetText(FText::FromString(TEXT("PECOS BEND\nJAIL OFFICE")));
+    auto Audio=[this](const TCHAR* Name,const TCHAR* Path)
+    {
+        auto* C=CreateDefaultSubobject<UAudioComponent>(Name);
+        C->SetupAttachment(RootComponent);C->bAutoActivate=false;
+        C->bAllowSpatialization=false;
+        C->SetSound(LoadObject<USoundWave>(nullptr,Path));
+        return C;
+    };
+    WindAudio=Audio(TEXT("FieldWind"),TEXT("/Game/Audio/Field/S_BendWind.S_BendWind"));
+    BirdsAudio=Audio(TEXT("DistantBirds"),TEXT("/Game/Audio/Field/S_DistantBirds.S_DistantBirds"));
+    WaterAudio=Audio(TEXT("ChannelWater"),TEXT("/Game/Audio/Field/S_ChannelWater.S_ChannelWater"));
+    WaterAudio->SetRelativeLocation(FVector(0,545,-30));
+    WaterAudio->bAllowSpatialization=true;WaterAudio->bOverrideAttenuation=true;
+    WaterAudio->AttenuationOverrides.bAttenuate=true;
+    WaterAudio->AttenuationOverrides.bSpatialize=true;
+    WaterAudio->AttenuationOverrides.AttenuationShape=EAttenuationShape::Box;
+    WaterAudio->AttenuationOverrides.AttenuationShapeExtents=FVector(1800,130,100);
+    WaterAudio->AttenuationOverrides.FalloffDistance=1100;
 }
 FVector ACLBendLateral::Target(int32 Index) const
 {
@@ -73,5 +95,25 @@ FVector ACLBendLateral::Target(int32 Index) const
 void ACLBendLateral::BeginPlay()
 {
     Super::BeginPlay();
-    Salazar->PlayAnimation(LoadObject<UBlendSpace>(nullptr,TEXT("/Game/Mannequin/Animations/ThirdPerson_IdleRun_2D.ThirdPerson_IdleRun_2D")),true);
+    SetWitnessSpeaking(false);
+}
+
+void ACLBendLateral::SetWitnessSpeaking(bool bSpeaking)
+{
+    const TCHAR* Path=bSpeaking?TEXT("/Game/Art/Animations/A_SalazarSpeaking.A_SalazarSpeaking"):TEXT("/Game/Art/Animations/A_FieldIdle.A_FieldIdle");
+    if(UAnimSequence* Motion=LoadObject<UAnimSequence>(nullptr,Path)) Salazar->PlayAnimation(Motion,true);
+}
+
+void ACLBendLateral::SetFieldActive(bool bActive)
+{
+    if(bFieldActive==bActive) return;
+    bFieldActive=bActive;
+    if(bActive)
+    {
+        WindAudio->FadeIn(.7f,.15f);WaterAudio->FadeIn(.7f,.28f);BirdsAudio->FadeIn(1.f,.045f);
+    }
+    else
+    {
+        WindAudio->FadeOut(.4f,0);WaterAudio->FadeOut(.4f,0);BirdsAudio->FadeOut(.4f,0);
+    }
 }

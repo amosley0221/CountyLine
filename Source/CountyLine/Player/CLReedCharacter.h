@@ -14,7 +14,15 @@ public:
     virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
     UPROPERTY(VisibleAnywhere) TObjectPtr<class USpringArmComponent> CameraArm;
     UPROPERTY(VisibleAnywhere) TObjectPtr<class UCameraComponent> FollowCamera;
+    UPROPERTY(VisibleAnywhere) TObjectPtr<class UAudioComponent> Footsteps;
+    int32 GetFootstepCount() const { return FootstepCount; }
 private:
+    UPROPERTY() TObjectPtr<class USoundWave> DirtStep;
+    UPROPERTY() TObjectPtr<class USoundWave> WoodStep;
+    FVector LastStepPosition = FVector::ZeroVector;
+    float StepDistance = 0;
+    float AnimationSpeed = 0;
+    int32 FootstepCount = 0;
     void Forward(float Value);
     void Right(float Value);
     void Yaw(float Value);

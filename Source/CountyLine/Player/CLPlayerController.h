@@ -22,11 +22,21 @@ public:
     int32 ReachableFieldAction() const;
     void TravelToBend(bool bOutbound);
     bool IsInField() const;
+    bool IsInspecting() const { return InspectionAction>=1 && InspectionAction<=3; }
+    void AdjustInspection(float Orbit, float Zoom);
     void CloseBook();
     bool IsBookOpen() const { return Book.IsValid(); }
     class UCLCaseState* Case() const;
     static bool WithinInteractionGate(FVector PawnPosition, FVector Eye, FVector Forward, FVector Target);
 private:
+    void BeginInspection(int32 Action);
+    void EndInspection();
+    void UpdateInspectionCamera();
+    UPROPERTY() TObjectPtr<class ACameraActor> InspectionCamera;
+    int32 InspectionAction = -1;
+    float InspectionOrbit = 0;
+    float InspectionZoom = 1;
+    bool bPawnWasHidden = false;
     void PauseMenu();
     TWeakObjectPtr<class ACLJailOffice> Office;
     TWeakObjectPtr<class ACLBendLateral> Bend;

@@ -9,6 +9,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Components/InputComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundWave.h"
 
 ACLReedCharacter::ACLReedCharacter()
 {
@@ -32,7 +34,12 @@ ACLReedCharacter::ACLReedCharacter()
     FollowCamera->SetupAttachment(CameraArm);
     FollowCamera->FieldOfView = 70.f;
     static ConstructorHelpers::FObjectFinder<USkeletalMesh> Body(TEXT("/Game/Art/Characters/SK_Reed_Period.SK_Reed_Period"));
-    static ConstructorHelpers::FObjectFinder<UBlendSpace> Locomotion(TEXT("/Game/Mannequin/Animations/ThirdPerson_IdleRun_2D.ThirdPerson_IdleRun_2D"));
+    static ConstructorHelpers::FObjectFinder<UBlendSpace> Locomotion(TEXT("/Game/Art/Animations/BS_Reed_FieldLocomotion.BS_Reed_FieldLocomotion"));
+    Footsteps=CreateDefaultSubobject<UAudioComponent>(TEXT("Footsteps"));
+    Footsteps->SetupAttachment(RootComponent);Footsteps->bAutoActivate=false;
+    Footsteps->bAllowSpatialization=false;Footsteps->SetVolumeMultiplier(.20f);
+    DirtStep=LoadObject<USoundWave>(nullptr,TEXT("/Game/Audio/Field/S_StepDirt.S_StepDirt"));
+    WoodStep=LoadObject<USoundWave>(nullptr,TEXT("/Game/Audio/Field/S_StepWood.S_StepWood"));
     GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
     GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -48,15 +55,31 @@ ACLReedCharacter::ACLReedCharacter()
 void ACLReedCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    if(UBlendSpace* Locomotion=LoadObject<UBlendSpace>(nullptr,TEXT("/Game/Mannequin/Animations/ThirdPerson_IdleRun_2D.ThirdPerson_IdleRun_2D")))
+    LastStepPosition=GetActorLocation();
+    if(UBlendSpace* Locomotion=LoadObject<UBlendSpace>(nullptr,TEXT("/Game/Art/Animations/BS_Reed_FieldLocomotion.BS_Reed_FieldLocomotion")))
         GetMesh()->PlayAnimation(Locomotion,true);
 }
 
 void ACLReedCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+    AnimationSpeed=FMath::FInterpTo(AnimationSpeed,GetVelocity().Size2D(),DeltaSeconds,8.f);
     if (UAnimSingleNodeInstance* Anim = GetMesh()->GetSingleNodeInstance())
-        Anim->SetBlendSpacePosition(FVector(GetVelocity().Size2D(), 0, 0));
+        Anim->SetBlendSpacePosition(FVector(AnimationSpeed, 0, 0));
+    const float Distance=FVector::Dist2D(GetActorLocation(),LastStepPosition);
+    LastStepPosition=GetActorLocation();
+    if(Distance<100.f && GetCharacterMovement()->IsMovingOnGround() && GetVelocity().Size2D()>15.f)
+    {
+        StepDistance+=Distance;
+        if(StepDistance>=78.f)
+        {
+            StepDistance=FMath::Fmod(StepDistance,78.f);
+            Footsteps->SetSound(GetActorLocation().X>7000?DirtStep:WoodStep);
+            Footsteps->SetPitchMultiplier((FootstepCount++%2)==0?.96f:1.04f);
+            Footsteps->Play();
+        }
+    }
+    else StepDistance=0;
 }
 
 void ACLReedCharacter::SetupPlayerInputComponent(UInputComponent* Input)

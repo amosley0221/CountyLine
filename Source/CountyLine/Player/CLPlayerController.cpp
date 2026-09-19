@@ -19,6 +19,8 @@
 #include "Engine/Engine.h"
 #include "Components/InputComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Camera/CameraActor.h"
+#include "Camera/CameraComponent.h"
 
 void ACLPlayerController::BeginPlay()
 {
@@ -44,6 +46,8 @@ void ACLPlayerController::BeginPlay()
 
 void ACLPlayerController::EndPlay(const EEndPlayReason::Type Reason)
 {
+    EndInspection();
+    if(InspectionCamera) InspectionCamera->Destroy();
     if(GEngine && GEngine->GameViewport)
     {
         if(Book.IsValid()) GEngine->GameViewport->RemoveViewportWidgetContent(Book.ToSharedRef());
@@ -133,11 +137,13 @@ void ACLPlayerController::ShowBook(bool bReportCover,bool bPause,bool bConversat
     if(IsBookOpen() || !GEngine || !GEngine->GameViewport) return;
     if(ACharacter* C=Cast<ACharacter>(GetPawn())) C->GetCharacterMovement()->StopMovementImmediately();
     SetIgnoreMoveInput(true);SetIgnoreLookInput(true);
+    if(FieldAction>=1 && FieldAction<=3 && IsInField()) BeginInspection(FieldAction);
     Book=SNew(SCLCountyBook).Owner(this).ReportCover(bReportCover).Pause(bPause).Conversation(bConversation).FieldAction(FieldAction);
     GEngine->GameViewport->AddViewportWidgetContent(Book.ToSharedRef(),10);
     bShowMouseCursor=true;
     FInputModeUIOnly Mode;Mode.SetWidgetToFocus(Book->InitialFocus());Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);SetInputMode(Mode);
-    SetPause(true);
+    SetPause(!IsInspecting());
+    if(HUD.IsValid()) HUD->SetVisibility(EVisibility::Hidden);
     FSlateApplication::Get().SetAllUserFocus(Book->InitialFocus(),EFocusCause::SetDirectly);
 }
 
@@ -146,6 +152,8 @@ void ACLPlayerController::CloseBook()
     if(!Book.IsValid()) return;
     if(GEngine && GEngine->GameViewport) GEngine->GameViewport->RemoveViewportWidgetContent(Book.ToSharedRef());
     Book.Reset();SetPause(false);
+    EndInspection();
+    if(HUD.IsValid()) HUD->SetVisibility(EVisibility::HitTestInvisible);
     ResetIgnoreMoveInput();ResetIgnoreLookInput();bShowMouseCursor=false;
     SetInputMode(FInputModeGameOnly());
     FSlateApplication::Get().SetAllUserFocusToGameViewport();
@@ -177,4 +185,49 @@ void ACLPlayerController::TravelToBend(bool bOutbound)
     if(!GetPawn()) return;
     GetPawn()->SetActorLocation(bOutbound?FVector(8800,-700,100):FVector(-350,-180,100),false,nullptr,ETeleportType::TeleportPhysics);
     SetControlRotation(bOutbound?FRotator(-10,45,0):FRotator(-10,0,0));
+    if(Bend.IsValid()) Bend->SetFieldActive(bOutbound);
+}
+
+void ACLPlayerController::BeginInspection(int32 Action)
+{
+    if(!GetPawn() || !Bend.IsValid()) return;
+    if(!InspectionCamera) InspectionCamera=GetWorld()->SpawnActor<ACameraActor>();
+    if(!InspectionCamera) return;
+    InspectionAction=Action;InspectionOrbit=0;InspectionZoom=1;
+    bPawnWasHidden=GetPawn()->IsHidden();GetPawn()->SetActorHiddenInGame(true);
+    Bend->SetWitnessSpeaking(Action==1);
+    UpdateInspectionCamera();
+    SetViewTarget(InspectionCamera);
+}
+
+void ACLPlayerController::AdjustInspection(float Orbit,float Zoom)
+{
+    if(!IsInspecting()) return;
+    InspectionOrbit=FMath::Clamp(InspectionOrbit+Orbit,-25.f,25.f);
+    InspectionZoom=FMath::Clamp(InspectionZoom+Zoom,.8f,1.25f);
+    UpdateInspectionCamera();
+}
+
+void ACLPlayerController::UpdateInspectionCamera()
+{
+    if(!IsInspecting() || !Bend.IsValid() || !InspectionCamera) return;
+    FVector Focus=Bend->Target(InspectionAction);
+    float Radius=115,Height=65;
+    if(InspectionAction==1) {Focus.Z+=42;Radius=225;Height=15;}
+    if(InspectionAction==3) {Focus+=FVector(100,245,-60);Radius=340;Height=300;}
+    const float Angle=FMath::DegreesToRadians(-90.f+InspectionOrbit);
+    const FVector Position=Focus+FVector(FMath::Cos(Angle)*Radius,FMath::Sin(Angle)*Radius,Height)*InspectionZoom;
+    const FRotator Facing=(Focus-Position).Rotation();
+    // Leave clear space for the right-hand notebook without hiding the evidence.
+    const FVector Aim=Focus+FRotationMatrix(Facing).GetUnitAxis(EAxis::Y)*Radius*InspectionZoom*.23f;
+    InspectionCamera->SetActorLocationAndRotation(Position,(Aim-Position).Rotation());
+    InspectionCamera->GetCameraComponent()->SetFieldOfView(50);
+}
+
+void ACLPlayerController::EndInspection()
+{
+    if(!IsInspecting()) return;
+    if(GetPawn()) {GetPawn()->SetActorHiddenInGame(bPawnWasHidden);SetViewTarget(GetPawn());}
+    if(Bend.IsValid()) Bend->SetWitnessSpeaking(false);
+    InspectionAction=-1;
 }

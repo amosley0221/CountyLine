@@ -24,7 +24,7 @@ class SCLBookButton : public SButton
 public:
     virtual FReply OnAnalogValueChanged(const FGeometry& Geometry,const FAnalogInputEvent& Event) override
     {
-        return (Event.GetKey()==EKeys::Gamepad_LeftY || Event.GetKey()==EKeys::Gamepad_LeftX)?FReply::Unhandled():SButton::OnAnalogValueChanged(Geometry,Event);
+        return (Event.GetKey()==EKeys::Gamepad_LeftY || Event.GetKey()==EKeys::Gamepad_LeftX || Event.GetKey()==EKeys::Gamepad_RightX || Event.GetKey()==EKeys::Gamepad_RightY)?FReply::Unhandled():SButton::OnAnalogValueChanged(Geometry,Event);
     }
 };
 
@@ -121,6 +121,18 @@ void SCLCountyBook::Construct(const FArguments& Args)
     bPause = Args._Pause;
     bConversation = Args._Conversation;
     FieldAction = Args._FieldAction;
+    if(Owner.IsValid() && Owner->IsInspecting())
+    {
+        ChildSlot
+        [SNew(SOverlay)
+            +SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Center).Padding(24)
+            [SNew(SScaleBox).Stretch(EStretch::ScaleToFit)
+                [SNew(SBox).WidthOverride(450).HeightOverride(800)
+                    [SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+                        .BorderBackgroundColor(CLPaper::Cream).Padding(26)
+                        [SAssignNew(Page,SVerticalBox)]]]]];
+        Rebuild();return;
+    }
     ChildSlot
     [
         SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(0.015f,0.012f,0.008f,0.70f)).Padding(28)
@@ -151,9 +163,10 @@ void SCLCountyBook::Rebuild()
     Page->ClearChildren();
     if(FieldAction>=0)
     {
+        const bool bInspect=Owner->IsInspecting();
         Line(TEXT("BEND LATERAL / FIELD STUDY"),18,true);
         const TCHAR* Titles[]={TEXT("Back to Pecos Bend"),TEXT("Salazar's account"),TEXT("A bottle by the bank"),TEXT("The ditch bank"),TEXT("The road to Bend Lateral")};
-        Line(Titles[FieldAction],40);
+        Line(Titles[FieldAction],bInspect?32:40);
         if(FieldAction==0 || FieldAction==4)
         {
             Line(TEXT("Take the road between the jail office and Bend Lateral. This study uses a short scene transition."),24);
@@ -164,10 +177,20 @@ void SCLCountyBook::Rebuild()
         {
             const TCHAR* Copy[]={TEXT(""),TEXT("SALAZAR\nI found him at the lateral. I didn't see him go into the water. Finding a man isn't the same as knowing what happened to him."),TEXT("Reed sees a bottle beside the bank. Its presence does not establish who drank from it, or how the man died."),TEXT("The irrigation channel runs beside the road. From this bank, Reed cannot establish how the man entered the water.")};
             const FName Keys[]={NAME_None,TEXT("SalazarStatement"),TEXT("BottleObserved"),TEXT("BankExamined")};
-            Line(Copy[FieldAction],26);
+            Line(Copy[FieldAction],bInspect?20:26);
             const FName Key=Keys[FieldAction];
-            Line(Report.FieldNotes.Contains(Key)?TEXT("Already entered in field notes."):TEXT("An observation, not a finding of cause."),22,true);
+            Line(Report.FieldNotes.Contains(Key)?TEXT("Already entered in field notes."):TEXT("An observation, not a finding of cause."),bInspect?18:22,true);
             Page->AddSlot().AutoHeight()[Button(TEXT("ENTER FIELD NOTE"),[this,Key]{Owner->Case()->Report.FieldNotes.AddUnique(Key);Owner->CloseBook();})];
+            if(bInspect)
+            {
+                Line(TEXT("Q / E or LB / RB: orbit\nR / F or LT / RT: zoom\nRight stick: adjust view"),16,true);
+                Page->AddSlot().AutoHeight()[SNew(SHorizontalBox)
+                    +SHorizontalBox::Slot().FillWidth(1)[Button(TEXT("< ORBIT"),[this]{Owner->AdjustInspection(-8,0);})]
+                    +SHorizontalBox::Slot().FillWidth(1)[Button(TEXT("ORBIT >"),[this]{Owner->AdjustInspection(8,0);})]];
+                Page->AddSlot().AutoHeight()[SNew(SHorizontalBox)
+                    +SHorizontalBox::Slot().FillWidth(1)[Button(TEXT("CLOSER"),[this]{Owner->AdjustInspection(0,-.1f);})]
+                    +SHorizontalBox::Slot().FillWidth(1)[Button(TEXT("FARTHER"),[this]{Owner->AdjustInspection(0,.1f);})]];
+            }
         }
         Page->AddSlot().FillHeight(1)[SNew(SSpacer)];
         Page->AddSlot().AutoHeight()[Button(TEXT("LEAVE / B"),[this]{Owner->CloseBook();})];
@@ -339,6 +362,13 @@ FReply SCLCountyBook::OnPreviewKeyDown(const FGeometry& Geometry,const FKeyEvent
     const FKey Key=Event.GetKey();
     if(Key==EKeys::Tab || Key==EKeys::Escape || Key==EKeys::Gamepad_FaceButton_Right || Key==EKeys::Gamepad_Special_Left || Key==EKeys::Gamepad_Special_Right)
     { Owner->CloseBook(); return FReply::Handled(); }
+    if(Owner->IsInspecting())
+    {
+        if(Key==EKeys::Q || Key==EKeys::Gamepad_LeftShoulder) {Owner->AdjustInspection(-8,0);return FReply::Handled();}
+        if(Key==EKeys::E || Key==EKeys::Gamepad_RightShoulder) {Owner->AdjustInspection(8,0);return FReply::Handled();}
+        if(Key==EKeys::R || Key==EKeys::Gamepad_LeftTrigger) {Owner->AdjustInspection(0,-.1f);return FReply::Handled();}
+        if(Key==EKeys::F || Key==EKeys::Gamepad_RightTrigger) {Owner->AdjustInspection(0,.1f);return FReply::Handled();}
+    }
     if(Key==EKeys::Gamepad_DPad_Down || Key==EKeys::Gamepad_DPad_Right || Key==EKeys::Down || Key==EKeys::Right)
     {MoveFocus(1);return FReply::Handled();}
     if(Key==EKeys::Gamepad_DPad_Up || Key==EKeys::Gamepad_DPad_Left || Key==EKeys::Up || Key==EKeys::Left)
@@ -361,6 +391,16 @@ FReply SCLCountyBook::OnPreviewKeyDown(const FGeometry& Geometry,const FKeyEvent
 
 FReply SCLCountyBook::OnAnalogValueChanged(const FGeometry&,const FAnalogInputEvent& Event)
 {
+    if(Owner->IsInspecting() && (Event.GetKey()==EKeys::Gamepad_RightX || Event.GetKey()==EKeys::Gamepad_RightY))
+    {
+        const float Value=Event.GetAnalogValue();
+        if(FMath::Abs(Value)>.2f)
+        {
+            const float Step=FMath::Min(FSlateApplication::Get().GetDeltaTime(),.05f)*Value;
+            Owner->AdjustInspection(Event.GetKey()==EKeys::Gamepad_RightX?Step*40:0,Event.GetKey()==EKeys::Gamepad_RightY?-Step*.4f:0);
+        }
+        return FReply::Handled();
+    }
     const bool bVertical=Event.GetKey()==EKeys::Gamepad_LeftY;
     if(!bVertical && Event.GetKey()!=EKeys::Gamepad_LeftX) return FReply::Unhandled();
     double& NextNavigation=bVertical?NextAnalogNavigation:NextHorizontalNavigation;

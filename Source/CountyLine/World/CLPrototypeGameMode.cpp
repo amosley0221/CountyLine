@@ -16,6 +16,9 @@
 #include "TimerManager.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Input/Events.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundWave.h"
+#include "Animation/AnimSingleNodeInstance.h"
 
 ACLPrototypeGameMode::ACLPrototypeGameMode()
 {
@@ -70,6 +73,13 @@ void ACLPrototypeGameMode::RunSmokeTest()
         for(int32 I=0;I<Reed->GetMesh()->GetNumMaterials();++I) bReedMaterials &= Reed->GetMesh()->GetMaterial(I)!=nullptr;
         Check(bReedMaterials,TEXT("Reed has all authored garment and skin materials"));
         Check(Reed->GetMesh()->GetSingleNodeInstance()!=nullptr,TEXT("Locomotion animation instance loaded"));
+        // Evaluate bones even in -nullrhi, where visibility-based ticking can
+        // leave sockets at their reference pose and conceal a bad animation scale.
+        Reed->GetMesh()->TickAnimation(0.f,false);
+        Reed->GetMesh()->RefreshBoneTransforms();
+        const float PosedHeight=Reed->GetMesh()->GetSocketLocation(TEXT("head")).Z-Reed->GetActorLocation().Z;
+        Check(PosedHeight>55.f && PosedHeight<110.f,TEXT("Animated Reed pose remains at human scale"));
+        Check(Reed->GetFootstepCount()>0 && Reed->Footsteps->Sound!=nullptr,TEXT("Walking schedules surface footsteps"));
         Check(Reed->GetCharacterMovement()->IsMovingOnGround(),TEXT("Character grounded on office floor"));
         const FVector Initial=SmokeStart;
         FHitResult Hit;
@@ -146,9 +156,25 @@ void ACLPrototypeGameMode::RunSmokeTest()
             }
             Check(LoadedArt==6,TEXT("All six authored landscape meshes are available"));
             Check(bWaterAligned,TEXT("Imported channel aligns with the gameplay bank"));
+            const USoundWave* Wind=Cast<USoundWave>(Bend->WindAudio->Sound);
+            const USoundWave* Water=Cast<USoundWave>(Bend->WaterAudio->Sound);
+            const USoundWave* Birds=Cast<USoundWave>(Bend->BirdsAudio->Sound);
+            Check(Bend->IsFieldAudioActive() && Wind && Wind->bLooping && Water && Water->bLooping && Birds && Birds->bLooping,TEXT("Field travel enables three authored ambience loops"));
+            Check(Bend->WaterAudio->bOverrideAttenuation && Bend->WaterAudio->AttenuationOverrides.bSpatialize,TEXT("Water sound is spatialized along the channel"));
         }
-        PC->ShowBook(false,false,false,1);Press(EKeys::Gamepad_FaceButton_Right);
+        PC->ShowBook(false,false,false,1);
+        Check(PC->IsInspecting() && !UGameplayStatics::IsGamePaused(this) && Bend && Bend->Salazar->GetSingleNodeInstance()->GetCurrentAsset()->GetName()==TEXT("A_SalazarSpeaking"),TEXT("Witness conversation keeps scene live and plays gesture motion"));
+        Press(EKeys::Gamepad_FaceButton_Right);
         Check(PC->Case()->Report.FieldNotes.IsEmpty(),TEXT("Canceling witness interaction awards no evidence"));
+        PC->ShowBook(false,false,false,2);
+        const FVector BeforeOrbit=PC->GetViewTarget()->GetActorLocation();
+        Press(EKeys::Gamepad_RightShoulder);
+        Check(PC->IsInspecting() && PC->IsMoveInputIgnored() && Reed->IsHidden() && !BeforeOrbit.Equals(PC->GetViewTarget()->GetActorLocation()),TEXT("Evidence close-up accepts controller orbit with movement locked"));
+        const FVector BeforeZoom=PC->GetViewTarget()->GetActorLocation();
+        Press(EKeys::Gamepad_LeftTrigger);
+        Check(!BeforeZoom.Equals(PC->GetViewTarget()->GetActorLocation()),TEXT("Controller trigger adjusts evidence zoom"));
+        Press(EKeys::Gamepad_FaceButton_Right);
+        Check(!PC->IsInspecting() && PC->GetViewTarget()==Reed && !Reed->IsHidden() && !PC->IsMoveInputIgnored() && PC->Case()->Report.FieldNotes.IsEmpty(),TEXT("Cancel restores third person without awarding evidence"));
         for(int32 I=1;I<=3;++I)
         {
             PC->ShowBook(false,false,false,I);Press(EKeys::Gamepad_FaceButton_Bottom);
@@ -159,6 +185,7 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Check(!PC->IsAtDesk(),TEXT("Field investigation cannot access the office save station"));
         PC->ShowBook(false,false,false,0);Press(EKeys::Gamepad_FaceButton_Bottom);
         Check(!PC->IsInField() && PC->Case()->Report.FieldNotes.Num()==3 && !PC->IsBookOpen(),TEXT("Return to office preserves all field notes"));
+        Check(Bend && !Bend->IsFieldAudioActive(),TEXT("Return to office disables outdoor ambience"));
     }
     UE_LOG(LogTemp,Display,TEXT("CL_SMOKE_RESULT=%s"),Passed?TEXT("PASS"):TEXT("FAIL"));
     FPlatformMisc::RequestExitWithStatus(false,Passed?0:1);

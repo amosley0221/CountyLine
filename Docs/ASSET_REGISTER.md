@@ -1,5 +1,14 @@
 # Prototype asset register
 
+## Original field motion and sound
+
+`Content/Art/Animations` contains original breathing-idle and witness-gesture clips
+on the existing Epic rig, plus a locomotion blend space retaining Epic movement
+samples. `Content/Audio/Field` contains original synthesized wind, water, birds
+and wood/dirt footsteps. Editable sources and authoring scripts are in
+`SourceAssets/Authored/Motion`, `SourceAssets/Authored/Audio` and `Scripts`.
+See `Docs/FIELD_IMMERSION.md` for reproduction and presentation controls.
+
 ## Original visual-pass assets
 
 `Content/Art` and `SourceAssets/Authored` contain the original Bend Lateral scenery,
