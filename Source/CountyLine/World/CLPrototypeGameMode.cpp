@@ -1,5 +1,6 @@
 #include "World/CLPrototypeGameMode.h"
 #include "World/CLJailOffice.h"
+#include "World/CLBendLateral.h"
 #include "Player/CLReedCharacter.h"
 #include "Player/CLPlayerController.h"
 #include "Paper/CLCaseState.h"
@@ -116,6 +117,25 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Press(EKeys::Gamepad_FaceButton_Right);
         Check(!PC->IsBookOpen() && !PC->IsMoveInputIgnored(),TEXT("Controller B returns to gameplay"));
         Check(!PC->Case()->IsCurrentStateSaved(),TEXT("Submitting a report never implies it was saved"));
+        const TArray<FName> Carbon=PC->Case()->Report.IncludedFacts;
+        PC->ShowBook(false,false,false,4);
+        Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(PC->IsInField() && !PC->IsBookOpen() && !PC->IsMoveInputIgnored(),TEXT("Controller travel enters Bend Lateral and restores movement"));
+        ACLBendLateral* Bend=nullptr;
+        for(TActorIterator<ACLBendLateral> It(GetWorld());It;++It) {Bend=*It;break;}
+        Check(Bend && Bend->Markers.Num()==4 && Bend->Salazar->GetSingleNodeInstance(),TEXT("Bend Lateral has interaction targets and animated witness"));
+        PC->ShowBook(false,false,false,1);Press(EKeys::Gamepad_FaceButton_Right);
+        Check(PC->Case()->Report.FieldNotes.IsEmpty(),TEXT("Canceling witness interaction awards no evidence"));
+        for(int32 I=1;I<=3;++I)
+        {
+            PC->ShowBook(false,false,false,I);Press(EKeys::Gamepad_FaceButton_Bottom);
+            PC->ShowBook(false,false,false,I);Press(EKeys::Gamepad_FaceButton_Bottom);
+        }
+        Check(PC->Case()->Report.FieldNotes.Num()==3,TEXT("Controller records three unique field notes without duplicates"));
+        Check(PC->Case()->Report.IncludedFacts==Carbon,TEXT("Investigation cannot rewrite an existing carbon"));
+        Check(!PC->IsAtDesk(),TEXT("Field investigation cannot access the office save station"));
+        PC->ShowBook(false,false,false,0);Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(!PC->IsInField() && PC->Case()->Report.FieldNotes.Num()==3 && !PC->IsBookOpen(),TEXT("Return to office preserves all field notes"));
     }
     UE_LOG(LogTemp,Display,TEXT("CL_SMOKE_RESULT=%s"),Passed?TEXT("PASS"):TEXT("FAIL"));
     FPlatformMisc::RequestExitWithStatus(false,Passed?0:1);

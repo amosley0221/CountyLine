@@ -18,7 +18,10 @@ public:
     bool IsAtDesk() const;
     void Interact();
     void ToggleBook();
-    void ShowBook(bool bReportCover = false, bool bPause = false, bool bConversation = false);
+    void ShowBook(bool bReportCover = false, bool bPause = false, bool bConversation = false, int32 FieldAction = -1);
+    int32 ReachableFieldAction() const;
+    void TravelToBend(bool bOutbound);
+    bool IsInField() const;
     void CloseBook();
     bool IsBookOpen() const { return Book.IsValid(); }
     class UCLCaseState* Case() const;
@@ -26,6 +29,7 @@ public:
 private:
     void PauseMenu();
     TWeakObjectPtr<class ACLJailOffice> Office;
+    TWeakObjectPtr<class ACLBendLateral> Bend;
     TSharedPtr<class SWidget> HUD;
     TSharedPtr<class SCLCountyBook> Book;
     bool bPromptAvailable = false;

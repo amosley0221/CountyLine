@@ -18,9 +18,19 @@ bool FCLReportState::Submit(ECLReportStatus NewStatus)
     OmittedFacts.Reset();
     (bIncludeFinder ? IncludedFacts : OmittedFacts).Add(TEXT("SalazarFoundBody"));
     (bIncludeBottle ? IncludedFacts : OmittedFacts).Add(TEXT("BottleReported"));
+    for(FName Note:FieldNotes) (bIncludeFieldNotes?IncludedFacts:OmittedFacts).AddUnique(Note);
+    CarbonClosingLine=ClosingText(ClosingLine);
     Status = NewStatus;
     CourthouseDelta = Status == ECLReportStatus::Signed ? 2 : -3;
     return true;
+}
+
+FString FCLReportState::ClosingText(int32 Index) const
+{
+    if(Index<0 || Index>=3) return FString();
+    if(Status!=ECLReportStatus::Draft) return Index==ClosingLine && !CarbonClosingLine.IsEmpty()?CarbonClosingLine:FString(UCLCaseState::ClosingLines[Index]);
+    if(Index==2 && FieldNotes.Contains(TEXT("SalazarStatement"))) return TEXT("The finder was heard; the cause of death remains unestablished.");
+    return UCLCaseState::ClosingLines[Index];
 }
 
 void UCLCaseState::Initialize(FSubsystemCollectionBase& Collection)

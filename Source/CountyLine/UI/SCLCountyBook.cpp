@@ -120,6 +120,7 @@ void SCLCountyBook::Construct(const FArguments& Args)
     bCover = Args._ReportCover;
     bPause = Args._Pause;
     bConversation = Args._Conversation;
+    FieldAction = Args._FieldAction;
     ChildSlot
     [
         SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(0.015f,0.012f,0.008f,0.70f)).Padding(28)
@@ -148,6 +149,30 @@ void SCLCountyBook::Rebuild()
     ControlActions.Reset();
     Scroll.Reset();
     Page->ClearChildren();
+    if(FieldAction>=0)
+    {
+        Line(TEXT("BEND LATERAL / FIELD STUDY"),18,true);
+        const TCHAR* Titles[]={TEXT("Back to Pecos Bend"),TEXT("Salazar's account"),TEXT("A bottle by the bank"),TEXT("The ditch bank"),TEXT("The road to Bend Lateral")};
+        Line(Titles[FieldAction],40);
+        if(FieldAction==0 || FieldAction==4)
+        {
+            Line(TEXT("Take the road between the jail office and Bend Lateral. This study uses a short scene transition."),24);
+            Line(TEXT("Field notes stay in your book. Write the date at the office desk to save them."),22,true);
+            Page->AddSlot().AutoHeight()[Button(TEXT("TAKE THE ROAD"),[this]{Owner->TravelToBend(FieldAction==4);})];
+        }
+        else
+        {
+            const TCHAR* Copy[]={TEXT(""),TEXT("SALAZAR\nI found him at the lateral. I didn't see him go into the water. Finding a man isn't the same as knowing what happened to him."),TEXT("Reed sees a bottle beside the bank. Its presence does not establish who drank from it, or how the man died."),TEXT("The irrigation channel runs beside the road. From this bank, Reed cannot establish how the man entered the water.")};
+            const FName Keys[]={NAME_None,TEXT("SalazarStatement"),TEXT("BottleObserved"),TEXT("BankExamined")};
+            Line(Copy[FieldAction],26);
+            const FName Key=Keys[FieldAction];
+            Line(Report.FieldNotes.Contains(Key)?TEXT("Already entered in field notes."):TEXT("An observation, not a finding of cause."),22,true);
+            Page->AddSlot().AutoHeight()[Button(TEXT("ENTER FIELD NOTE"),[this,Key]{Owner->Case()->Report.FieldNotes.AddUnique(Key);Owner->CloseBook();})];
+        }
+        Page->AddSlot().FillHeight(1)[SNew(SSpacer)];
+        Page->AddSlot().AutoHeight()[Button(TEXT("LEAVE / B"),[this]{Owner->CloseBook();})];
+        FocusFirst();return;
+    }
     if(bConversation)
     {
         Line(TEXT("JAIL OFFICE  /  DEPUTY PRUITT"),18,true);
@@ -228,6 +253,12 @@ void SCLCountyBook::Rebuild()
     {
         Line(TEXT("26-001  /  Bend Lateral"),30);
         Line(UCLCaseState::StatusText(Report.Status),19,true);
+        Line(TEXT("FIELD NOTES"),18,true);
+        if(Report.FieldNotes.IsEmpty()) Line(TEXT("No first-hand notes yet. Take the road from the office door."),20,true);
+        if(Report.FieldNotes.Contains(TEXT("SalazarStatement"))) Line(TEXT("Salazar: found the man; did not witness him entering the water."),20);
+        if(Report.FieldNotes.Contains(TEXT("BottleObserved"))) Line(TEXT("Bottle: observed beside the bank; ownership and use unestablished."),20);
+        if(Report.FieldNotes.Contains(TEXT("BankExamined"))) Line(TEXT("Bank: irrigation channel inspected; means of entry unestablished."),20);
+        if(Report.Status!=ECLReportStatus::Draft) Line(TEXT("New field notes do not change the submitted carbon."),18,true);
         if(!Report.bRead)
         {
             Line(TEXT("The unsigned report is still on the jail-office desk.\nApproach it and press E / A to read it."),24);
@@ -246,9 +277,11 @@ void SCLCountyBook::Rebuild()
                     [SNew(SBox).WidthOverride(990)[Text(Facts[I],22)]],
                     [this,I]{auto& R=Owner->Case()->Report;bool& Fact=I==0?R.bIncludeFinder:R.bIncludeBottle;Fact=!Fact;Notice.Empty();Rebuild();},bEditable)];
             }
+            if(!Report.FieldNotes.IsEmpty())
+                Page->AddSlot().AutoHeight()[Button(Report.bIncludeFieldNotes?TEXT("[x] Include available field notes"):TEXT("[ ] Omit available field notes"),[this]{auto& R=Owner->Case()->Report;R.bIncludeFieldNotes=!R.bIncludeFieldNotes;Rebuild();},bEditable)];
             Line(TEXT("CLOSING LINE  /  choose one"),18,true);
             for(int32 I=0;I<3;++I)
-                Page->AddSlot().AutoHeight().Padding(0,0,0,7)[Button(FString(Report.ClosingLine==I?TEXT("[x]  "):TEXT("[ ]  "))+UCLCaseState::ClosingLines[I],[this,I]{Owner->Case()->Report.ClosingLine=I;Notice.Empty();Rebuild();},bEditable)];
+                Page->AddSlot().AutoHeight().Padding(0,0,0,7)[Button(FString(Report.ClosingLine==I?TEXT("[x]  "):TEXT("[ ]  "))+Report.ClosingText(I),[this,I]{Owner->Case()->Report.ClosingLine=I;Notice.Empty();Rebuild();},bEditable)];
             Page->AddSlot().AutoHeight().Padding(0,14)
             [SNew(SHorizontalBox)
                 +SHorizontalBox::Slot().AutoWidth().Padding(0,0,12,0)[Button(TEXT("SIGN"),[this]{if(Owner->IsAtDesk() && Owner->Case()->Report.Submit(ECLReportStatus::Signed)) Notice=TEXT("Signed. A carbon stays with the case. Write the date to save.");Rebuild();},bEditable)]
@@ -263,7 +296,7 @@ void SCLCountyBook::Rebuild()
         Line(TEXT("What the county remembers"),30);
         Line(TEXT("COURTHOUSE"),19,true);
         Line(Report.Status==ECLReportStatus::Signed?TEXT("The clerk has my signature. The report can go upstairs."):Report.Status==ECLReportStatus::Held?TEXT("I held the report. They wanted it closed."):TEXT("An unsigned report waits on the desk."));
-        Line(TEXT("STREET"),19,true); Line(TEXT("Salazar found him. I have not heard him out."));
+        Line(TEXT("STREET"),19,true); Line(Report.FieldNotes.Contains(TEXT("SalazarStatement"))?TEXT("I heard Salazar. He did not see the man enter the water."):TEXT("Salazar found him. I have not heard him out."));
         Line(TEXT("CAPITAL"),19,true); Line(TEXT("No entry yet."));
         Line(TEXT("HOME"),19,true); Line(TEXT("A room at Lang's. The rest can wait."));
     }
@@ -271,7 +304,7 @@ void SCLCountyBook::Rebuild()
     {
         Line(TEXT("Rivas County"),30);
         Line(TEXT("County Clerk's Office  /  1927"),20,true);
-        Line(TEXT("The county map is not yet mounted in this playable study.\n\nJail office — Pecos Bend.\nBend Lateral — a name on the report."),24);
+        Line(TEXT("Jail office — Pecos Bend. Use the entrance door to take the road.\n\nBend Lateral — Salazar, a bottle and the ditch bank. The JAIL OFFICE sign marks the return route."),24);
     }
     else if(ActivePage==3)
     {
@@ -321,7 +354,7 @@ FReply SCLCountyBook::OnPreviewKeyDown(const FGeometry& Geometry,const FKeyEvent
         }
         return FReply::Handled();
     }
-    if(!bCover && !bPause && !bConversation && (Key==EKeys::Gamepad_LeftShoulder || Key==EKeys::Gamepad_RightShoulder))
+    if(!bCover && !bPause && !bConversation && FieldAction<0 && (Key==EKeys::Gamepad_LeftShoulder || Key==EKeys::Gamepad_RightShoulder))
     {ActivePage=(ActivePage+(Key==EKeys::Gamepad_LeftShoulder?4:1))%5;Rebuild();return FReply::Handled();}
     return FReply::Unhandled();
 }

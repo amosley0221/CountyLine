@@ -22,6 +22,10 @@ struct FCLReportState
     UPROPERTY() TArray<FName> IncludedFacts;
     UPROPERTY() TArray<FName> OmittedFacts;
     UPROPERTY() int32 CourthouseDelta = 0;
+    UPROPERTY() TArray<FName> FieldNotes;
+    UPROPERTY() bool bIncludeFieldNotes = true;
+    UPROPERTY() FString CarbonClosingLine;
+    FString ClosingText(int32 Index) const;
     bool Submit(ECLReportStatus NewStatus);
 };
 

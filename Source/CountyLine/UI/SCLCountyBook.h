@@ -8,7 +8,7 @@ class SVerticalBox;
 class SCLCountyBook : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS(SCLCountyBook) {} SLATE_ARGUMENT(ACLPlayerController*, Owner) SLATE_ARGUMENT(bool, ReportCover) SLATE_ARGUMENT(bool, Pause) SLATE_ARGUMENT(bool, Conversation) SLATE_END_ARGS()
+    SLATE_BEGIN_ARGS(SCLCountyBook) : _FieldAction(-1) {} SLATE_ARGUMENT(ACLPlayerController*, Owner) SLATE_ARGUMENT(bool, ReportCover) SLATE_ARGUMENT(bool, Pause) SLATE_ARGUMENT(bool, Conversation) SLATE_ARGUMENT(int32, FieldAction) SLATE_END_ARGS()
     void Construct(const FArguments& Args);
     virtual bool SupportsKeyboardFocus() const override { return true; }
     virtual FReply OnPreviewKeyDown(const FGeometry&, const FKeyEvent& Event) override;
@@ -22,6 +22,7 @@ private:
     bool bPause = false;
     bool bConversation = false;
     int32 ConversationStep = 0;
+    int32 FieldAction = -1;
     double NextAnalogNavigation = 0;
     double NextHorizontalNavigation = 0;
     FString Notice;

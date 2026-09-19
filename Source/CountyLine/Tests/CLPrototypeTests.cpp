@@ -27,6 +27,7 @@ namespace CLReportTestUtil
     // Field-by-field comparison so a failure names the field that drifted.
     static void ExpectSameReport(FAutomationTestBase& Test, const FString& Ctx, const FCLReportState& Actual, const FCLReportState& Expected)
     {
+        Test.TestTrue(Ctx + TEXT(" complete reflected state"), FCLReportState::StaticStruct()->CompareScriptStruct(&Actual,&Expected,0));
         Test.TestTrue(Ctx + TEXT(" status"), Actual.Status == Expected.Status);
         Test.TestTrue(Ctx + TEXT(" read flag"), Actual.bRead == Expected.bRead);
         Test.TestTrue(Ctx + TEXT(" Pruitt introduction flag"), Actual.bBriefedByPruitt == Expected.bBriefedByPruitt);
@@ -63,6 +64,21 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLReportTest,"CountyLine.Report.SubmissionAndC
 bool FCLReportTest::RunTest(const FString& Parameters)
 {
     using namespace CLReportTestUtil;
+
+    for(bool Include : {false,true})
+    {
+        FCLReportState Field=ReadDraft(true,true,2);
+        Field.FieldNotes={TEXT("SalazarStatement"),TEXT("BottleObserved"),TEXT("BankExamined")};
+        Field.bIncludeFieldNotes=Include;
+        TestTrue(TEXT("Field report submits"),Field.Submit(ECLReportStatus::Held));
+        TestTrue(TEXT("Discovered facts have explicit carbon disposition"),(Include?Field.IncludedFacts:Field.OmittedFacts).Contains(TEXT("SalazarStatement")));
+        TestTrue(TEXT("Heard witness changes closing text"),Field.CarbonClosingLine.Contains(TEXT("finder was heard")));
+        if(UCLPrototypeSave* Loaded=RoundTrip(*this,TEXT("Field evidence round trip"),Field,false)) ExpectSameReport(*this,TEXT("Field evidence preserved"),Loaded->Report,Field);
+        const FString Carbon=Field.CarbonClosingLine;
+        Field.FieldNotes.Reset();
+        TestEqual(TEXT("Submitted closing text remains frozen"),Field.ClosingText(2),Carbon);
+        ExpectRejected(*this,TEXT("Field report cannot be resubmitted"),Field,ECLReportStatus::Signed);
+    }
 
     // Authored closing lines and status labels.
     for (int32 Line = 0; Line < 3; ++Line)
