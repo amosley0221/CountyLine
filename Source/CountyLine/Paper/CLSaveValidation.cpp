@@ -8,6 +8,21 @@ ECLSaveRejection CLSaveValidation::Validate(const USaveGame* Save)
     if (Prototype->Version != SupportedVersion) return ECLSaveRejection::UnsupportedVersion;
     if (Prototype->Report.ClosingLine < 0 || Prototype->Report.ClosingLine >= static_cast<int32>(UE_ARRAY_COUNT(UCLCaseState::ClosingLines))) return ECLSaveRejection::InvalidClosingLine;
     if (static_cast<uint8>(Prototype->Report.Status) > static_cast<uint8>(ECLReportStatus::Held)) return ECLSaveRejection::InvalidStatus;
+    const FCLReportState& R=Prototype->Report;
+    if(static_cast<uint8>(R.FollowupLead)>static_cast<uint8>(ECLFollowupLead::Finder) ||
+       static_cast<uint8>(R.FollowupOutcome)>static_cast<uint8>(ECLFollowupOutcome::RequestInquiry)) return ECLSaveRejection::InvalidFollowup;
+    TSet<FName> Seen;
+    for(FName Fact:R.FollowupFacts)
+    {
+        if((Fact!=TEXT("BottleSealed") && Fact!=TEXT("PrintsAboveWater") && Fact!=TEXT("NoWetClothes")) || Seen.Contains(Fact)) return ECLSaveRejection::InvalidFollowup;
+        Seen.Add(Fact);
+    }
+    if(R.FollowupLead!=ECLFollowupLead::None && !R.CanPursue(R.FollowupLead)) return ECLSaveRejection::InvalidFollowup;
+    if(R.FollowupOutcome==ECLFollowupOutcome::None)
+    {
+        if(!R.SupplementFacts.IsEmpty()) return ECLSaveRejection::InvalidFollowup;
+    }
+    else if(!R.bRead || R.Status==ECLReportStatus::Draft || R.FollowupLead!=ECLFollowupLead::None || R.SupplementFacts.IsEmpty() || R.SupplementFacts!=R.FollowupFacts) return ECLSaveRejection::InvalidFollowup;
     return ECLSaveRejection::None;
 }
 
@@ -32,6 +47,7 @@ const TCHAR* CLSaveValidation::RejectionText(ECLSaveRejection Rejection)
     case ECLSaveRejection::UnsupportedVersion: return TEXT("unsupported version");
     case ECLSaveRejection::InvalidClosingLine: return TEXT("invalid closing line");
     case ECLSaveRejection::InvalidStatus: return TEXT("invalid report status");
+    case ECLSaveRejection::InvalidFollowup: return TEXT("invalid follow-up record");
     default: return TEXT("unknown");
     }
 }

@@ -113,12 +113,21 @@ FString ACLPlayerController::ObjectiveText() const
 {
     const UCLCaseState* State=Case();
     if(!State) return TEXT("Jail office");
+    if(State->Report.FollowupOutcome!=ECLFollowupOutcome::None)
+        return State->IsCurrentStateSaved()?TEXT("Follow-up saved. Read the Ledger and speak with Pruitt."):TEXT("Follow-up filed. Write the date at the desk to save.");
+    const FString Followup=State->Report.FollowupObjective();
+    if(!Followup.IsEmpty()) return Followup;
     if(IsInField()) return TEXT("Bend Lateral: speak with Salazar. Follow the fence east to inspect the bottle and bank.");
     if(State->Report.Status!=ECLReportStatus::Draft)
         return State->IsCurrentStateSaved()?TEXT("Date written. This office study is complete."):TEXT("Write the date at the desk to save your decision.");
     if(State->Report.bRead) return TEXT("Investigate Bend Lateral through the office door, or review and submit at the desk.");
     if(State->Report.bBriefedByPruitt) return TEXT("Read the cream report on the desk.");
     return TEXT("Speak with Deputy Pruitt, to the left of the desk.");
+}
+
+bool ACLPlayerController::FileFollowup(ECLFollowupOutcome Outcome)
+{
+    return IsAtDesk() && Case() && Case()->Report.FileFollowup(Outcome);
 }
 
 void ACLPlayerController::Interact()

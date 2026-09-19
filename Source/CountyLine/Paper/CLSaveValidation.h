@@ -12,12 +12,13 @@ enum class ECLSaveRejection : uint8
     NullSave,           // Missing, or not a UCLPrototypeSave.
     UnsupportedVersion,
     InvalidClosingLine,
-    InvalidStatus
+    InvalidStatus,
+    InvalidFollowup
 };
 
-// Acceptance rules for the jail prototype save slot. These mirror the rules that
-// UCLCaseState::Initialize has applied since version 1; they deliberately do not
-// judge narrative consistency (e.g. a signed report with no facts is still accepted).
+// Version 1 base-report acceptance remains unchanged (a signed report with no
+// facts is still accepted). New tagged follow-up fields default to empty in old
+// saves, and are checked for valid enum values and a coherent frozen supplement.
 namespace CLSaveValidation
 {
     constexpr int32 SupportedVersion = 1;

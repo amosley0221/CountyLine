@@ -8,6 +8,12 @@
 UENUM()
 enum class ECLReportStatus : uint8 { Draft, Signed, Held };
 
+UENUM()
+enum class ECLFollowupLead : uint8 { None, Bottle, Bank, Finder };
+
+UENUM()
+enum class ECLFollowupOutcome : uint8 { None, FileSupplement, RequestInquiry };
+
 // Small, serializable case state for the jail prototype; all UI uses this authority.
 USTRUCT()
 struct FCLReportState
@@ -25,6 +31,22 @@ struct FCLReportState
     UPROPERTY() TArray<FName> FieldNotes;
     UPROPERTY() bool bIncludeFieldNotes = true;
     UPROPERTY() FString CarbonClosingLine;
+    // Version 1 tagged saves default these fields when absent. The original
+    // carbon and courthouse delta never change when this later paper is filed.
+    UPROPERTY() ECLFollowupLead FollowupLead = ECLFollowupLead::None;
+    UPROPERTY() TArray<FName> FollowupFacts;
+    UPROPERTY() ECLFollowupOutcome FollowupOutcome = ECLFollowupOutcome::None;
+    UPROPERTY() TArray<FName> SupplementFacts;
+    bool CanPursue(ECLFollowupLead Lead) const;
+    bool Pursue(ECLFollowupLead Lead);
+    bool CanCompleteFollowup(int32 FieldAction) const;
+    bool CompleteFollowup(int32 FieldAction);
+    bool FileFollowup(ECLFollowupOutcome Outcome);
+    static FName FollowupFact(ECLFollowupLead Lead);
+    static FString FollowupTitle(ECLFollowupLead Lead);
+    static FString FollowupFinding(ECLFollowupLead Lead);
+    FString FollowupObjective() const;
+    FString FollowupConsequence() const;
     FString ClosingText(int32 Index) const;
     bool Submit(ECLReportStatus NewStatus);
 };

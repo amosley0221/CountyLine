@@ -23,6 +23,7 @@ private:
     bool bConversation = false;
     int32 ConversationStep = 0;
     int32 FieldAction = -1;
+    int32 PendingFollowup = 0;
     double NextAnalogNavigation = 0;
     double NextHorizontalNavigation = 0;
     FString Notice;
@@ -35,7 +36,7 @@ private:
     void MoveFocus(int32 Direction);
     TSharedRef<SWidget> Control(TSharedRef<SWidget> Widget, TFunction<void()> Action, bool bEnabled = true) const;
     void FocusFirst();
-    void Rebuild();
+    void Rebuild(int32 FocusOverride = -1);
     TSharedRef<SWidget> Text(const FString& Copy, int32 Size = 22, bool bMuted = false) const;
     TSharedRef<SWidget> Button(const FString& Copy, TFunction<void()> Action, bool bEnabled = true) const;
     void Line(const FString& Copy, int32 Size = 22, bool bMuted = false);

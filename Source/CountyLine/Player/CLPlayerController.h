@@ -3,6 +3,8 @@
 #include "GameFramework/PlayerController.h"
 #include "CLPlayerController.generated.h"
 
+enum class ECLFollowupOutcome : uint8;
+
 UCLASS()
 class COUNTYLINE_API ACLPlayerController : public APlayerController
 {
@@ -24,6 +26,7 @@ public:
     bool IsInField() const;
     bool IsInspecting() const { return InspectionAction>=1 && InspectionAction<=3; }
     void AdjustInspection(float Orbit, float Zoom);
+    bool FileFollowup(ECLFollowupOutcome Outcome);
     void CloseBook();
     bool IsBookOpen() const { return Book.IsValid(); }
     class UCLCaseState* Case() const;

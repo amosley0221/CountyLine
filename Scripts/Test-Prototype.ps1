@@ -8,6 +8,7 @@ $smokeLog=Join-Path $projectRoot 'Saved/Logs/PrototypeSmoke.log'
 # Every CountyLine automation test that must run and succeed. Add new tests here.
 $expectedTests=@(
     'CountyLine.Interaction.RangeAndView',
+    'CountyLine.Followup.ChoicesAndPersistence',
     'CountyLine.Report.SaveRoundTrip',
     'CountyLine.Report.SubmissionAndCarbon',
     'CountyLine.Save.Validation.Acceptance',

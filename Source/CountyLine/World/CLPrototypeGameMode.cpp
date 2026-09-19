@@ -186,7 +186,35 @@ void ACLPrototypeGameMode::RunSmokeTest()
         PC->ShowBook(false,false,false,0);Press(EKeys::Gamepad_FaceButton_Bottom);
         Check(!PC->IsInField() && PC->Case()->Report.FieldNotes.Num()==3 && !PC->IsBookOpen(),TEXT("Return to office preserves all field notes"));
         Check(Bend && !Bend->IsFieldAudioActive(),TEXT("Return to office disables outdoor ambience"));
+        Reed->SetActorLocation(FVector(-20,-110,92));
+        PC->ShowBook();
+        for(int32 I=0;I<6;++I) Press(EKeys::Gamepad_DPad_Down);
+        Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(PC->Case()->Report.FollowupLead==ECLFollowupLead::Bottle,TEXT("Controller selects an unlocked follow-up in Cases"));
+        Press(EKeys::Gamepad_FaceButton_Right);
+        PC->TravelToBend(true);
+        PC->ShowBook(false,false,false,2);Press(EKeys::Gamepad_FaceButton_Right);
+        Check(PC->Case()->Report.FollowupFacts.IsEmpty() && PC->Case()->Report.FollowupLead==ECLFollowupLead::Bottle,TEXT("Cancel leaves the lead pending without awarding a finding"));
+        PC->ShowBook(false,false,false,2);Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(PC->Case()->Report.FollowupFacts.Contains(TEXT("BottleSealed")) && !PC->IsInspecting(),TEXT("Field inspection records the selected follow-up finding"));
+        Check(!PC->FileFollowup(ECLFollowupOutcome::RequestInquiry),TEXT("Follow-up filing is rejected away from the desk"));
+        PC->TravelToBend(false);Reed->SetActorLocation(FVector(-20,-110,92));
+        PC->ShowBook();
+        for(int32 I=0;I<9;++I) Press(EKeys::Gamepad_DPad_Down);
+        Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(PC->Case()->Report.FollowupOutcome==ECLFollowupOutcome::None,TEXT("Consequence preview does not file the decision"));
+        Press(EKeys::Gamepad_DPad_Up);Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(PC->Case()->Report.FollowupOutcome==ECLFollowupOutcome::RequestInquiry && PC->Case()->Report.SupplementFacts.Contains(TEXT("BottleSealed")),TEXT("Controller confirms a frozen follow-up record at the desk"));
+        Check(PC->Case()->Report.IncludedFacts==Carbon && !PC->Case()->IsCurrentStateSaved(),TEXT("Follow-up preserves carbon and remains unsaved until the date is written"));
+        Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(!PC->IsBookOpen(),TEXT("Filing returns focus to Close rather than the save button"));
     }
     UE_LOG(LogTemp,Display,TEXT("CL_SMOKE_RESULT=%s"),Passed?TEXT("PASS"):TEXT("FAIL"));
+    // Optional visual review fixture. CL smoke runs already bypass the player's
+    // save slot and block WriteDate; keeping this one open cannot overwrite it.
+    if(Passed && FParse::Param(FCommandLine::Get(),TEXT("CLSmokeKeepOpen")))
+    {
+        bSmoke=false;PC->ShowBook();return;
+    }
     FPlatformMisc::RequestExitWithStatus(false,Passed?0:1);
 }

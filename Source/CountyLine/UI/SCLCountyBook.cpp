@@ -150,12 +150,12 @@ void SCLCountyBook::Construct(const FArguments& Args)
     Rebuild();
 }
 
-void SCLCountyBook::Rebuild()
+void SCLCountyBook::Rebuild(int32 FocusOverride)
 {
     if (!Owner.IsValid() || !Owner->Case()) return;
     UCLCaseState* State=Owner->Case();
     auto& Report=State->Report;
-    RestoreFocusIndex=FocusedIndex();
+    RestoreFocusIndex=FocusOverride>=0?FocusOverride:FocusedIndex();
     FirstButton.Reset();
     Controls.Reset();
     ControlActions.Reset();
@@ -175,12 +175,13 @@ void SCLCountyBook::Rebuild()
         }
         else
         {
+            const bool bFollowup=Report.CanCompleteFollowup(FieldAction);
             const TCHAR* Copy[]={TEXT(""),TEXT("SALAZAR\nI found him at the lateral. I didn't see him go into the water. Finding a man isn't the same as knowing what happened to him."),TEXT("Reed sees a bottle beside the bank. Its presence does not establish who drank from it, or how the man died."),TEXT("The irrigation channel runs beside the road. From this bank, Reed cannot establish how the man entered the water.")};
             const FName Keys[]={NAME_None,TEXT("SalazarStatement"),TEXT("BottleObserved"),TEXT("BankExamined")};
-            Line(Copy[FieldAction],bInspect?20:26);
+            Line(bFollowup?FCLReportState::FollowupFinding(Report.FollowupLead):FString(Copy[FieldAction]),bInspect?20:26);
             const FName Key=Keys[FieldAction];
-            Line(Report.FieldNotes.Contains(Key)?TEXT("Already entered in field notes."):TEXT("An observation, not a finding of cause."),bInspect?18:22,true);
-            Page->AddSlot().AutoHeight()[Button(TEXT("ENTER FIELD NOTE"),[this,Key]{Owner->Case()->Report.FieldNotes.AddUnique(Key);Owner->CloseBook();})];
+            Line(bFollowup?TEXT("Follow-up observation. Cause of death remains unestablished."):Report.FieldNotes.Contains(Key)?TEXT("Already entered in field notes."):TEXT("An observation, not a finding of cause."),bInspect?18:22,true);
+            Page->AddSlot().AutoHeight()[Button(bFollowup?TEXT("RECORD FOLLOW-UP"):TEXT("ENTER FIELD NOTE"),[this,Key,bFollowup]{auto& R=Owner->Case()->Report;if(bFollowup) R.CompleteFollowup(FieldAction);else R.FieldNotes.AddUnique(Key);Owner->CloseBook();})];
             if(bInspect)
             {
                 Line(TEXT("Q / E or LB / RB: orbit\nR / F or LT / RT: zoom\nRight stick: adjust view"),16,true);
@@ -200,7 +201,12 @@ void SCLCountyBook::Rebuild()
     {
         Line(TEXT("JAIL OFFICE  /  DEPUTY PRUITT"),18,true);
         Line(TEXT("Before the ink dries"),42);
-        if(Report.Status!=ECLReportStatus::Draft)
+        if(Report.FollowupOutcome!=ECLFollowupOutcome::None)
+        {
+            Line(Report.FollowupOutcome==ECLFollowupOutcome::RequestInquiry?TEXT("PRUITT\nI'll carry the inquiry, Sheriff. We'll keep what you observed separate from what anyone supposes. We still need a cause of death."):TEXT("PRUITT\nThe supplement is with the clerk. No new inquiry order, then. Those questions will stay on the paper unless we take them further."),26);
+            Line(State->IsCurrentStateSaved()?TEXT("The date is written. The original carbon and the follow-up are both kept."):TEXT("Write the date before you leave. The new entry is not saved yet."),22,true);
+        }
+        else if(Report.Status!=ECLReportStatus::Draft)
         {
             Line(Report.Status==ECLReportStatus::Signed?TEXT("PRUITT\nYour signature is on it, Sheriff. The carbon stays with the case."):TEXT("PRUITT\nHeld for inquiry, then. We'll need more than what's on that sheet."),26);
             Line(State->IsCurrentStateSaved()?TEXT("The date is written. The book will keep it."):TEXT("Write the date at the desk before you go."),24,true);
@@ -310,16 +316,58 @@ void SCLCountyBook::Rebuild()
                 +SHorizontalBox::Slot().AutoWidth().Padding(0,0,12,0)[Button(TEXT("SIGN"),[this]{if(Owner->IsAtDesk() && Owner->Case()->Report.Submit(ECLReportStatus::Signed)) Notice=TEXT("Signed. A carbon stays with the case. Write the date to save.");Rebuild();},bEditable)]
                 +SHorizontalBox::Slot().AutoWidth()[Button(TEXT("HOLD"),[this]{if(Owner->IsAtDesk() && Owner->Case()->Report.Submit(ECLReportStatus::Held)) Notice=TEXT("Held for inquiry. The clerk will notice. Write the date to save.");Rebuild();},bEditable)]];
             if(Report.Status!=ECLReportStatus::Draft)
-                Line(FString::Printf(TEXT("Carbon copy: %d fact(s) included, %d omitted.\nAmendment awaits further evidence."),Report.IncludedFacts.Num(),Report.OmittedFacts.Num()),19,true);
+                Line(FString::Printf(TEXT("Carbon copy: %d fact(s) included, %d omitted.\nThe original carbon remains unchanged. Follow-up is entered separately below."),Report.IncludedFacts.Num(),Report.OmittedFacts.Num()),19,true);
             else if(!Owner->IsAtDesk()) Line(TEXT("Return to the desk to change or submit this report."),20,true);
+        }
+        Line(TEXT("FOLLOW-UP / BEND LATERAL"),24);
+        for(ECLFollowupLead Lead:{ECLFollowupLead::Bottle,ECLFollowupLead::Bank,ECLFollowupLead::Finder})
+        {
+            const bool bKnown=Report.FollowupFacts.Contains(FCLReportState::FollowupFact(Lead));
+            if(bKnown) Line(FCLReportState::FollowupFinding(Lead),20);
+            else if(Report.FollowupOutcome==ECLFollowupOutcome::None)
+            {
+                const bool bAvailable=Report.CanPursue(Lead);
+                const FString Prefix=Report.FollowupLead==Lead?TEXT("[PURSUING] "):bAvailable?TEXT("FOLLOW UP: "):!Report.bRead?TEXT("[READ REPORT FIRST] "):TEXT("[NEEDS FIELD NOTE] ");
+                Page->AddSlot().AutoHeight()[Button(Prefix+FCLReportState::FollowupTitle(Lead),[this,Lead]{Owner->Case()->Report.Pursue(Lead);Notice=TEXT("Lead entered. Return to the matching evidence or witness at Bend Lateral.");Rebuild();},bAvailable && Report.FollowupLead!=Lead)];
+            }
+        }
+        if(Report.FollowupLead!=ECLFollowupLead::None)
+        {
+            Line(Report.FollowupObjective(),20,true);
+            Page->AddSlot().AutoHeight()[Button(TEXT("SET THIS LEAD ASIDE"),[this]{Owner->Case()->Report.FollowupLead=ECLFollowupLead::None;Notice=TEXT("Lead set aside. Completed observations remain in the Book.");Rebuild();})];
+        }
+        if(Report.FollowupOutcome!=ECLFollowupOutcome::None)
+        {
+            Line(Report.FollowupOutcome==ECLFollowupOutcome::RequestInquiry?TEXT("FILED / FURTHER INQUIRY REQUESTED"):TEXT("FILED / SUPPLEMENT ATTACHED"),22);
+            Line(Report.FollowupConsequence(),20);
+            Line(TEXT("This supplemental record is locked. Write the date to save it with the original carbon."),18,true);
+        }
+        else if(!Report.FollowupFacts.IsEmpty())
+        {
+            const bool bCanFile=Owner->IsAtDesk() && Report.Status!=ECLReportStatus::Draft && Report.FollowupLead==ECLFollowupLead::None;
+            Line(TEXT("Attach the observations and leave the report's disposition standing, or request further inquiry and give Pruitt the unfinished questions. Either choice files all completed follow-up observations; the original carbon stays intact."),20);
+            if(!bCanFile) Line(TEXT("Submit the original report and return to the desk. Finish or set aside the active lead before filing."),18,true);
+            if(PendingFollowup==0)
+            {
+                Page->AddSlot().AutoHeight()[Button(TEXT("ATTACH A SUPPLEMENT"),[this]{PendingFollowup=1;Notice.Empty();Rebuild();},bCanFile)];
+                Page->AddSlot().AutoHeight()[Button(TEXT("REQUEST FURTHER INQUIRY"),[this]{PendingFollowup=2;Notice.Empty();Rebuild();},bCanFile)];
+            }
+            else
+            {
+                Line(PendingFollowup==1?TEXT("The clerk will attach the observations. Pruitt receives no new inquiry order. This decision locks the follow-up record."):TEXT("The clerk will enter a request for further inquiry. Pruitt takes responsibility for the unanswered questions. This decision locks the follow-up record."),20,true);
+                Page->AddSlot().AutoHeight()[Button(TEXT("CONFIRM FOLLOW-UP"),[this]{if(Owner->FileFollowup(static_cast<ECLFollowupOutcome>(PendingFollowup))) Notice=TEXT("Follow-up filed. Write the date to save; read the Ledger for the consequence.");PendingFollowup=0;Rebuild(0);},bCanFile)];
+                Page->AddSlot().AutoHeight()[Button(TEXT("KEEP CONSIDERING"),[this]{PendingFollowup=0;Rebuild();})];
+            }
         }
     }
     else if(ActivePage==0)
     {
         Line(TEXT("What the county remembers"),30);
         Line(TEXT("COURTHOUSE"),19,true);
+        if(Report.FollowupOutcome!=ECLFollowupOutcome::None) Line(Report.FollowupConsequence(),22);
         Line(Report.Status==ECLReportStatus::Signed?TEXT("The clerk has my signature. The report can go upstairs."):Report.Status==ECLReportStatus::Held?TEXT("I held the report. They wanted it closed."):TEXT("An unsigned report waits on the desk."));
         Line(TEXT("STREET"),19,true); Line(Report.FieldNotes.Contains(TEXT("SalazarStatement"))?TEXT("I heard Salazar. He did not see the man enter the water."):TEXT("Salazar found him. I have not heard him out."));
+        if(Report.FollowupOutcome!=ECLFollowupOutcome::None) Line(Report.FollowupOutcome==ECLFollowupOutcome::RequestInquiry?TEXT("I gave Pruitt the questions still unanswered. Salazar's account will have to be heard with care."):TEXT("I put the observations on record but gave no new inquiry order. A filed paper is not an answer for the people at the lateral."),22);
         Line(TEXT("CAPITAL"),19,true); Line(TEXT("No entry yet."));
         Line(TEXT("HOME"),19,true); Line(TEXT("A room at Lang's. The rest can wait."));
     }

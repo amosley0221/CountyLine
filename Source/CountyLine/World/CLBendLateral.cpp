@@ -13,6 +13,7 @@
 #include "Sound/SoundWave.h"
 #include "Sound/SoundAttenuation.h"
 #include "Animation/AnimSequence.h"
+#include "Materials/MaterialInterface.h"
 
 ACLBendLateral::ACLBendLateral()
 {
@@ -69,6 +70,19 @@ ACLBendLateral::ACLBendLateral()
     Sign->SetRelativeRotation(FRotator(0,-90,0));Sign->SetWorldSize(12);
     Sign->SetTextRenderColor(FColor(232,221,184));Sign->SetHorizontalAlignment(EHTA_Center);
     Sign->SetText(FText::FromString(TEXT("PECOS BEND\nJAIL OFFICE")));
+    // Shallow, unassigned boot impressions on the accessible bank. Their
+    // position is above the water, not a trail establishing a cause of death.
+    for(int32 I=0;I<4;++I)
+    {
+        auto* Print=CreateDefaultSubobject<UStaticMeshComponent>(*FString::Printf(TEXT("BankPrint%d"),I));
+        Print->SetupAttachment(RootComponent);
+        Print->SetRelativeLocation(FVector(775+I*35,270+(I%2)*17,.4));
+        Print->SetRelativeRotation(FRotator(0,12+(I%2)*8,0));
+        Print->SetRelativeScale3D(FVector(.26,.095,.008));
+        Print->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Sphere.Sphere")));
+        Print->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Art/Materials/M_CL_Rut.M_CL_Rut")));
+        Print->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    }
     auto Audio=[this](const TCHAR* Name,const TCHAR* Path)
     {
         auto* C=CreateDefaultSubobject<UAudioComponent>(Name);
