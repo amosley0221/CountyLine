@@ -1,0 +1,20 @@
+# Unreal generated output
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+.idea/
+*.sln
+*.suo
+*.VC.db
+*.VC.opendb
+*.opensdf
+*.sdf
+*.VC.db-shm
+*.VC.db-wal
+# Local tooling and credentials
+.env
+.env.*
+!.env.example
+.claude/settings.local.json

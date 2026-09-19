@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600&display=swap" rel="stylesheet"><style>body{margin:0;background:#1a1712;color:#efe5cc;font-family:'Courier Prime',monospace}a{color:#e3a449}a:hover{color:#f1c27a}@keyframes filament{0%,100%{opacity:1}50%{opacity:.72}}</style></helmet>
+<section id="nav" style="display:flex;gap:18px;align-items:baseline;padding:22px 40px 0;font:13px 'Courier Prime',monospace;color:#c8b48c">
+  <span style="font:700 15px 'Old Standard TT',serif;color:#efe5cc;letter-spacing:.08em">THE COUNTY LINE — DESIGN HANDOFF</span>
+  <a href="01-onesheet-system.dc.html">01 One-sheet + Design system</a>
+  <span style="color:#e3a449">02 HUD + Journal + Screens</span>
+  <a href="03-map-locations-production.dc.html">03 Map + Locations + Production</a>
+</section>
+
+<section id="hud" style="margin:22px 40px 0;width:1440px">
+  <div style="font:700 34px 'Old Standard TT',serif">B. Player HUD — three states</div>
+  <div style="font:14px/1.5 'Courier Prime',monospace;color:#c8b48c;margin:6px 0 20px;max-width:1100px">Artboards are 1920×1080 shown at 60%. Sizes in callouts are 1080p values. Reference frames stand in for gameplay; final camera is over-the-shoulder with Reed visible. Nothing persistent on screen except the compass tick (toggleable). Time is read off the courthouse clock or Reed's watch on Wait. Weapon appears only when drawn (not shown — none of these three states has it out).</div>
+
+  <div style="display:flex;gap:24px;align-items:flex-start">
+    <div style="position:relative;width:1152px;height:648px;flex:none;background:url('uploads/Grok%20Image%202026-09-17%20at%207.27.30%20PM.png') center/cover;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.6)">
+      <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:11px;opacity:.9">
+        <span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:10px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span>
+        <span style="font:700 13px 'Courier Prime',monospace;color:#e3a449;line-height:1;text-shadow:0 1px 2px #000">N</span>
+        <span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:10px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span>
+      </div>
+      <div style="position:absolute;left:520px;top:238px;display:flex;align-items:center;gap:8px;text-shadow:0 1px 3px #000">
+        <span style="width:19px;height:19px;border:1px solid #e3a449;display:grid;place-items:center;font:700 10px 'Courier Prime',monospace;color:#e3a449;background:rgba(21,18,14,.55)">E</span>
+        <span style="font:14px 'Courier Prime',monospace;color:#efe5cc">Serve paper</span>
+        <span style="font:11px 'Courier Prime',monospace;color:#c8b48c">— County Clerk, 2nd floor</span>
+      </div>
+      <div style="position:absolute;right:26px;bottom:24px;max-width:380px;text-align:right;text-shadow:0 1px 3px #000">
+        <div style="font:700 10px 'Courier Prime',monospace;letter-spacing:.14em;color:#e3a449;animation:filament 1.6s ease-in-out infinite">DEPOT — WIRE FOR SHERIFF</div>
+        <div style="font:13px/1.4 'Courier Prime',monospace;color:#efe5cc;margin-top:3px">"Judge Helm wants you before noon. Bring the ditch report, signed or not."</div>
+        <div style="font:11px 'Courier Prime',monospace;color:#c8b48c;margin-top:4px">hold Q — walk to the depot to answer in person</div>
+      </div>
+      <div style="position:absolute;left:0;bottom:0;background:rgba(21,18,14,.85);padding:6px 12px;font:11px 'Courier Prime',monospace;color:#c8b48c">STATE 1 · ON DUTY, IN TOWN · Court Street, noon</div>
+    </div>
+    <div style="font:13px/1.55 'Courier Prime',monospace;color:#c8b48c;width:264px">
+      <div style="color:#efe5cc;font-weight:700">Callouts</div>
+      <p style="margin:6px 0"><b style="color:#e3a449">Compass tick</b> — 18px ticks, N in Filament at 22px. Off by default in Options; 90% opacity; hides in interiors.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">Prompt</b> — 22px verb + 18px object, 32px key box, anchored 24px right of the object. Shows only inside 2.5 m and 30° of camera forward.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">Incoming line</b> — depot wire / telephone relayed as a bottom-right typed slip. 20px body, Filament label with a slow filament pulse. Never a modal; expires when Reed leaves the block.</p>
+      <p style="margin:6px 0">No star on HUD. The star is on the coat and the camera can see it.</p>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:24px;align-items:flex-start;margin-top:24px">
+    <div style="position:relative;width:1152px;height:648px;flex:none;background:url('uploads/Grok%20Image%202026-09-17%20at%207.26.33%20PM.png') center/cover;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.6)">
+      <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:11px;opacity:.9">
+        <span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:10px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span>
+        <span style="font:700 13px 'Courier Prime',monospace;color:#e3a449;line-height:1;text-shadow:0 1px 2px #000">W</span>
+        <span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:10px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span>
+      </div>
+      <div style="position:absolute;left:26px;bottom:24px;background:#efe5cc;color:#2a2520;padding:8px 12px 10px;width:230px;transform:rotate(-1.5deg);box-shadow:2px 3px 0 #c8b48c">
+        <div style="font:600 17px/1.2 'Caveat',cursive">Court St → Tanner Ave → camp road → Mile 18<br><span style="color:#5a5142">11 mi. gumbo past the cattle guard if it rained.</span></div>
+        <div style="font:9px 'Courier Prime',monospace;color:#5a5142;margin-top:4px;letter-spacing:.08em">ROUTE NOTE · CLIPPED TO DASH</div>
+      </div>
+      <div style="position:absolute;left:600px;top:300px;display:flex;align-items:center;gap:8px;text-shadow:0 1px 3px #000">
+        <span style="width:19px;height:19px;border:1px solid #efe5cc;display:grid;place-items:center;font:700 10px 'Courier Prime',monospace;color:#efe5cc;background:rgba(21,18,14,.55)">E</span>
+        <span style="font:14px 'Courier Prime',monospace;color:#efe5cc">Stop</span>
+        <span style="font:11px 'Courier Prime',monospace;color:#c8b48c">— Mile 18 marker · camp road</span>
+      </div>
+      <div style="position:absolute;right:26px;bottom:24px;text-align:right;text-shadow:0 1px 3px #000">
+        <div style="font:11px 'Courier Prime',monospace;color:#c8b48c">Road: caliche, dry</div>
+        <div style="display:flex;justify-content:flex-end;align-items:center;gap:5px;margin-top:3px"><span style="font:10px 'Courier Prime',monospace;color:#c8b48c">TEMP</span><span style="width:40px;height:4px;background:rgba(239,229,204,.25);position:relative"><span style="position:absolute;left:0;top:0;bottom:0;width:38%;background:#efe5cc"></span></span></div>
+      </div>
+      <div style="position:absolute;left:0;bottom:0;background:rgba(21,18,14,.85);padding:6px 12px;font:11px 'Courier Prime',monospace;color:#c8b48c;transform:translateY(0)">STATE 2 · IN THE COUNTY FORD · placeholder frame — final is rear-seat over-shoulder</div>
+    </div>
+    <div style="font:13px/1.55 'Courier Prime',monospace;color:#c8b48c;width:264px">
+      <div style="color:#efe5cc;font-weight:700">Callouts</div>
+      <p style="margin:6px 0"><b style="color:#e3a449">Route note</b> — Reed's pencil (Caveat 28px) on a cream slip clipped to the dash, bottom-left. Written when a destination is chosen in the journal map; never a GPS line in the world.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">Road state</b> — one 18px line, bottom-right: surface + condition. No speed readout. A 40px temperature tick sits under it and turns Stamp red at overheat; it is the only gauge on the HUD. "Gumbo" replaces "caliche" after rain.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">Stop prompt</b> — appears for named markers, gates, fords, bodies. Horse variant reads "Rein in".</p>
+      <p style="margin:6px 0">No speedometer widget; the Ford's own gauges are the instrument cluster.</p>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:24px;align-items:flex-start;margin-top:24px">
+    <div style="position:relative;width:1152px;height:648px;flex:none;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.6)">
+      <div style="position:absolute;inset:0;background:url('uploads/Grok%20Image%202026-09-17%20at%207.27.30%20PM.png') center/cover;filter:saturate(.7) brightness(.9) contrast(1.05)"></div>
+      <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:11px;opacity:.9">
+        <span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:10px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span>
+        <span style="font:700 13px 'Courier Prime',monospace;color:#e3a449;line-height:1;text-shadow:0 1px 2px #000">N</span>
+        <span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:10px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span><span style="width:1px;height:6px;background:#efe5cc"></span>
+      </div>
+      <div style="position:absolute;left:520px;top:238px;display:flex;align-items:center;gap:8px;text-shadow:0 1px 3px #000">
+        <span style="width:19px;height:19px;border:1px solid #efe5cc;display:grid;place-items:center;font:700 10px 'Courier Prime',monospace;color:#efe5cc;background:rgba(21,18,14,.55)">E</span>
+        <span style="font:14px 'Courier Prime',monospace;color:#efe5cc">Ask</span>
+        <span style="font:11px 'Courier Prime',monospace;color:#c8b48c">— Clerk's window. Mrs. Padilla. Vines has the desk now.</span>
+      </div>
+      <div style="position:absolute;left:150px;top:400px;display:flex;align-items:center;gap:8px;text-shadow:0 1px 3px #000;opacity:.6">
+        <span style="width:19px;height:19px;border:1px solid #efe5cc;display:grid;place-items:center;font:700 10px 'Courier Prime',monospace;color:#efe5cc;background:rgba(21,18,14,.55)">E</span>
+        <span style="font:14px 'Courier Prime',monospace;color:#efe5cc;text-decoration:line-through">Drive</span>
+        <span style="font:11px 'Courier Prime',monospace;color:#c8b48c">— county property. Coupe's at Holt's, 40¢ a day.</span>
+      </div>
+      <div style="position:absolute;right:26px;bottom:24px;max-width:380px;text-align:right;text-shadow:0 1px 3px #000">
+        <div style="font:700 10px 'Courier Prime',monospace;letter-spacing:.14em;color:#e3a449;animation:filament 1.6s ease-in-out infinite">MRS. LANG — TELEPHONE, MR. REED</div>
+        <div style="font:13px/1.4 'Courier Prime',monospace;color:#efe5cc;margin-top:3px">"It's the lease office again. Third time. I said you'd call from here, not from the hall."</div>
+        <div style="font:11px 'Courier Prime',monospace;color:#c8b48c;margin-top:4px">return to Lang boarding house to take it</div>
+      </div>
+      <div style="position:absolute;left:0;bottom:0;background:rgba(21,18,14,.85);padding:6px 12px;font:11px 'Courier Prime',monospace;color:#c8b48c">STATE 3 · FIRED · same street, civilian sack coat, no star, no Ford. Compass stays — it's Reed's own.</div>
+    </div>
+    <div style="font:13px/1.55 'Courier Prime',monospace;color:#c8b48c;width:264px">
+      <div style="color:#efe5cc;font-weight:700">Callouts</div>
+      <p style="margin:6px 0"><b style="color:#e3a449">Struck verbs</b> — county verbs (Serve paper, Book, Drive the Ford) render struck-through at 60% with the civilian substitute in the object slot. Teaches the loss without a tutorial card.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">Incoming line</b> — now Mrs. Lang relaying calls, in her voice. Same slot, same type; the label changes from DEPOT to her name.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">Compass</b> — stays. A cheap pocket compass, Reed's own. Firing strips the job (Ford, jail keys, star, "Sheriff" radio answer, Court St. parking), never navigation. The radio may still crackle; it will not answer "Sheriff."</p>
+      <p style="margin:6px 0">Grade shifts a hair toward overcast: −30% saturation, no warm key. Same street; less of it belongs to you.</p>
+    </div>
+  </div>
+</section>
+
+<section id="journal" style="margin:48px 40px 0;width:1440px">
+  <div style="font:700 34px 'Old Standard TT',serif">C. Journal / county book</div>
+  <div style="font:14px/1.5 'Courier Prime',monospace;color:#c8b48c;margin:6px 0 20px;max-width:1100px">Opens on Tab. World dims like a lamp turned down (−1.5 EV), never blurs. The book lies on whatever surface Reed is near; the same widget shows in the jail desk, the Ford's seat, or Mrs. Lang's parlor table. Tabs are index tabs on the page edge. Click a tab to switch (or use the Tweaks panel).</div>
+  <div style="display:flex;gap:24px;align-items:flex-start">
+    <div style="position:relative;width:1152px;height:648px;flex:none;background:#15120e;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.6)">
+      <div style="position:absolute;inset:0;background:url('uploads/Grok%20Image%202026-09-17%20at%207.27.18%20PM.png') center/cover;filter:brightness(.35)"></div>
+      <div style="position:absolute;left:66px;top:44px;width:1020px;height:560px;background:#efe5cc;color:#2a2520;display:grid;grid-template-columns:1fr 1fr;box-shadow:3px 4px 0 #c8b48c, 0 24px 40px rgba(0,0,0,.6)">
+        <div style="position:absolute;top:-26px;left:20px;display:flex;gap:4px">
+          <div onClick="{{ goLedger }}" style="padding:6px 16px;font:700 11px 'Courier Prime',monospace;letter-spacing:.1em;cursor:pointer;background:{{ tabBg.ledger }};color:{{ tabFg.ledger }};border:1px solid #c8b48c;border-bottom:none">LEDGER</div>
+          <div onClick="{{ goMap }}" style="padding:6px 16px;font:700 11px 'Courier Prime',monospace;letter-spacing:.1em;cursor:pointer;background:{{ tabBg.map }};color:{{ tabFg.map }};border:1px solid #c8b48c;border-bottom:none">MAP</div>
+          <div onClick="{{ goCases }}" style="padding:6px 16px;font:700 11px 'Courier Prime',monospace;letter-spacing:.1em;cursor:pointer;background:{{ tabBg.cases }};color:{{ tabFg.cases }};border:1px solid #c8b48c;border-bottom:none">CASES</div>
+          <div onClick="{{ goPeople }}" style="padding:6px 16px;font:700 11px 'Courier Prime',monospace;letter-spacing:.1em;cursor:pointer;background:{{ tabBg.people }};color:{{ tabFg.people }};border:1px solid #c8b48c;border-bottom:none">PEOPLE</div>
+          <div onClick="{{ goPayroll }}" style="padding:6px 16px;font:700 11px 'Courier Prime',monospace;letter-spacing:.1em;cursor:pointer;background:{{ tabBg.payroll }};color:{{ tabFg.payroll }};border:1px solid #c8b48c;border-bottom:none">PAYROLL</div>
+        </div>
+        <div style="position:absolute;top:10px;right:14px;font:10px 'Courier Prime',monospace;color:#5a5142;letter-spacing:.1em">RIVAS COUNTY · SHERIFF'S BOOK · A. SHERIFF REED · OCT. 1926</div>
+        <div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:linear-gradient(#c8b48c,#a0906a,#c8b48c)"></div>
+
+        <sc-if value="{{ isLedger }}" hint-placeholder-val="{{ true }}">
+          <div style="grid-column:1 / span 2;display:grid;grid-template-columns:repeat(4,1fr) 1.15fr;padding:44px 30px 24px 34px;gap:0 14px">
+            <sc-for list="{{ ledgers }}" as="col" hint-placeholder-count="4">
+              <div style="border-right:1px solid #c8b48c;padding-right:10px">
+                <div style="font:700 13px 'Old Standard TT',serif;letter-spacing:.06em;border-bottom:2px solid #2a2520;padding-bottom:4px">{{ col.name }}</div>
+                <div style="font:9px 'Courier Prime',monospace;color:#5a5142;margin:3px 0 8px">{{ col.who }}</div>
+                <sc-for list="{{ col.rows }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;justify-content:space-between;gap:6px;border-bottom:1px solid #d9ccaa;padding:4px 0;font:600 13px/1.15 'Caveat',cursive"><span>{{ r.t }}</span><span style="color:{{ r.c }};white-space:nowrap">{{ r.v }}</span></div>
+                </sc-for>
+                <div style="display:flex;justify-content:space-between;margin-top:10px;font:600 15px 'Caveat',cursive;color:#2a2520"><span>carried</span><span style="border-top:1px solid #2a2520;border-bottom:3px double #2a2520;padding:0 4px">{{ col.total }}</span></div>
+                <div style="font:600 13px/1.25 'Caveat',cursive;color:#3e3850;margin-top:8px;font-style:italic">{{ col.line }}</div>
+              </div>
+            </sc-for>
+            <div style="padding-left:6px">
+              <div style="font:700 13px 'Old Standard TT',serif;letter-spacing:.06em;border-bottom:2px solid #2a2520;padding-bottom:4px">NOTES</div>
+              <div style="font:600 14px/1.35 'Caveat',cursive;margin-top:8px">Helm signs anything typed. Doesn't read the second page.<br><br>Lang says Voss's coat is still on the hook in the hall. Ask her why she kept it.<br><br><span style="color:#9e2f24">Bend Lateral — no water in the lungs. Doc says he didn't write the report. Somebody did.</span></div>
+              <div style="font:9px 'Courier Prime',monospace;color:#5a5142;letter-spacing:.1em;margin-top:12px;border-top:1px solid #c8b48c;padding-top:6px">HEARD IN THE HALL · threshold remarks</div>
+              <div style="font:600 13px/1.35 'Caveat',cursive;margin-top:4px;color:#3e3850">Whitlock asked about the budget again.<br>Salazar will still take coffee.<br><span style="color:#5a5142">Padilla will not look at me in the hall.</span></div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isMap }}" hint-placeholder-val="{{ false }}">
+          <div style="grid-column:1 / span 2;position:relative;margin:36px 26px 22px;background:url('uploads/pasted-1789687474694-0.png') center/cover;border:1px solid #c8b48c">
+            <div style="position:absolute;left:31%;top:44%;font:600 26px 'Caveat',cursive;color:#2a2520;transform:rotate(-8deg)">✓</div>
+            <div style="position:absolute;left:52%;top:52%;font:600 26px 'Caveat',cursive;color:#2a2520;transform:rotate(6deg)">✓</div>
+            <div style="position:absolute;left:44%;top:87%;font:600 26px 'Caveat',cursive;color:#2a2520;transform:rotate(-4deg)">✓</div>
+            <div style="position:absolute;left:15%;top:84%;font:600 15px/1.1 'Caveat',cursive;color:#2a2520;transform:rotate(-3deg);max-width:150px">Bend Lateral — where they found him. ESE of the square. clerk's map has no name for it</div>
+            <div style="position:absolute;left:64%;top:78%;font:600 15px/1.1 'Caveat',cursive;color:#2a2520;transform:rotate(2deg)">Low Water — not on this map. Salazar says it's ½ mi below the crossing</div>
+            <div style="position:absolute;left:24%;top:58%;font:600 15px/1.1 'Caveat',cursive;color:#2a2520;transform:rotate(-2deg)">Camp A · 48 min dry</div>
+            <div style="position:absolute;right:10px;bottom:8px;background:rgba(239,229,204,.92);padding:6px 10px;font:10px/1.4 'Courier Prime',monospace;color:#2a2520;max-width:300px"><b>Map is the 1927 county wall map.</b> Pencil ticks appear only at visited places; Reed's notes attach where he stood. No fog, no icons, no player dot. Choosing a place writes the route note (HUD state 2). Unvisited places have labels but no ticks and no fast travel.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCases }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:44px 26px 24px 34px">
+            <div style="font:700 13px 'Old Standard TT',serif;letter-spacing:.06em;border-bottom:2px solid #2a2520;padding-bottom:4px">REPORTS WRITTEN</div>
+            <sc-for list="{{ cases }}" as="k" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:64px 1fr auto;gap:10px;padding:9px 0;border-bottom:1px solid #d9ccaa;font:12px/1.35 'Courier Prime',monospace;color:#3e3850">
+                <span style="color:#5a5142">{{ k.no }}</span><span><b>{{ k.title }}</b><br><span style="color:#5a5142">{{ k.sub }}</span></span>
+                <span style="border:2px solid {{ k.stampColor }};color:{{ k.stampColor }};padding:1px 6px;font:700 10px 'Courier Prime',monospace;letter-spacing:.1em;align-self:start;transform:rotate(-3deg);opacity:.85">{{ k.stamp }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:44px 34px 24px 30px">
+            <div style="font:700 13px 'Old Standard TT',serif;letter-spacing:.06em;border-bottom:2px solid #2a2520;padding-bottom:4px">26-001 · REPORT OF DEATH · composing</div>
+            <div style="font:12px/1.5 'Courier Prime',monospace;color:#3e3850;margin-top:10px">RIVAS COUNTY / ACTING SHERIFF S. REED. Oct. 9, 1926.<br>Deceased: unknown male, approx. 40 yrs. Found: Bend Lateral, ESE of Pecos Bend, by Salazar (farmer).</div>
+            <div style="font:9px 'Courier Prime',monospace;color:#5a5142;letter-spacing:.1em;margin-top:10px">KNOWN FACTS · include or omit · omissions are stored</div>
+            <sc-for list="{{ facts }}" as="f" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:16px 1fr auto;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid #d9ccaa;font:12px/1.3 'Courier Prime',monospace;color:{{ f.color }}"><span style="width:12px;height:12px;border:1.5px solid #2a2520;display:grid;place-items:center;font:600 12px 'Caveat',cursive">{{ f.mark }}</span><span style="text-decoration:{{ f.deco }}">{{ f.t }}</span><span style="font:600 12px 'Caveat',cursive;color:#5a5142">{{ f.src }}</span></div>
+            </sc-for>
+            <div style="font:9px 'Courier Prime',monospace;color:#5a5142;letter-spacing:.1em;margin-top:10px">CLOSING LINE · one of three</div>
+            <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px;font:12px/1.3 'Courier Prime',monospace;color:#3e3850">
+              <div style="padding:4px 8px;border:1px solid #c8b48c">No further inquiry is warranted.</div>
+              <div style="padding:4px 8px;border:1.5px solid #2a2520;background:#2a2520;color:#efe5cc">Cause of death is not established to this office's satisfaction.</div>
+              <div style="padding:4px 8px;border:1px solid #c8b48c">Referred to the County Judge for inquest.</div>
+            </div>
+            <div style="font:600 15px/1.25 'Caveat',cursive;color:#9e2f24;margin-top:8px;transform:rotate(-1deg)">who typed the first one? — no name on the carbon</div>
+            <div style="display:flex;gap:8px;margin-top:16px">
+              <span style="border:1.5px solid #2a2520;padding:6px 12px;font:700 11px 'Courier Prime',monospace;letter-spacing:.06em">SIGN</span>
+              <span style="border:1.5px solid #2a2520;background:#2a2520;color:#efe5cc;padding:6px 12px;font:700 11px 'Courier Prime',monospace;letter-spacing:.06em">HOLD FOR INQUIRY</span>
+              <span style="border:1.5px dashed #5a5142;color:#5a5142;padding:6px 12px;font:700 11px 'Courier Prime',monospace;letter-spacing:.06em">AMEND (need Doc's exam)</span>
+            </div>
+            <div style="font:10px/1.4 'Courier Prime',monospace;color:#5a5142;margin-top:10px">No free text. A report is the facts Reed knows, each included or struck, plus one authored closing line. Omissions are stored and can surface later — in The Enterprise, a hearing, the '28 election. Carbon goes to County Clerk Padilla; the original stays in this book.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPeople }}" hint-placeholder-val="{{ false }}">
+          <div style="grid-column:1 / span 2;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 18px;padding:44px 30px 24px 34px;align-content:start">
+            <sc-for list="{{ people }}" as="p" hint-placeholder-count="6">
+              <div style="border-top:2px solid #2a2520;padding-top:6px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:700 14px 'Old Standard TT',serif">{{ p.name }}</span><span style="font:9px 'Courier Prime',monospace;color:#5a5142;letter-spacing:.08em">{{ p.ledger }}</span></div>
+                <div style="font:11px/1.35 'Courier Prime',monospace;color:#3e3850;margin-top:3px">{{ p.role }}</div>
+                <div style="font:600 14px/1.25 'Caveat',cursive;margin-top:5px">{{ p.note }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPayroll }}" hint-placeholder-val="{{ false }}">
+          <div style="grid-column:1 / span 2;display:grid;grid-template-columns:1fr 1fr;padding:44px 30px 24px 34px;gap:0 40px">
+            <div>
+              <div style="font:700 13px 'Old Standard TT',serif;letter-spacing:.06em;border-bottom:2px solid #2a2520;padding-bottom:4px">SHERIFF'S OFFICE · MONTHLY · OCT. 1926</div>
+              <sc-for list="{{ payroll }}" as="l" hint-placeholder-count="7">
+                <div style="display:grid;grid-template-columns:1fr auto;gap:10px;padding:6px 0;border-bottom:1px solid #d9ccaa;font:12px 'Courier Prime',monospace;color:#3e3850"><span>{{ l.item }}</span><span style="text-align:right;min-width:70px">{{ l.amt }}</span></div>
+              </sc-for>
+              <div style="display:grid;grid-template-columns:1fr auto;gap:10px;padding:8px 0;font:700 13px 'Courier Prime',monospace"><span>Appropriated by Commissioners Court</span><span style="border-bottom:3px double #2a2520">$412.00</span></div>
+              <div style="font:600 15px/1.25 'Caveat',cursive;color:#9e2f24;margin-top:8px">$11 short. Whitlock will notice. That's the point.</div>
+              <div style="font:10px/1.4 'Courier Prime',monospace;color:#5a5142;margin-top:8px">Fired: this page is stamped <span style="border:2px solid #9e2f24;color:#9e2f24;padding:0 5px;font-weight:700;letter-spacing:.1em">UNPAID</span> and the tab becomes Reed's pocket ledger.</div>
+            </div>
+            <div>
+              <div style="font:700 13px 'Old Standard TT',serif;letter-spacing:.06em;border-bottom:2px solid #2a2520;padding-bottom:4px">DEPUTIES</div>
+              <div style="font:12px/1.5 'Courier Prime',monospace;color:#3e3850;margin-top:8px">
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #d9ccaa;padding:6px 0"><span><b>E. Vines</b> — Deputy Earl Vines. Reliable; the only one at start.</span><span>$95</span></div>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #d9ccaa;padding:6px 0;color:#5a5142"><span><i>vacant</i> — second deputy. Budget line exists; Commissioners haven't voted the money.</span><span>$0</span></div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:14px">
+                <span style="border:1.5px dashed #5a5142;color:#5a5142;padding:6px 12px;font:700 11px 'Courier Prime',monospace;letter-spacing:.06em">DEPUTIZE (no budget)</span>
+                <span style="border:1.5px solid #2a2520;padding:6px 12px;font:700 11px 'Courier Prime',monospace;letter-spacing:.06em">REQUEST LINE ITEM</span>
+              </div>
+              <div style="font:10px/1.4 'Courier Prime',monospace;color:#5a5142;margin-top:12px">Deputizing without budget is possible — the man works for lease money or for nothing, and that lands in Capital or Street, not here. Fired path: this tab becomes Reed's own pocket ledger (coupe rent, Lang's board, phone nickels).</div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+    <div style="font:13px/1.55 'Courier Prime',monospace;color:#c8b48c;width:264px">
+      <div style="color:#efe5cc;font-weight:700">Tabs</div>
+      <p style="margin:6px 0"><b style="color:#e3a449">Ledger</b> — four columns, entries in Reed's hand with a dated cause, +/− in the margin, running "carried" total. No bar. Each column ends in one sentence in Reed's voice ("Tanner still takes my calls"). Thresholds are never numbers: crossing one writes a clerk's remark under NOTES and a faint pencil tick beside that column. The HUD never shows the four ledger words.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">Clerk's typed copy</b> — required Settings toggle. Every Caveat line renders as Courier Prime carbon: Inez Padilla's transcription, same words. Try it in Tweaks.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">Map</b> — the 1927 wall map, pencil ticks for visited only.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">Cases</b> — reports Reed wrote or refused. Each has a county stamp and a fate.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">People</b> — who they answer to (ledger tag), what Reed noticed.</p>
+      <p style="margin:6px 0"><b style="color:#e3a449">Payroll</b> — the budget as a weapon and a leash.</p>
+      <div style="margin-top:14px;font:11px/1.5 'Courier Prime',monospace">Showing: <b style="color:#efe5cc">{{ tabLabel }}</b></div>
+    </div>
+  </div>
+</section>
+
+<section id="screens" style="margin:48px 40px 60px;width:1440px">
+  <div style="font:700 34px 'Old Standard TT',serif">D. Key screens</div>
+  <div style="font:14px/1.5 'Courier Prime',monospace;color:#c8b48c;margin:6px 0 20px;max-width:1100px">Screen 1 (pause/journal) is the county book above with the pause strip below. Screens 2–6 are the paper objects themselves at reading size. All copy is placeholder in Reed's, the clerk's, or the paper's voice.</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+    <div style="background:#15120e;padding:24px;border:1px solid #5a5142">
+      <div style="font:11px 'Courier Prime',monospace;color:#c8b48c;letter-spacing:.1em;margin-bottom:12px">1 · PAUSE STRIP · sits under the open book</div>
+      <div style="background:#e4d8b8;color:#2a2520;padding:14px 18px;display:flex;gap:26px;align-items:baseline;font:700 14px 'Courier Prime',monospace;letter-spacing:.06em">
+        <span style="border-bottom:2px solid #2a2520">BACK TO IT</span><span>COUNTY BOOK</span><span>OPTIONS</span><span style="color:#5a5142;text-decoration:line-through">WRITE THE DATE</span><span style="font:400 11px 'Courier Prime',monospace;color:#5a5142;letter-spacing:0">— not at a cot or table. Last written Oct. 12, 8:10, jail.</span><span style="color:#5a5142">QUIT TO DESK</span>
+        <span style="margin-left:auto;font:600 16px 'Caveat',cursive;letter-spacing:0">Tues. Oct. 12, 1926 · 11:52 · Court St.</span>
+      </div>
+      <div style="font:12px/1.5 'Courier Prime',monospace;color:#c8b48c;margin-top:12px">Pause is Options + the Book, not a world save. Saving is sleeping (jail cot, Lang's, rented room when fired) or "Write the date" in the journal at those places and the hotel night clerk; elsewhere the verb is struck with the last written date beside it.</div>
+    </div>
+
+    <div style="background:#15120e;padding:24px;border:1px solid #5a5142">
+      <div style="font:11px 'Courier Prime',monospace;color:#c8b48c;letter-spacing:.1em;margin-bottom:12px">2 · COURTHOUSE HEARING STUB</div>
+      <div style="background:#e4d8b8;color:#2a2520;padding:18px 22px;border:1px solid #b8a67e;position:relative">
+        <div style="display:flex;justify-content:space-between;font:10px 'Courier Prime',monospace;color:#5a5142;letter-spacing:.1em"><span>COUNTY COURT OF RIVAS COUNTY, TEXAS</span><span>DOCKET 26-114</span></div>
+        <div style="font:700 20px 'Old Standard TT',serif;margin-top:6px">In re: Death by drowning, Bend Lateral</div>
+        <div style="font:12px 'Courier Prime',monospace;color:#3e3850;margin-top:2px">Hon. R. Helm, County Judge, presiding · Oct. 12, 1926, 2 p.m. · Sheriff's testimony</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;font:13px/1.4 'Courier Prime',monospace">
+          <div style="display:grid;grid-template-columns:1fr auto;gap:12px;border:1.5px solid #2a2520;padding:8px 12px"><span><b>Affirm the report as filed.</b> Drowned, intoxicated, closed.</span><span style="font:600 14px 'Caveat',cursive;color:#5a5142">Courthouse + · Street −</span></div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:12px;border:1.5px solid #2a2520;background:#2a2520;color:#efe5cc;padding:8px 12px"><span><b>Hold for inquiry.</b> Ask for Doc Ellison's examination on the record.</span><span style="font:600 14px 'Caveat',cursive;color:#c8b48c">Courthouse − · Home ?</span></div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:12px;border:1.5px dashed #5a5142;color:#5a5142;padding:8px 12px"><span><b>Name the man who typed it.</b> (you don't know yet)</span><span style="font:600 14px 'Caveat',cursive">—</span></div>
+        </div>
+        <div style="font:10px/1.4 'Courier Prime',monospace;color:#5a5142;margin-top:12px">Judge Helm's line while you decide: "Sheriff, the county buries a man for eleven dollars. An inquiry is forty and a week of my afternoons."</div>
+        <div style="position:absolute;right:16px;top:14px;border:2px solid #3e3850;color:#3e3850;padding:2px 8px;font:700 10px 'Courier Prime',monospace;letter-spacing:.1em;transform:rotate(4deg);opacity:.8">RECEIVED · CLERK</div>
+      </div>
+      <div style="font:12px/1.5 'Courier Prime',monospace;color:#c8b48c;margin-top:12px">The ledger consequence is shown in Reed's pencil, as his guess — not a system readout. His guess can be wrong.</div>
+    </div>
+
+    <div style="background:#15120e;padding:24px;border:1px solid #5a5142">
+      <div style="font:11px 'Courier Prime',monospace;color:#c8b48c;letter-spacing:.1em;margin-bottom:12px">3 · JAIL BOOKING LEDGER</div>
+      <div style="background:#efe5cc;color:#2a2520;padding:16px 18px;border:1px solid #c8b48c;box-shadow:2px 3px 0 #c8b48c">
+        <div style="display:flex;justify-content:space-between;font:700 13px 'Old Standard TT',serif;letter-spacing:.06em;border-bottom:2px solid #2a2520;padding-bottom:4px"><span>RIVAS COUNTY JAIL · REGISTER OF PRISONERS</span><span style="font:10px 'Courier Prime',monospace;color:#5a5142">p. 41</span></div>
+        <div style="display:grid;grid-template-columns:34px 1.3fr 1.4fr 1fr 60px 1fr 1.4fr;gap:6px;font:9px 'Courier Prime',monospace;color:#5a5142;letter-spacing:.06em;padding:6px 0 3px;border-bottom:1px solid #c8b48c"><span>NO.</span><span>NAME</span><span>CHARGE</span><span>BROUGHT BY</span><span>MEALS</span><span>RELEASED</span><span>REMARKS</span></div>
+        <sc-for list="{{ booking }}" as="b" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:34px 1.3fr 1.4fr 1fr 60px 1fr 1.4fr;gap:6px;font:600 13px/1.2 'Caveat',cursive;padding:5px 0;border-bottom:1px solid #d9ccaa;color:{{ b.color }}"><span>{{ b.no }}</span><span>{{ b.name }}</span><span>{{ b.charge }}</span><span>{{ b.by }}</span><span>{{ b.meals }}</span><span>{{ b.rel }}</span><span>{{ b.rem }}</span></div>
+        </sc-for>
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+          <span style="border:1.5px solid #2a2520;background:#2a2520;color:#efe5cc;padding:6px 12px;font:700 11px 'Courier Prime',monospace;letter-spacing:.06em">BOOK — write the line</span>
+          <span style="border:1.5px solid #2a2520;padding:6px 12px;font:700 11px 'Courier Prime',monospace;letter-spacing:.06em">RELEASE — sign the column</span>
+          <span style="font:10px 'Courier Prime',monospace;color:#5a5142;margin-left:auto">meals 35¢ · billed to Commissioners monthly</span>
+        </div>
+      </div>
+      <div style="font:12px/1.5 'Courier Prime',monospace;color:#c8b48c;margin-top:12px">Booking is writing. The player fills name / charge by picking from what they actually know (a wrong name is a line in the Courthouse ledger later). Meals cost money the budget doesn't have; release too early is a Street entry, too late a Capital one.</div>
+    </div>
+
+    <div style="background:#15120e;padding:24px;border:1px solid #5a5142">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
+        <div style="font:11px 'Courier Prime',monospace;color:#c8b48c;letter-spacing:.1em">4 · THE ENTERPRISE — front page reacts to filed reports</div>
+        <div style="display:flex;gap:6px;font:10px 'Courier Prime',monospace;letter-spacing:.08em">
+          <span onClick="{{ setSigned }}" style="padding:4px 10px;border:1px solid #c8b48c;cursor:pointer;background:{{ paperBg.signed }};color:{{ paperFg.signed }}">REED SIGNED</span>
+          <span onClick="{{ setHeld }}" style="padding:4px 10px;border:1px solid #c8b48c;cursor:pointer;background:{{ paperBg.held }};color:{{ paperFg.held }}">REED HELD</span>
+        </div>
+      </div>
+      <div style="background:#f3efe4;color:#2a2520;padding:16px 20px 18px;border:1px solid #c8b48c">
+        <div style="text-align:center;border-bottom:3px double #2a2520;padding-bottom:6px">
+          <div style="font:700 42px/1 'Old Standard TT',serif;letter-spacing:.02em">The Enterprise</div>
+          <div style="display:flex;justify-content:space-between;font:10px 'Courier Prime',monospace;color:#5a5142;margin-top:6px;letter-spacing:.06em"><span>VOL. XXXI · No. 41</span><span>PECOS BEND, RIVAS COUNTY, TEXAS · THURSDAY, OCTOBER 14, 1926</span><span>FIVE CENTS</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-top:12px">
+          <div>
+            <div style="font:700 26px/1.05 'Old Standard TT',serif">{{ headline }}</div>
+            <div style="font:italic 14px/1.3 'Old Standard TT',serif;margin-top:4px;color:#3e3850">{{ deck }}</div>
+            <div style="font:11px/1.45 'Old Standard TT',serif;margin-top:8px;column-count:2;column-gap:12px;column-rule:1px solid #c8b48c;text-align:justify">{{ body }}</div>
+          </div>
+          <div style="border-left:1px solid #c8b48c;padding-left:14px">
+            <div style="font:700 15px/1.1 'Old Standard TT',serif">Tanner Lease to Lay Pipe Across Voss Range by Spring</div>
+            <div style="font:11px/1.45 'Old Standard TT',serif;margin-top:4px;text-align:justify">Survey crews were seen along the 1925 fence line Tuesday. Mr. Brister of the lease office declined to say whether easements had been secured. The Commissioners Court meets the 19th.</div>
+            <div style="font:700 15px/1.1 'Old Standard TT',serif;margin-top:12px">Section Gang Pay Held at Depot</div>
+            <div style="font:11px/1.45 'Old Standard TT',serif;margin-top:4px;text-align:justify">Twenty-two men of the T&amp;P section gang waited at the depot Saturday for a pay car that did not come. Agent says Monday.</div>
+            <div style="font:10px 'Courier Prime',monospace;color:#5a5142;margin-top:12px;border-top:1px solid #c8b48c;padding-top:6px">Mrs. Lang has rooms. Board $7 wk. Telephone 41.</div>
+          </div>
+        </div>
+      </div>
+      <div style="font:12px/1.5 'Courier Prime',monospace;color:#c8b48c;margin-top:12px">Lead story is templated from the Cases tab: the stamp on Reed's report picks the headline, deck and lede; sidebars advance on the world clock. Front pages are collectible — a column from October becomes evidence (or a liability) in the '28 election.</div>
+    </div>
+
+    <div style="background:#15120e;padding:24px;border:1px solid #5a5142">
+      <div style="font:11px 'Courier Prime',monospace;color:#c8b48c;letter-spacing:.1em;margin-bottom:12px">5 · COMMISSIONERS VOTE / FIRING NOTICE</div>
+      <div style="background:#efe5cc;color:#2a2520;padding:18px 22px;border:1px solid #c8b48c;position:relative;box-shadow:2px 3px 0 #c8b48c">
+        <div style="font:10px 'Courier Prime',monospace;color:#5a5142;letter-spacing:.1em">MINUTES · COMMISSIONERS COURT · RIVAS COUNTY · SPECIAL SESSION · MAR. 3, 1927</div>
+        <div style="font:12px/1.5 'Courier Prime',monospace;color:#3e3850;margin-top:8px">Present: Hon. R. Helm, County Judge; Comm. Oyler (Pct. 1), Comm. Salazar (Pct. 2), Comm. Whitlock (Pct. 3), Comm. Dace (Pct. 4). Motion by Comm. Whitlock, seconded Comm. Oyler: that the appointment of Acting Sheriff Reed be terminated for cause, viz. exceeding the appropriation for the Sheriff's Office and failure to keep the peace at Tanner Lease Camp A.</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;font:12px 'Courier Prime',monospace">
+          <div style="border:1px solid #c8b48c;padding:6px 8px"><b>Oyler</b><br><span style="color:#9e2f24">Aye</span><div style="font:600 12px 'Caveat',cursive;color:#5a5142">mercantile credit. Capital.</div></div>
+          <div style="border:1px solid #c8b48c;padding:6px 8px"><b>Salazar</b><br><span style="color:#5c7752">Nay</span><div style="font:600 12px 'Caveat',cursive;color:#5a5142">River Road. remembered the ditch.</div></div>
+          <div style="border:1px solid #c8b48c;padding:6px 8px"><b>Whitlock</b><br><span style="color:#9e2f24">Aye</span><div style="font:600 12px 'Caveat',cursive;color:#5a5142">the $11.</div></div>
+          <div style="border:1px solid #c8b48c;padding:6px 8px"><b>Dace</b><br><span style="color:#9e2f24">Aye</span><div style="font:600 12px 'Caveat',cursive;color:#5a5142">didn't look at me.</div></div>
+        </div>
+        <div style="font:12px/1.5 'Courier Prime',monospace;color:#3e3850;margin-top:12px">Carried 3–1. Deputy E. Vines to act until the November election. The former Acting Sheriff to return the county Ford, star and jail keys to the County Clerk by 5 o'clock p.m. this day.</div>
+        <div style="font:600 15px/1.25 'Caveat',cursive;margin-top:10px">the Book is mine. the carbons are theirs. they'll find that out.</div>
+        <div style="position:absolute;right:22px;bottom:18px;border:3px solid #9e2f24;color:#9e2f24;padding:5px 12px;font:700 15px 'Courier Prime',monospace;letter-spacing:.14em;transform:rotate(-7deg);opacity:.85">SERVICES TERMINATED</div>
+      </div>
+      <div style="font:12px/1.5 'Courier Prime',monospace;color:#c8b48c;margin-top:12px">The vote is a minutes page, read after the fact. Each commissioner's line is a ledger cause the player could have changed. A retention vote uses the same page with "Motion fails 2–2, Judge Helm declining to break the tie" — Helm never saves you outright.</div>
+    </div>
+
+    <div style="background:#15120e;padding:24px;border:1px solid #5a5142">
+      <div style="font:11px 'Courier Prime',monospace;color:#c8b48c;letter-spacing:.1em;margin-bottom:12px">6 · BOARDING-HOUSE PHONE LIST · rebel path hub</div>
+      <div style="background:#e4d8b8;color:#2a2520;padding:16px 20px;border:1px solid #b8a67e;position:relative;max-width:520px">
+        <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9be7a,#7d6430 70%,#4a3a18)"></div>
+        <div style="font:700 15px 'Old Standard TT',serif;text-align:center;margin-top:8px">LANG BOARDING HOUSE · TELEPHONE 41</div>
+        <div style="font:10px 'Courier Prime',monospace;text-align:center;color:#5a5142">Calls 5¢. Nickel in the cup. No calls after ten. — E. Lang</div>
+        <div style="margin-top:12px;display:flex;flex-direction:column">
+          <sc-for list="{{ phones }}" as="ph" hint-placeholder-count="7">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:10px;padding:6px 0;border-bottom:1px solid #c8b48c;font:13px 'Courier Prime',monospace;color:{{ ph.color }};text-decoration:{{ ph.deco }}"><span>{{ ph.who }} <span style="font:600 13px 'Caveat',cursive;color:#5a5142">{{ ph.note }}</span></span><span style="font-weight:700">{{ ph.no }}</span></div>
+          </sc-for>
+        </div>
+        <div style="margin-top:12px;padding:8px 10px;background:#efe5cc;border:1px solid #c8b48c;font:12px/1.4 'Courier Prime',monospace"><span style="color:#e3a449;font-weight:700;letter-spacing:.1em;font-size:10px">MESSAGES · 2</span><br>Lease office — twice. Wants you at Mile 18 by six, and bring your own light.<br>Salazar — no message. Said you'd know.</div>
+      </div>
+      <div style="font:12px/1.5 'Courier Prime',monospace;color:#c8b48c;margin-top:12px">On the fired path this card replaces the jail desk as the job board. Calls come through Mrs. Lang; who is crossed off tells you where you stand. Same widget class as the depot wire, different letterhead.</div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;journalTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;ledger&quot;,&quot;options&quot;:[&quot;ledger&quot;,&quot;map&quot;,&quot;cases&quot;,&quot;people&quot;,&quot;payroll&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Journal&quot;},&quot;clerkTypedCopy&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Journal&quot;},&quot;enterprise&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;held&quot;,&quot;options&quot;:[&quot;signed&quot;,&quot;held&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Key screens&quot;}}">
+class Component extends DCLogic {
+  state = { tab: null, paper: null };
+  componentDidMount(){ this.applyTyped(); }
+  componentDidUpdate(){ this.applyTyped(); }
+  applyTyped(){
+    const typed = !!this.props.clerkTypedCopy;
+    let st = document.getElementById('cl-typed'); if (!st) { st = document.createElement('style'); st.id = 'cl-typed'; document.head.appendChild(st); }
+    st.textContent = typed ? "#journal [style*='Caveat']{font-family:'Courier Prime',monospace !important;font-weight:400 !important;font-size:11px !important;font-style:normal !important;color:#3e3850 !important}" : '';
+  }
+  renderVals() {
+    const tab = this.state.tab ?? this.props.journalTab ?? 'ledger';
+    const paper = this.state.paper ?? this.props.enterprise ?? 'held';
+    const tabs = ['ledger','map','cases','people','payroll'];
+    const tabBg = {}, tabFg = {};
+    tabs.forEach(t => { tabBg[t] = t===tab ? '#efe5cc' : '#e4d8b8'; tabFg[t] = t===tab ? '#2a2520' : '#5a5142'; });
+    const paperBg = { signed: paper==='signed' ? '#efe5cc' : 'transparent', held: paper==='held' ? '#efe5cc' : 'transparent' };
+    const paperFg = { signed: paper==='signed' ? '#2a2520' : '#c8b48c', held: paper==='held' ? '#2a2520' : '#c8b48c' };
+    const go = t => () => this.setState({ tab: t });
+    const G='#5c7752', R='#9e2f24', K='#2a2520';
+    const ledgers = [
+      { name:'COURTHOUSE', who:'Helm · Padilla · commissioners', total:'+3', line:'Helm still says "Sheriff." Padilla says nothing.', rows:[{t:'Oct 9 — took the desk, said little',v:'+2',c:G},{t:'Oct 10 — asked clerk for the carbon',v:'−1',c:R},{t:'Oct 12 — held the ditch report',v:'−3',c:R},{t:'Oct 12 — showed for docket on time',v:'+1',c:G},{t:'Oct 14 — Enterprise printed "inquiry"',v:'+4',c:G}] },
+      { name:'STREET', who:'camps · River Road · porches', total:'+5', line:'Salazar waved. From the porch, not the road.', rows:[{t:'Oct 9 — Salazar saw me at the Lateral',v:'+2',c:G},{t:'Oct 11 — drove past the pay line, didn\'t stop',v:'−1',c:R},{t:'Oct 12 — didn\'t sign it',v:'+4',c:G}] },
+      { name:'CAPITAL', who:'Tanner lease · hotel · mercantile', total:'−2', line:'Tanner still takes my calls.', rows:[{t:'Oct 9 — Brister sent a bottle. kept it.',v:'+1',c:G},{t:'Oct 12 — inquiry means a week of talk',v:'−3',c:R}] },
+      { name:'HOME', who:'Lang · Doc · the church', total:'+2', line:'Lang set a second cup out without asking.', rows:[{t:'Oct 9 — paid Lang a week ahead',v:'+1',c:G},{t:'Oct 10 — Sunday, Methodist, back pew',v:'+1',c:G},{t:'Oct 12 — Doc: "you\'ll want to know what I found"',v:'?',c:K}] },
+    ];
+    const cases = [
+      { no:'26-001', title:'Report of Death — Bend Lateral', sub:'Typed before appointment. Unsigned. Held Oct 12.', stamp:'HELD', stampColor:'#3e3850' },
+      { no:'26-002', title:'Trespass complaint — Tanner Lease v. Voss place fence', sub:'Filed by Brister. Not yet served.', stamp:'RECEIVED', stampColor:'#3e3850' },
+      { no:'26-003', title:'Disturbance — depot platform, section gang pay', sub:'No arrests. Named nobody.', stamp:'CLOSED', stampColor:'#9e2f24' },
+      { no:'26-004', title:'Property found — coat, hall hook, Lang boarding house', sub:'Not filed. Reed\'s note only.', stamp:'UNFILED', stampColor:'#5a5142' },
+    ];
+    const people = [
+      { name:'Judge R. Helm', ledger:'COURTHOUSE', role:'County Judge. Presides over court and the commissioners. Signs what is typed.', note:'reads the first page. never the second.' },
+      { name:'Mrs. E. Lang', ledger:'HOME', role:'Boarding house, Tanner Ave. Telephone 41. Kept Voss\'s coat.', note:'knows who calls whom. charges a nickel to say.' },
+      { name:'Doc Ellison', ledger:'HOME', role:'Only doctor in the seat. Did not write the ditch report.', note:'"no water in the lungs." wants it on the record, not his name.' },
+      { name:'E. Vines', ledger:'COURTHOUSE', role:'Deputy Earl Vines. Reliable. The only one. Quits if Street or Courthouse collapse.', note:'loyal to the desk, not the man behind it.' },
+      { name:'C. Brister', ledger:'CAPITAL', role:'Tanner Lease field boss. Lease office, Camp A Main.', note:'sends bottles. counts who keeps them.' },
+      { name:'F. Salazar', ledger:'STREET', role:'Farmer, River Road. Commissioner Pct. 2. Found the body.', note:'told me about Low Water. didn\'t have to.' },
+      { name:'Hal Voss', ledger:'—', role:'Former sheriff. "Resigned for his health." Voss place, East range.', note:'coat\'s at Lang\'s. car\'s at Holt\'s. where is he.' },
+      { name:'I. Guerra', ledger:'CAPITAL', role:'Runs the Bend Hotel kitchen. The basement is hers to open or not.', note:'sold me coffee. didn\'t sell me anything else. yet.' },
+      { name:'Comm. Whitlock', ledger:'COURTHOUSE', role:'Commissioner Pct. 3. Chairs the budget.', note:'counts to the dollar. that is his whole politics.' },
+      { name:'Inez Padilla', ledger:'COURTHOUSE', role:'County Clerk. Keeps the carbons. Types the clerk\'s copy.', note:'sees every page twice. says nothing once.' },
+    ];
+    const payroll = [
+      { item:'Sheriff — salary', amt:'$150.00' },{ item:'Deputy E. Vines', amt:'$95.00' },{ item:'Jail meals — 41 @ 35¢', amt:'$14.35' },
+      { item:'County Ford — gasoline, oil, one tire', amt:'$31.20' },{ item:'Livery — feed, two horses', amt:'$18.00' },{ item:'Telephone, telegraph, postage', amt:'$9.45' },
+      { item:'Inquiry — Doc Ellison\'s examination', amt:'$40.00' },{ item:'Burial — county cemetery sec. 2', amt:'$11.00' },{ item:'Ammunition', amt:'$0.00' },
+    ];
+    const booking = [
+      { no:'207', name:'Aurelio Peña', charge:'drunk, depot platform', by:'Vines', meals:'2', rel:'Oct 11, a.m.', rem:'section gang. let go before the pay car.', color:'#2a2520' },
+      { no:'208', name:'unknown — "Slim"', charge:'trespass, Tanner grade', by:'lease security', meals:'—', rel:'refused', rem:'not my prisoner. sent back with them.', color:'#9e2f24' },
+      { no:'209', name:'T. Voss (nephew)', charge:'cut fence, East range', by:'Reed', meals:'3', rel:'', rem:'Helm asked twice about this one.', color:'#2a2520' },
+      { no:'', name:'', charge:'', by:'', meals:'', rel:'', rem:'', color:'#2a2520' },
+    ];
+    const phones = [
+      { who:'Tanner Lease office, Camp A', no:'112', note:'Brister. pays Fridays.', color:'#2a2520', deco:'none' },
+      { who:'Bend Hotel — kitchen', no:'18', note:'ask for Ines, not the desk', color:'#2a2520', deco:'none' },
+      { who:'Doc Ellison', no:'27', note:'', color:'#2a2520', deco:'none' },
+      { who:'Depot — agent', no:'9', note:'tickets. wires.', color:'#2a2520', deco:'none' },
+      { who:'Sheriff & County Clerk', no:'12', note:'Vines won\'t take it', color:'#5a5142', deco:'line-through' },
+      { who:'Holt\'s motor shed', no:'33', note:'coupe 40¢/day. wrecker extra.', color:'#2a2520', deco:'none' },
+      { who:'Salazar farm, River Road', no:'—', note:'no phone. go to the crossing.', color:'#2a2520', deco:'none' },
+    ];
+    const paperText = paper==='signed'
+      ? { headline:'Ditch Death Ruled Accident', deck:'Sheriff\'s Office Closes Inquiry After Two Days; Man Unknown, Buried at County Expense', body:'Acting Sheriff Reed on Tuesday affirmed before Judge Helm the report of the death of an unidentified man found Saturday in the Bend Lateral, east of town. The report, prepared by the Sheriff\'s Office, gives drowning as the cause and notes a bottle recovered at the scene. No inquest will be held. The man was buried Monday in the second section of the county cemetery. Sheriff Reed, asked for a statement, said the report spoke for itself. Mr. F. Salazar, who found the body, said he had nothing to add to what he had already told the Sheriff.' }
+      : { headline:'Sheriff Holds Ditch Report; Inquiry Set', deck:'Reed Declines to Sign Drowning Finding; Judge Helm Grants a Week, "Not a Day More"', body:'Acting Sheriff Reed on Tuesday declined to affirm the report of the death of an unidentified man found Saturday in the Bend Lateral, east of town, and asked that Dr. Ellison\'s examination be entered on the record. Judge Helm allowed one week. The report, which the Sheriff said had been "typed before I had the desk," gives drowning as the cause. Asked who prepared it, the Sheriff said that was what the week was for. The Commissioners Court is understood to have questions about the cost. Mr. Salazar, who found the body, said he was glad somebody had asked.' };
+    const facts = [
+      { t:'Found face-down in the Bend Lateral (Salazar)', src:'Salazar', mark:'✓', deco:'none', color:'#3e3850' },
+      { t:'Bottle recovered at scene — full, sealed', src:'Reed, Lateral', mark:'✓', deco:'none', color:'#3e3850' },
+      { t:'No water in the lungs (Doc Ellison)', src:'Doc', mark:'✓', deco:'none', color:'#3e3850' },
+      { t:'Marks on the throat', src:'Doc', mark:'', deco:'line-through', color:'#5a5142' },
+      { t:'Tanner lease scrip in the coat pocket', src:'Reed, Lateral', mark:'', deco:'line-through', color:'#5a5142' },
+    ];
+    return { facts,
+      isLedger: tab==='ledger', isMap: tab==='map', isCases: tab==='cases', isPeople: tab==='people', isPayroll: tab==='payroll',
+      tabBg, tabFg, tabLabel: tab.toUpperCase(),
+      goLedger: go('ledger'), goMap: go('map'), goCases: go('cases'), goPeople: go('people'), goPayroll: go('payroll'),
+      ledgers, cases, people, payroll, booking, phones,
+      paperBg, paperFg, setSigned: () => this.setState({paper:'signed'}), setHeld: () => this.setState({paper:'held'}),
+      ...paperText,
+    };
+  }
+}
+</script>
+</body>
+</html>

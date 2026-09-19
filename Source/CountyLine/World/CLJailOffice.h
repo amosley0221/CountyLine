@@ -1,0 +1,17 @@
+#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "CLJailOffice.generated.h"
+
+UCLASS()
+class COUNTYLINE_API ACLJailOffice : public AActor
+{
+    GENERATED_BODY()
+public:
+    ACLJailOffice();
+    FVector ReportLocation() const { return GetActorTransform().TransformPosition(FVector(95, -110, 86)); }
+    UPROPERTY(VisibleAnywhere) TObjectPtr<class UStaticMeshComponent> ReportPaper;
+private:
+    class UStaticMeshComponent* Shape(const FString& Name, const TCHAR* Mesh, FVector Position, FVector Size, const TCHAR* Material, bool Collision = true);
+    void Label(const FString& Name, const FString& Text, FVector Position, FRotator Rotation, float Size, FColor Color);
+};

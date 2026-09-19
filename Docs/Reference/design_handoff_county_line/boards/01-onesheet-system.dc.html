@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600&display=swap" rel="stylesheet"><style>body{margin:0;background:#1a1712;color:#efe5cc;font-family:'Courier Prime',monospace}a{color:#e3a449}a:hover{color:#f1c27a}</style></helmet>
+<section id="nav" style="display:flex;gap:18px;align-items:baseline;padding:22px 40px 0;font:13px 'Courier Prime',monospace;color:#c8b48c">
+  <span style="font:700 15px 'Old Standard TT',serif;color:#efe5cc;letter-spacing:.08em">THE COUNTY LINE — DESIGN HANDOFF</span>
+  <span style="color:#e3a449">01 One-sheet + Design system</span>
+  <a href="02-hud-journal-screens.dc.html">02 HUD + Journal + Screens</a>
+  <a href="03-map-locations-production.dc.html">03 Map + Locations + Production</a>
+</section>
+
+<section id="notes" style="margin:22px 40px 0;width:1440px;box-sizing:border-box;padding:20px 24px;border:1px dashed #5a5142;font:13px/1.55 'Courier Prime',monospace;color:#c8b48c">
+  <div style="font-weight:700;color:#efe5cc;margin-bottom:8px">DESIGNER'S NOTE TO PRODUCER — assumptions, context, reasoning</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
+    <div><b style="color:#efe5cc">Context used.</b> Your brief + six reference frames (wall map, aerial of the seat, hotel kitchen/basement, Tanner Camp A, jail office at night, courthouse square at noon). The references set palette and light: caliche dust, brick, filament, dirty overcast. I took them as canon for materials; where a frame contradicts the brief (see 03, "Map discrepancies") the brief wins and the frame goes to the gazetteer as a note.</div>
+    <div><b style="color:#efe5cc">Assumptions.</b> 1080p is the floor: nothing in HUD under 22px, journal body 20px at 1080p. UI is paper-diegetic: every screen is an object Reed could hold (county book, carbon report, front page, docket stub). No holographic panels, no vignette blur behind menus — the world keeps rendering, dimmed like a lamp turned down. Rebel path reuses every screen with the county chrome stripped (no star, no brass, boarding-house letterhead); Reed keeps his own compass and Book.</div>
+    <div><b style="color:#efe5cc">Reasoning.</b> The four ledgers are never bars. They are columns of handwritten entries with a running total in the margin — you read the trend the way a clerk would. Headlines borrow the 1927 weekly (Old Standard); body is a carbon copy (Courier Prime); Reed's pencil is Caveat, used only for things he wrote by hand. Tokens are named for materials so Unreal material instances and UMG styles share vocabulary.</div>
+  </div>
+</section>
+
+<section id="onesheet" style="margin:28px 40px 0;width:1440px;box-sizing:border-box;background:#efe5cc;color:#2a2520;padding:56px 64px 48px;position:relative;box-shadow:0 30px 60px rgba(0,0,0,.5)">
+  <div style="position:absolute;top:18px;left:18px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9be7a,#7d6430 70%,#4a3a18)"></div>
+  <div style="position:absolute;top:18px;right:18px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9be7a,#7d6430 70%,#4a3a18)"></div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px double #2a2520;padding-bottom:14px">
+    <div>
+      <div style="font:13px 'Courier Prime',monospace;letter-spacing:.2em;color:#5a5142">ONE-SHEET · PC · UNREAL ENGINE 5 · THIRD-PERSON</div>
+      <div style="font:700 88px/1 'Old Standard TT',serif;letter-spacing:.01em;margin-top:6px">The County Line</div>
+    </div>
+    <div style="text-align:right;font:italic 20px/1.3 'Old Standard TT',serif;max-width:400px">A narrative open-world lawman sim.<br>Rivas County, West Texas. Autumn 1926 – November 1928.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:40px;margin-top:32px;font:16px/1.55 'Courier Prime',monospace">
+    <div>
+      <div style="font:700 22px 'Old Standard TT',serif;margin-bottom:8px">The job</div>
+      <p style="margin:0 0 12px">You are Acting Sheriff Reed, appointed after Hal Voss resigned for his health. There is a body in an irrigation ditch east of town and a report on your desk that already says drunk, drowned, closed. You can sign it. You can also not.</p>
+      <p style="margin:0 0 12px">The county is 38 miles by 26. A courthouse, a jail, a hotel with two economies, an oil lease with two camps, a river with one legal ford and one that isn't on the clerk's map. You keep the star by keeping the commissioners and the lease money comfortable. You lose it the same way. The map stays open either way.</p>
+      <div style="margin-top:18px;padding:14px 16px;background:#e4d8b8;border:1px solid #c8b48c;font:italic 16px/1.5 'Courier Prime',monospace;color:#3e3850">"It's Reed. I'm at the mile marker by the Tanner lease. If the wrecker's coming, tell them to bring a chain."<div style="font-style:normal;font-size:12px;color:#5a5142;margin-top:6px">— tone reference for every line of UI copy</div></div>
+    </div>
+    <div>
+      <div style="font:700 22px 'Old Standard TT',serif;margin-bottom:8px">Pillars</div>
+      <ol style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px">
+        <li><b>Jurisdiction is the gameplay.</b> Whose land, whose worker, whose vote.</li>
+        <li><b>The star is a job.</b> Keep it, climb it, or lose it. The county doesn't close when you do.</li>
+        <li><b>Combat is rare, ugly, politically expensive. Revolver, Winchester, shotgun. Every gunfight writes a Courthouse line.</b></li>
+        <li><b>Paper is a weapon.</b> Reports, ledgers, warrants, columns become evidence later.</li>
+        <li><b>Rooms over roads.</b> Courthouse, jail desk, hotel kitchen, lease office, depot, porches.</li>
+      </ol>
+      <div style="font:700 22px 'Old Standard TT',serif;margin:22px 0 8px">Two paths, one county</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:14px">
+        <div style="border-top:2px solid #2a2520;padding-top:6px"><b>Badge.</b> Commissioners, budget, deputies, election '28. County Ford. Jail desk.</div>
+        <div style="border-top:2px solid #8a3b2e;padding-top:6px"><b>Fired.</b> Same county. Ford revoked, civilian coupe, boarding-house phone. Lease security or River Road families.</div>
+      </div>
+    </div>
+    <div>
+      <div style="font:700 22px 'Old Standard TT',serif;margin-bottom:8px">Four ledgers (journal only, never meters)</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px">
+        <b>Courthouse</b><span>Judge Helm, clerk, commissioners. Promotion needs it high.</span>
+        <b>Street</b><span>Camps, River Road, porches. Rebel viability lives here.</span>
+        <b>Capital</b><span>Tanner Lease, hotel, mercantile credit. Decides if you're cheaper gone.</span>
+        <b>Home</b><span>Mrs. Lang's, church, the doctor. What's left when the star is.</span>
+      </div>
+      <div style="font:700 22px 'Old Standard TT',serif;margin:22px 0 8px">Not this</div>
+      <ul style="margin:0;padding-left:20px;font-size:14px;display:flex;flex-direction:column;gap:4px">
+        <li>No duster silhouette, no sunset walkdown, no trough standoff.</li>
+        <li>No black-and-white cruiser, no bubble light.</li>
+        <li>No honor bar. No minimap on the coat.</li>
+        <li>No horror, no supernatural, no comedy-western.</li>
+      </ul>
+      <div style="margin-top:22px;font-size:12px;color:#5a5142;border-top:1px solid #c8b48c;padding-top:8px">Protagonist: Sam Reed, he/him, mid-40s. "Sheriff" on duty, "Mr. Reed" after. Camera: over-the-shoulder follow, protagonist always visible. Single player, 20–30 hr campaign. Travel: Court→Camps 40–50 min dry, 2–4 hrs after rain. Fast travel: depot tickets or roads already driven.</div>
+    </div>
+  </div>
+  <div style="position:absolute;right:64px;bottom:40px;transform:rotate(-6deg);border:3px solid #9e2f24;color:#9e2f24;padding:6px 14px;font:700 18px 'Courier Prime',monospace;letter-spacing:.15em;opacity:.8">RIVAS CO. — FILE COPY</div>
+</section>
+
+<section id="system" style="margin:40px 40px 60px;width:1440px;box-sizing:border-box">
+  <div style="font:700 34px 'Old Standard TT',serif;color:#efe5cc">A. Visual design system</div>
+  <div style="font:14px 'Courier Prime',monospace;color:#c8b48c;margin:6px 0 24px">Token names are material names. Use them verbatim in UMG styles, material instances and Claude Code prompts. sRGB hex shown; Unreal linear values in the tooltip column.</div>
+
+  <div style="font:700 20px 'Old Standard TT',serif;color:#efe5cc;margin-bottom:10px">Color</div>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px">
+    <sc-for list="{{ swatches }}" as="s" hint-placeholder-count="10">
+      <div style="background:#efe5cc;color:#2a2520;padding:0 0 12px;border:1px solid #5a5142">
+        <div style="height:84px;background:{{ s.hex }}"></div>
+        <div style="padding:10px 12px 0;font:700 14px 'Courier Prime',monospace">{{ s.name }}</div>
+        <div style="padding:2px 12px 0;font:13px 'Courier Prime',monospace;color:#5a5142">{{ s.hex }} · linear {{ s.linear }}</div>
+        <div style="padding:6px 12px 0;font:12px/1.4 'Courier Prime',monospace">{{ s.use }}</div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="margin-top:14px;padding:12px 16px;background:#2a2520;border:1px solid #5a5142;font:13px/1.5 'Courier Prime',monospace;color:#c8b48c"><b style="color:#efe5cc">Rules.</b> Cream on oil for all readable UI text (contrast 13:1). Ink on cream for paper. Filament is the only warm highlight and means "active / lit / live line" — never decoration. Stamp red is for the county's marks on you (FIRED, DENIED, CLOSED), never for danger. Cottonwood green appears only on the map and in river scenes. No blue anywhere in UI; the sky is the only blue in the game.</div>
+
+  <div style="font:700 20px 'Old Standard TT',serif;color:#efe5cc;margin:36px 0 10px">Type</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+    <div style="background:#efe5cc;color:#2a2520;padding:22px 24px;border:1px solid #5a5142">
+      <div style="font:13px 'Courier Prime',monospace;color:#5a5142">HEADLINE · Old Standard TT · 1927 county weekly</div>
+      <div style="font:700 52px/1.05 'Old Standard TT',serif;margin:10px 0 6px">Ditch Death Ruled Accident</div>
+      <div style="font:italic 22px 'Old Standard TT',serif">Sheriff's Office Closes Inquiry After Two Days</div>
+      <div style="font:12px/1.5 'Courier Prime',monospace;color:#5a5142;margin-top:14px">Sizes @1080p: display 64 · h1 44 · h2 30 · deck (italic) 22. Tracking +1% at display. Never all-caps below 20px.</div>
+    </div>
+    <div style="background:#efe5cc;color:#2a2520;padding:22px 24px;border:1px solid #5a5142">
+      <div style="font:13px 'Courier Prime',monospace;color:#5a5142">BODY · Courier Prime · carbon copy</div>
+      <div style="font:20px/1.45 'Courier Prime',monospace;color:#3e3850;margin:10px 0 6px">RIVAS COUNTY SHERIFF'S OFFICE<br>Report of Death. Male, approx. 40. Found in Bend Lateral, ESE of seat. Cause: drowning. Contributing: intoxication. Status: CLOSED.</div>
+      <div style="font:12px/1.5 'Courier Prime',monospace;color:#5a5142;margin-top:14px">Sizes @1080p: body 20 · label 16 · fine print 14 (min). Color is Carbon (#3e3850), not black — the typed page is purple-grey. Bold only for field names.</div>
+    </div>
+    <div style="background:#efe5cc;color:#2a2520;padding:22px 24px;border:1px solid #5a5142">
+      <div style="font:13px 'Courier Prime',monospace;color:#5a5142">HAND · Caveat · Reed's pencil</div>
+      <div style="font:600 30px/1.3 'Caveat',cursive;color:#2a2520;margin:10px 0 6px">drove it. 48 min. gumbo past mile 12 —<br>ask Doc why no water in the lungs</div>
+      <div style="font:12px/1.5 'Courier Prime',monospace;color:#5a5142;margin-top:14px">Sizes @1080p: 28–32 only. Used only for things Reed wrote: map ticks, ledger notes, margin marks. Never for system text. Never for other characters' handwriting (they get Old Standard italic).</div>
+    </div>
+  </div>
+
+  <div style="font:700 20px 'Old Standard TT',serif;color:#efe5cc;margin:36px 0 10px">UI chrome — paper, brass, stamped ink</div>
+  <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px;align-items:start">
+    <div style="background:#efe5cc;color:#2a2520;padding:22px 24px;border:1px solid #5a5142;position:relative">
+      <div style="position:absolute;top:12px;left:12px;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9be7a,#7d6430 70%,#4a3a18)"></div>
+      <div style="font:13px 'Courier Prime',monospace;color:#5a5142;margin-left:16px">PAPER SURFACES</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;font:13px/1.4 'Courier Prime',monospace">
+        <div style="background:#efe5cc;border:1px solid #c8b48c;padding:12px;box-shadow:2px 3px 0 #c8b48c"><b>Ledger cream</b><br>county book, reports, docket. Ruled lines #c8b48c at 1px.</div>
+        <div style="background:#e4d8b8;border:1px solid #b8a67e;padding:12px"><b>Dust</b><br>backs of pages, hearing stubs, envelope. Dimmer, meant to be read once.</div>
+        <div style="background:#f3efe4;border:1px solid #c8b48c;padding:12px;color:#2a2520"><b>Newsprint</b><br>The Enterprise only. Slightly whiter, ragged column rules.</div>
+        <div style="background:#3e3850;color:#efe5cc;padding:12px"><b>Carbon back</b><br>the second copy: what the courthouse keeps. Appears when a report becomes evidence.</div>
+      </div>
+      <div style="margin-top:14px;font:12px/1.5 'Courier Prime',monospace;color:#5a5142">Paper never has a drop shadow in-world; it lies on a desk. Off-desk (pause), one hard 2px offset shadow in Dust, like a second sheet underneath. Corners square. Fastener: brass split-pin, top-left, only on bound documents.</div>
+    </div>
+    <div style="background:#15120e;padding:22px 24px;border:1px solid #5a5142">
+      <div style="font:13px 'Courier Prime',monospace;color:#c8b48c">INTERACTION PROMPT · in-world</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:30px;height:30px;border:1.5px solid #efe5cc;display:grid;place-items:center;font:700 15px 'Courier Prime',monospace;color:#efe5cc">E</span><span style="font:20px 'Courier Prime',monospace;color:#efe5cc">Serve paper</span><span style="font:14px 'Courier Prime',monospace;color:#c8b48c">— Tanner lease office</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:30px;height:30px;border:1.5px solid #e3a449;display:grid;place-items:center;font:700 15px 'Courier Prime',monospace;color:#e3a449;box-shadow:0 0 12px rgba(227,164,73,.35)">E</span><span style="font:20px 'Courier Prime',monospace;color:#e3a449">Knock</span><span style="font:14px 'Courier Prime',monospace;color:#c8b48c">— focused, filament lit</span></div>
+        <div style="display:flex;align-items:center;gap:12px;opacity:.45"><span style="width:30px;height:30px;border:1.5px solid #efe5cc;display:grid;place-items:center;font:700 15px 'Courier Prime',monospace;color:#efe5cc">E</span><span style="font:20px 'Courier Prime',monospace;color:#efe5cc;text-decoration:line-through">Serve paper</span><span style="font:14px 'Courier Prime',monospace;color:#c8b48c;text-decoration:none">— no star. You can ask.</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:30px;height:30px;border:1.5px solid #efe5cc;display:grid;place-items:center;font:700 15px 'Courier Prime',monospace;color:#efe5cc">E</span><span style="font:20px 'Courier Prime',monospace;color:#efe5cc">Wait</span><span style="font:14px 'Courier Prime',monospace;color:#c8b48c">— hold. 10 min per tick.</span></div>
+      </div>
+      <div style="margin-top:16px;font:12px/1.5 'Courier Prime',monospace;color:#c8b48c">One verb, one key, one object name. Verb is the noun-less imperative from the verbs list (03/F). Fired-path variant strikes the county verb and offers the civilian one. Prompt anchors 24px right of the object's screen position, never centered on Reed. 22px minimum at 1080p; fades over 120ms; no icons.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="background:#efe5cc;color:#2a2520;padding:22px 24px;border:1px solid #5a5142">
+        <div style="font:13px 'Courier Prime',monospace;color:#5a5142">STAMPS · the county's marks</div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:12px">
+          <span style="border:3px solid #9e2f24;color:#9e2f24;padding:4px 10px;font:700 16px 'Courier Prime',monospace;letter-spacing:.12em;transform:rotate(-4deg);opacity:.85">CLOSED</span>
+          <span style="border:3px solid #9e2f24;color:#9e2f24;padding:4px 10px;font:700 16px 'Courier Prime',monospace;letter-spacing:.12em;transform:rotate(3deg);opacity:.85">DENIED</span>
+          <span style="border:3px solid #3e3850;color:#3e3850;padding:4px 10px;font:700 16px 'Courier Prime',monospace;letter-spacing:.12em;transform:rotate(-2deg);opacity:.85">RECEIVED · CLERK</span>
+          <span style="border:3px solid #9e2f24;color:#9e2f24;padding:4px 10px;font:700 16px 'Courier Prime',monospace;letter-spacing:.12em;transform:rotate(-6deg);opacity:.85">SERVICES TERMINATED</span>
+        </div>
+        <div style="margin-top:12px;font:12px/1.5 'Courier Prime',monospace;color:#5a5142">Rotate −6° to +4°, 85% opacity, slight ink starve on one edge. Stamps are applied by others; Reed's own marks are pencil.</div>
+      </div>
+      <div style="background:#efe5cc;color:#2a2520;padding:22px 24px;border:1px solid #5a5142">
+        <div style="font:13px 'Courier Prime',monospace;color:#5a5142">BUTTONS · menu only</div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <span style="border:1.5px solid #2a2520;padding:8px 16px;font:700 15px 'Courier Prime',monospace;letter-spacing:.06em">SIGN</span>
+          <span style="border:1.5px solid #2a2520;background:#2a2520;color:#efe5cc;padding:8px 16px;font:700 15px 'Courier Prime',monospace;letter-spacing:.06em">HOLD FOR INQUIRY</span>
+          <span style="border:1.5px dashed #5a5142;color:#5a5142;padding:8px 16px;font:700 15px 'Courier Prime',monospace;letter-spacing:.06em">DEPUTIZE (no budget)</span>
+        </div>
+        <div style="margin-top:12px;font:12px/1.5 'Courier Prime',monospace;color:#5a5142">Outline = available. Filled ink = focused. Dashed = blocked, with the reason in parentheses. No hover glow; focus is a pencil underline appearing left-to-right, 90ms.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font:700 20px 'Old Standard TT',serif;color:#efe5cc;margin:36px 0 10px">Do / Don't</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font:14px/1.55 'Courier Prime',monospace">
+    <div style="background:#2a2520;border:1px solid #5c7752;padding:18px 22px;color:#efe5cc">
+      <div style="font:700 15px 'Courier Prime',monospace;color:#c8b48c;letter-spacing:.1em;margin-bottom:8px">DO</div>
+      <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px">
+        <li>Light UI like the room: filament warm at night, flat grey under overcast, hard white at noon.</li>
+        <li>Let paper carry information. If a stat matters, it's a line in a book someone keeps.</li>
+        <li>Write copy tired and specific: mile markers, names, times, who to call.</li>
+        <li>Show the campaign hat and wool/khaki coat in every key-art silhouette.</li>
+        <li>Use one derrick on the western horizon as the county's clock — more appear only as Act II progresses.</li>
+        <li>Default light: noon hard, dirty overcast, green-white electric night.</li>
+      </ul>
+    </div>
+    <div style="background:#2a2520;border:1px solid #9e2f24;padding:18px 22px;color:#efe5cc">
+      <div style="font:700 15px 'Courier Prime',monospace;color:#c8b48c;letter-spacing:.1em;margin-bottom:8px">DON'T</div>
+      <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px">
+        <li>No honey-sunset grade as default. Golden hour is an event, not a look.</li>
+        <li>No meters, bars, karma dials, or numeric reputation anywhere in-world.</li>
+        <li>No minimap. No objective markers floating over people.</li>
+        <li>No score on the square. No wanted level. No dead-eye, no weapon wheel.</li>
+        <li>No western ornament: no rope borders, no wanted-poster type, no bullet holes.</li>
+        <li>No game-UI blue, no glow except a lit filament, no glass or holographic panels.</li>
+        <li>No mythic copy. If a line would fit on a movie poster, cut it.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const lin = h => { const c = [1,3,5].map(i => parseInt(h.slice(i,i+2),16)/255).map(v => v<=0.04045 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4)); return c.map(v=>v.toFixed(3)).join(', '); };
+    const raw = [
+      ['Oil black','#15120e','World shadow, HUD text ground, jail night.'],
+      ['Ink','#2a2520','Printed type on paper; button outlines.'],
+      ['Carbon','#3e3850','Typewritten body. The purple-grey of a carbon copy.'],
+      ['Ledger cream','#efe5cc','Primary paper. Primary text on dark.'],
+      ['Dust','#c8b48c','Secondary text, rules, page backs, caliche roads.'],
+      ['Newsprint','#f3efe4','The Enterprise only.'],
+      ['Brick','#8a3b2e','Courthouse, jail, rebel-path accent rule.'],
+      ['Stamp red','#9e2f24','CLOSED / DENIED / TERMINATED. The county marking you.'],
+      ['Filament','#e3a449','Focused prompt, live phone line, lit bulb. The only glow.'],
+      ['Cottonwood','#5c7752','Map river margins and bottomland only.'],
+      ['Brass','#a98b4c','Fasteners, star, badge chrome. Gone on the fired path.'],
+      ['Caliche','#e6dcc4','Road surface reference; not a UI color.'],
+    ];
+    return { swatches: raw.map(([name,hex,use]) => ({name,hex,use,linear:lin(hex)})) };
+  }
+}
+</script>
+</body>
+</html>
