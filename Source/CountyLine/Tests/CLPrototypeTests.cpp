@@ -4,7 +4,7 @@
 #include "Player/CLPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
-// Test names are fixed: Scripts/Test-Prototype.ps1 expects exactly three CountyLine tests.
+// Keep these test names in sync with the expected tests in Scripts/Test-Prototype.ps1.
 namespace CLReportTestUtil
 {
     static const TCHAR* Finder = TEXT("SalazarFoundBody");

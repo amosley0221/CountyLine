@@ -1,4 +1,5 @@
 #include "Paper/CLCaseState.h"
+#include "Paper/CLSaveValidation.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -39,12 +40,9 @@ void UCLCaseState::Initialize(FSubsystemCollectionBase& Collection)
     // Test runs must never load or overwrite a player's slot.
     if (FParse::Param(FCommandLine::Get(), TEXT("CLSmokeTest"))) return;
     if (!UGameplayStatics::DoesSaveGameExist(TEXT("CountyLine_JailPrototype"), 0)) return;
-    const UCLPrototypeSave* Save = Cast<UCLPrototypeSave>(UGameplayStatics::LoadGameFromSlot(TEXT("CountyLine_JailPrototype"), 0));
-    if (Save && Save->Version == 1 && Save->Report.ClosingLine >= 0 && Save->Report.ClosingLine < 3 &&
-        static_cast<uint8>(Save->Report.Status) <= static_cast<uint8>(ECLReportStatus::Held))
+    const USaveGame* Save = UGameplayStatics::LoadGameFromSlot(TEXT("CountyLine_JailPrototype"), 0);
+    if (CLSaveValidation::CopyIfValid(Save, Report, bTypedCopy))
     {
-        Report = Save->Report;
-        bTypedCopy = Save->bTypedCopy;
         bHasWrittenDate = true;
         SavedReport = Report;
         bSavedTypedCopy = bTypedCopy;

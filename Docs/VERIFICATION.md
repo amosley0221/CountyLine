@@ -65,3 +65,11 @@ Integration adds field-by-field comparison of `bBriefedByPruitt` and both introd
 The combined editor target built successfully with `-NoPCH -NoUBA`, confirming the earlier missing-include issue is resolved. The inline version/range checks in `UCLCaseState::Initialize` still lack direct malformed-save tests; this integration does not claim that coverage. Generated precompiled-header backups in the original checkout are unchanged and remain excluded from Git.
 
 Combined verification: Scripts/Test-Prototype.ps1 exited 0; all three expanded automation suites and all 22 runtime smoke checks passed against the merged office/controller build.
+
+## Save-validation integration
+
+Reviewed Claude's commit `f4f456ebaff281276c2901527ab9a020e41367a9` and connected `CLSaveValidation::CopyIfValid` to `UCLCaseState::Initialize`. The loader retains its smoke-test bypass and missing-slot check. Only an accepted save marks the state saved and updates its saved snapshot. Whole-report copying preserves field notes, Pruitt's introduction and carbon wording. Rejected saves leave the destination unchanged; acceptance rules remain identical to the previous inline checks.
+
+The runner now requires all seven named automation suites, including the four new validation suites. Validation fixtures use memory-only serialization; integration verification does not overwrite the player's save slot. The runtime smoke bypasses disk loading, so it checks gameplay regressions rather than exercising the disk-load path. Packaged-build and wrong-save-class fixture coverage remain outside this integration.
+
+Integrated verification (19 September 2026): UE 5.8.2 CountyLineEditor Win64 Development built successfully with `-NoPCH -NoUBA -NoHotReloadFromIDE`. `Scripts/Test-Prototype.ps1` exited 0: seven named automation suites succeeded and all 29 runtime smoke assertions passed. Existing playable checkout and desktop shortcut use the rebuilt module.
