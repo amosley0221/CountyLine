@@ -10,3 +10,4 @@
 *.fbx filter=lfs diff=lfs merge=lfs -text
 *.png binary
 *.zip binary
+SourceAssets/** filter=lfs diff=lfs merge=lfs -text
