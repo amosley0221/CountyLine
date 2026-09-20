@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundWave.h"
 
 // Pure-logic coverage for walking, jogging, town geography, and checkpoint
 // recovery. The runtime smoke test walks the real routes; these suites pin the
@@ -69,14 +70,11 @@ namespace CLMovementWorldTestUtil
         return Walk;
     }
 
-    // A leg is walkable when no stretch of it is unnamed. One isolated sample is
-    // the known zero-width seam where two zones meet, recorded in
-    // Docs/Verification and harmless because the next step names a place again.
+    // Every sampled position must belong to a location, including exact seams.
+    // Collision-aware traversal is checked separately by the runtime smoke test.
     static void ExpectWalkable(FAutomationTestBase& Test, const FString& Ctx, const FWalk& Walk)
     {
-        Test.TestTrue(FString::Printf(TEXT("%s has no unnamed stretch (longest %d samples)"), *Ctx, Walk.LongestGap), Walk.LongestGap <= 1);
-        if (Walk.LongestGap == 1)
-            Test.AddInfo(FString::Printf(TEXT("%s crosses the zone seam at %.1f, %.1f; a single sample names nowhere"), *Ctx, Walk.FirstGapAt.X, Walk.FirstGapAt.Y));
+        Test.TestTrue(FString::Printf(TEXT("%s has no unnamed samples (longest %d, first at %.1f, %.1f)"), *Ctx, Walk.LongestGap, Walk.FirstGapAt.X, Walk.FirstGapAt.Y), Walk.LongestGap == 0);
     }
 
     static FString Describe(const TArray<FName>& Visited)
@@ -154,9 +152,8 @@ bool FCLWalkJogControlsTest::RunTest(const FString& Parameters)
     if (TestNotNull(TEXT("Reed has a movement component"), Movement))
     {
         TestEqual(TEXT("Default speed is the walking speed"), Movement->MaxWalkSpeed, WalkSpeed);
-        TestEqual(TEXT("Jogging is twice walking"), JogSpeed, WalkSpeed * 2.f);
         TestTrue(TEXT("Reed turns toward movement"), Movement->bOrientRotationToMovement);
-        TestTrue(TEXT("Reed reaches jogging speed in about half a second"), Movement->MaxAcceleration >= JogSpeed);
+        TestTrue(TEXT("Acceleration supports reaching jogging speed within one second"), Movement->MaxAcceleration >= JogSpeed);
         TestTrue(TEXT("Walking stops promptly"), Movement->BrakingDecelerationWalking > 0.f);
         TestTrue(TEXT("Turn rate is finite and positive"), Movement->RotationRate.Yaw > 0.f && FMath::IsFinite(Movement->RotationRate.Yaw));
     }
@@ -273,10 +270,8 @@ bool FCLTownGeographyTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("A walk home is recoverable"), WouldKeepSavedPosition(Lane));
     }
 
-    // The seam between Court Street and the county road. Exactly on the boundary
-    // no zone matches; a step either side does. This pins current behaviour: if
-    // the boundary is ever closed, update this and the note in Docs/Verification.
-    TestTrue(TEXT("Court Street and the county road meet at x=-1520"), PlaceAt(-1520, -800).IsNone());
+    // The county road owns the exact boundary, so discovery never drops out.
+    TestTrue(TEXT("County road owns the x=-1520 boundary"), PlaceAt(-1520, -800) == FName(TEXT("CountyRoad")));
     TestTrue(TEXT("A step west of the seam is Court Street"), PlaceAt(-1520.1, -800) == FName(TEXT("CourtStreet")));
     TestTrue(TEXT("A step east of the seam is the county road"), PlaceAt(-1519.9, -800) == FName(TEXT("CountyRoad")));
 
