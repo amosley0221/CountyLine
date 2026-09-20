@@ -64,7 +64,8 @@ ACLBendLateral::ACLBendLateral()
     Collision(TEXT("NorthLimit"),FVector(0,1300,150),FVector(3600,40,300));
     Collision(TEXT("SouthLimit"),FVector(0,-1230,150),FVector(3600,40,300));
     Collision(TEXT("EastLimit"),FVector(1780,0,150),FVector(40,2600,300));
-    Collision(TEXT("WestLimit"),FVector(-1780,0,150),FVector(40,2600,300));
+    Collision(TEXT("WestLimitNorth"),FVector(-1780,475,150),FVector(40,1650,300));
+    Collision(TEXT("WestLimitSouth"),FVector(-1780,-1215,150),FVector(40,170,300));
     auto* Sign=CreateDefaultSubobject<UTextRenderComponent>(TEXT("RoadSign"));
     Sign->SetupAttachment(RootComponent);Sign->SetRelativeLocation(FVector(-1250,-464,124));
     Sign->SetRelativeRotation(FRotator(0,-90,0));Sign->SetWorldSize(12);

@@ -3,7 +3,7 @@
 Coordinates are centimetres in the existing gameplay layout. The exported scene
 is decorative; native collision keeps the office and investigation route stable.
 """
-import bpy, bmesh, math, random
+import bpy, bmesh, math, random, sys
 from pathlib import Path
 from mathutils import Vector
 
@@ -57,11 +57,15 @@ class Mesh:
    for li in poly.loop_indices:
     v=mesh.vertices[mesh.loops[li].vertex_index].co;uv.data[li].uv=(v[axes[0]]*.01,v[axes[1]]*.01)
   bpy.ops.object.select_all(action='DESELECT');ob.select_set(True);bpy.context.view_layer.objects.active=ob
-  bpy.ops.export_scene.fbx(filepath=str(OUT/(self.name+'.fbx')),use_selection=True,object_types={'MESH'},axis_forward='-Y',axis_up='Z',apply_unit_scale=True,bake_anim=False,mesh_smooth_type='FACE')
+  if '--road-only' not in sys.argv or self.name in ('SM_BendFence','SM_BendGround'):
+   bpy.ops.export_scene.fbx(filepath=str(OUT/(self.name+'.fbx')),use_selection=True,object_types={'MESH'},axis_forward='-Y',axis_up='Z',apply_unit_scale=True,bake_anim=False,mesh_smooth_type='FACE')
   return ob
 
 def center(x):return 545+45*math.sin(x/680)
 def ground(x,y):
+ # Keep the western approach just below the native road surface. This avoids
+ # two decorative ground surfaces crossing each other at the route join.
+ if x < -1700 and y < 330:return -3
  d=abs(y-center(x))
  if d<80:return -65
  if d<185:return -65+(d-80)*65/105
@@ -117,7 +121,9 @@ def rail_run(points):
   for z in (42,79):fence.rod((x,y,ground(x,y)+z),(xx,yy,ground(xx,yy)+z-3),3.2,2.7,'Timber',6)
 rail_run([(x,335) for x in range(-1700,1801,230)])
 rail_run([(x,-1200) for x in range(-1700,1801,230)])
-rail_run([(-1750,y) for y in range(-1100,1301,230)])
+rail_run([(-1750,y) for y in range(-350,1301,230)])
+# The west approach is open from -1130 to -350, matching native collision.
+rail_run([(-1750,-1200),(-1750,-1130)])
 rail_run([(1750,y) for y in range(-1100,1301,230)])
 # Return-route signboard, away from the road centre.
 fence.rod((-1250,-450,0),(-1250,-450,140),5,4,'Timber')

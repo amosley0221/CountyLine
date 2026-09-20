@@ -105,3 +105,13 @@ Integrated Claude's commit 085e11b, preserving its implementation and fixture im
 The integrated UE 5.8.2 editor target built successfully with -NoPCH -NoUBA -NoHotReloadFromIDE. Scripts/Test-Prototype.ps1 exited 0: all ten expected automation suites passed, with zero automation warnings/errors, and all 51 runtime smoke checks passed. Player save slots were not used. No new visual behavior was introduced, and no interactive playtest was required for this storage integration.
 
 Travel, spawning, and discovery triggers remain unwired. Compatibility testing covers default world state through memory serialization, not a genuine historical binary save. Older builds can discard the new fields if they rewrite a save; see Docs/WORLD_STATE_FOUNDATION.md.
+
+## Walkable county road and discovery — 19 September 2026
+
+The UE 5.8.2 editor target builds with -NoPCH -NoUBA -NoHotReloadFromIDE. The final Scripts/Test-Prototype.ps1 run exited 0: all ten named automation suites and all 60 runtime smoke checks passed, with no automation warnings or errors. The route test sweeps Reed's actual capsule in 25 cm increments along the doorway and road in both directions, verifies ground support, and checks discovery of all three regions. It also verifies checkpoint recovery, preservation of evidence/carbon, fallback for unknown location ids and unsafe coordinates, and that road directions do not teleport the player.
+
+A first route test caught the office sign obstructing the approach; the sign was moved clear and the full route passed. Visual inspection at 1440 x 900 covered the open doorway, the road toward Bend Lateral, and the Map page with all three discovered places. Initial outdoor inspection identified overlapping decorative terrain and a visible edge beyond the fence; the approach ground was adjusted and distant ground added. The visible western Bend fence was reauthored with a gap matching collision.
+
+Tests use memory-only saves and the CLSmokeTest player-slot bypass. Interactive review uses CLSmokeTest with CLSmokeKeepOpen; no player save was loaded or written. Existing controller navigation and investigation regressions are included, but no physical controller or packaged-build test was performed. The route is a compact prototype connection, not the final county size or a streaming implementation. See Docs/COUNTY_ROAD.md for controls, checkpoint/save behavior, and asset reproduction.
+
+Final visual recheck confirmed the continuous road surface after reimport; the rendered smoke fixture also completed all 60 checks.

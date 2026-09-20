@@ -169,9 +169,9 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
         Line(Titles[FieldAction],bInspect?32:40);
         if(FieldAction==0 || FieldAction==4)
         {
-            Line(TEXT("Take the road between the jail office and Bend Lateral. This study uses a short scene transition."),24);
+            Line(TEXT("Walk through the open office doorway, turn south to the dirt road, then follow it east to Bend Lateral. The same road leads home."),24);
             Line(TEXT("Field notes stay in your book. Write the date at the office desk to save them."),22,true);
-            Page->AddSlot().AutoHeight()[Button(TEXT("TAKE THE ROAD"),[this]{Owner->TravelToBend(FieldAction==4);})];
+            Page->AddSlot().AutoHeight()[Button(TEXT("WALK THE ROAD"),[this]{Owner->CloseBook();})];
         }
         else
         {
@@ -374,8 +374,12 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
     else if(ActivePage==1)
     {
         Line(TEXT("Rivas County"),30);
-        Line(TEXT("County Clerk's Office  /  1927"),20,true);
-        Line(TEXT("Jail office — Pecos Bend. Use the entrance door to take the road.\n\nBend Lateral — Salazar, a bottle and the ditch bank. The JAIL OFFICE sign marks the return route."),24);
+        Line(TEXT("County Clerk's Office  /  October 1926"),20,true);
+        Line(TEXT("Jail office: leave through the open doorway, turn south, then follow the dirt road east. Bend Lateral lies beyond the last sign. Return west along the same road."),24);
+        Line(TEXT("PLACES ENTERED IN THE BOOK"),20,true);
+        for(FName Id : {FName(TEXT("JailOffice")),FName(TEXT("CountyRoad")),FName(TEXT("BendLateral"))})
+            if(State->World.IsLocationDiscovered(Id)) Line(Id==TEXT("JailOffice")?TEXT("Jail office / Pecos Bend"):Id==TEXT("CountyRoad")?TEXT("Road to Bend Lateral"):TEXT("Bend Lateral / irrigation bank"),22);
+        Line(TEXT("Discoveries are kept when you write the date at the desk. This first route is a compact study of the county."),18,true);
     }
     else if(ActivePage==3)
     {

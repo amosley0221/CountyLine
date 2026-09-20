@@ -1,6 +1,7 @@
 #include "World/CLPrototypeGameMode.h"
 #include "World/CLJailOffice.h"
 #include "World/CLBendLateral.h"
+#include "World/CLCountyRoad.h"
 #include "Player/CLReedCharacter.h"
 #include "Player/CLPlayerController.h"
 #include "Paper/CLCaseState.h"
@@ -138,7 +139,37 @@ void ACLPrototypeGameMode::RunSmokeTest()
         const TArray<FName> Carbon=PC->Case()->Report.IncludedFacts;
         PC->ShowBook(false,false,false,4);
         Press(EKeys::Gamepad_FaceButton_Bottom);
-        Check(PC->IsInField() && !PC->IsBookOpen() && !PC->IsMoveInputIgnored(),TEXT("Controller travel enters Bend Lateral and restores movement"));
+        Check(!PC->IsInField() && !PC->IsBookOpen() && !PC->IsMoveInputIgnored(),TEXT("Road directions restore movement without teleporting"));
+        // Sweep the same pawn continuously through the doorway and along the
+        // authored road. Every step must have ground and remain unobstructed.
+        Reed->SetActorLocation(FVector(-350,-180,92));
+        PC->UpdateWorldProgress();
+        bool bRouteClear=true;
+        auto WalkRoute=[&](const FVector& Destination)
+        {
+            const FVector Start=Reed->GetActorLocation();
+            const int32 Steps=FMath::CeilToInt(FVector::Distance(Start,Destination)/25.f);
+            for(int32 I=1;I<=Steps;++I)
+            {
+                const FVector Next=FMath::Lerp(Start,Destination,float(I)/Steps);
+                FHitResult Wall,Ground;
+                Reed->SetActorLocation(Next,true,&Wall);
+                FCollisionQueryParams Params(SCENE_QUERY_STAT(RoadSmoke),false,Reed);
+                const bool bFloor=GetWorld()->LineTraceSingleByChannel(Ground,Next,Next-FVector(0,0,130),ECC_Visibility,Params);
+                if(bRouteClear && (Wall.bBlockingHit || !bFloor || Ground.ImpactNormal.Z<=.7f))
+                    UE_LOG(LogTemp,Warning,TEXT("CL_ROUTE obstruction=%s floor=%d at=%s actual=%s"),*GetNameSafe(Wall.GetComponent()),bFloor,*Next.ToString(),*Reed->GetActorLocation().ToString());
+                bRouteClear &= !Wall.bBlockingHit && bFloor && Ground.ImpactNormal.Z>.7f;
+                PC->UpdateWorldProgress();
+            }
+        };
+        WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(8800,-800,92));
+        Check(bRouteClear && PC->IsInField(),TEXT("Continuous capsule route connects the open office door to Bend Lateral"));
+        Check(PC->Case()->World.IsLocationDiscovered(TEXT("JailOffice")) && PC->Case()->World.IsLocationDiscovered(TEXT("CountyRoad")) && PC->Case()->World.IsLocationDiscovered(TEXT("BendLateral")),TEXT("Walking discovers all three authored locations"));
+        Check(PC->Case()->World.LastSafeLocation==TEXT("BendLateral"),TEXT("Entering Bend records its safe checkpoint"));
+        const auto WorldBeforeRestore=PC->Case()->World;
+        Reed->SetActorLocation(FVector(0,0,-250));
+        Check(PC->RestoreSafePosition() && PC->IsInField(),TEXT("Recovery returns Reed to the last safe authored location"));
+        Check(PC->Case()->World.DiscoveredLocations==WorldBeforeRestore.DiscoveredLocations && PC->Case()->Report.IncludedFacts==Carbon,TEXT("Recovery preserves discoveries and the original report"));
         ACLBendLateral* Bend=nullptr;
         for(TActorIterator<ACLBendLateral> It(GetWorld());It;++It) {Bend=*It;break;}
         Check(Bend && Bend->Markers.Num()==4 && Bend->Salazar->GetSingleNodeInstance(),TEXT("Bend Lateral has interaction targets and animated witness"));
@@ -184,6 +215,9 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Check(PC->Case()->Report.IncludedFacts==Carbon,TEXT("Investigation cannot rewrite an existing carbon"));
         Check(!PC->IsAtDesk(),TEXT("Field investigation cannot access the office save station"));
         PC->ShowBook(false,false,false,0);Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(PC->IsInField(),TEXT("Return directions do not fast travel"));
+        WalkRoute(FVector(8800,-800,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-350,-180,92));
+        Check(bRouteClear,TEXT("The same road and doorway support the return walk"));
         Check(!PC->IsInField() && PC->Case()->Report.FieldNotes.Num()==3 && !PC->IsBookOpen(),TEXT("Return to office preserves all field notes"));
         Check(Bend && !Bend->IsFieldAudioActive(),TEXT("Return to office disables outdoor ambience"));
         Reed->SetActorLocation(FVector(-20,-110,92));
@@ -208,6 +242,10 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Check(PC->Case()->Report.IncludedFacts==Carbon && !PC->Case()->IsCurrentStateSaved(),TEXT("Follow-up preserves carbon and remains unsaved until the date is written"));
         Press(EKeys::Gamepad_FaceButton_Bottom);
         Check(!PC->IsBookOpen(),TEXT("Filing returns focus to Close rather than the save button"));
+        PC->Case()->World.SetLastSafePosition(TEXT("UnknownLocation"),FTransform(FVector(0,0,-5000)));
+        Check(PC->RestoreSafePosition() && PC->Case()->World.LastSafeLocation==TEXT("JailOffice") && PC->IsAtDesk()==false,TEXT("Unknown safe location falls back to the office entrance"));
+        PC->Case()->World.SetLastSafePosition(TEXT("BendLateral"),FTransform(FVector(0,0,-5000)));
+        Check(PC->RestoreSafePosition() && !PC->IsInField(),TEXT("Known location with unsafe coordinates falls back to the office"));
     }
     UE_LOG(LogTemp,Display,TEXT("CL_SMOKE_RESULT=%s"),Passed?TEXT("PASS"):TEXT("FAIL"));
     // Optional visual review fixture. CL smoke runs already bypass the player's

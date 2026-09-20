@@ -1,6 +1,7 @@
 #include "Player/CLPlayerController.h"
 #include "World/CLJailOffice.h"
 #include "World/CLBendLateral.h"
+#include "World/CLCountyRoad.h"
 #include "Paper/CLCaseState.h"
 #include "UI/SCLCountyBook.h"
 #include "EngineUtils.h"
@@ -27,6 +28,7 @@ void ACLPlayerController::BeginPlay()
     Super::BeginPlay();
     for(TActorIterator<ACLJailOffice> It(GetWorld());It;++It) {Office=*It;break;}
     Bend=GetWorld()->SpawnActor<ACLBendLateral>(FVector(10000,0,0),FRotator::ZeroRotator);
+    GetWorld()->SpawnActor<ACLCountyRoad>();
     PlayerCameraManager->ViewPitchMin=-45;
     PlayerCameraManager->ViewPitchMax=30;
     SetControlRotation(FRotator(-10,0,0));
@@ -68,6 +70,16 @@ void ACLPlayerController::SetupInputComponent()
 void ACLPlayerController::PlayerTick(float DeltaSeconds)
 {
     Super::PlayerTick(DeltaSeconds);
+    if(GetPawn() && !bWorldInitialized)
+    {
+        bWorldInitialized=true;
+        if(Case()->World.HasLastSafePosition()) RestoreSafePosition();
+    }
+    if(GetPawn() && !IsBookOpen())
+    {
+        if(GetPawn()->GetActorLocation().Z < -200) RestoreSafePosition();
+        UpdateWorldProgress();
+    }
     bPromptAvailable=CanReachReport();
     bDeputyAvailable=CanReachDeputy();
 }
@@ -171,7 +183,38 @@ void ACLPlayerController::CloseBook()
 
 bool ACLPlayerController::IsInField() const
 {
-    return GetPawn() && GetPawn()->GetActorLocation().X>7000;
+    return GetPawn() && ACLCountyRoad::LocationAt(GetPawn()->GetActorLocation())==TEXT("BendLateral");
+}
+
+void ACLPlayerController::UpdateWorldProgress()
+{
+    ACharacter* ReedPawn=Cast<ACharacter>(GetPawn());
+    if(!ReedPawn || !Case()) return;
+    if(Bend.IsValid()) Bend->SetFieldActive(IsInField());
+    if(!ReedPawn->GetCharacterMovement()->IsMovingOnGround()) return;
+    const FName Place=ACLCountyRoad::LocationAt(ReedPawn->GetActorLocation());
+    FTransform Checkpoint;
+    if(!ACLCountyRoad::SafeCheckpoint(Place,Checkpoint)) return;
+    Case()->World.DiscoverLocation(Place);
+    if(Case()->World.LastSafeLocation!=Place) Case()->World.SetLastSafePosition(Place,Checkpoint);
+}
+
+bool ACLPlayerController::RestoreSafePosition()
+{
+    if(!GetPawn() || !Case()) return false;
+    FTransform Checkpoint;
+    // Only authored checkpoints are valid spawn destinations in this slice.
+    // Unknown ids or stale coordinates fall back to the office rather than
+    // trusting a syntactically valid but unsafe transform from disk.
+    const bool bKnown=ACLCountyRoad::SafeCheckpoint(Case()->World.LastSafeLocation,Checkpoint);
+    const bool bMatches=bKnown && Case()->World.LastSafeTransform.Equals(Checkpoint,.01f);
+    if(!bMatches) ACLCountyRoad::SafeCheckpoint(TEXT("JailOffice"),Checkpoint);
+    if(!GetPawn()->TeleportTo(Checkpoint.GetLocation(),Checkpoint.Rotator())) return false;
+    if(ACharacter* C=Cast<ACharacter>(GetPawn())) C->GetCharacterMovement()->StopMovementImmediately();
+    SetControlRotation(FRotator(-10,Checkpoint.Rotator().Yaw,0));
+    if(!bMatches) Case()->World.SetLastSafePosition(TEXT("JailOffice"),Checkpoint);
+    if(Bend.IsValid()) Bend->SetFieldActive(IsInField());
+    return true;
 }
 int32 ACLPlayerController::ReachableFieldAction() const
 {
@@ -195,6 +238,7 @@ void ACLPlayerController::TravelToBend(bool bOutbound)
     GetPawn()->SetActorLocation(bOutbound?FVector(8800,-700,100):FVector(-350,-180,100),false,nullptr,ETeleportType::TeleportPhysics);
     SetControlRotation(bOutbound?FRotator(-10,45,0):FRotator(-10,0,0));
     if(Bend.IsValid()) Bend->SetFieldActive(bOutbound);
+    UpdateWorldProgress();
 }
 
 void ACLPlayerController::BeginInspection(int32 Action)

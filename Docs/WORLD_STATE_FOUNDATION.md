@@ -47,11 +47,11 @@ Every operation is all-or-nothing: a rejected call returns false and changes not
 
 Save version stays **1**. World state is a new tagged property, so older saves simply lack it and load with an empty, valid world state, the same mechanism the follow-up fields rely on.
 
-## Not wired up
+## Gameplay integration
 
-- Nothing calls `DiscoverLocation` or `SetLastSafePosition` during play. Travel and spawning are unchanged.
+- The first county-road integration now calls `DiscoverLocation` and `SetLastSafePosition` on grounded entry into three authored regions. Startup and fall recovery use checked, fixed checkpoints. See `Docs/COUNTY_ROAD.md` for behavior and limits.
 - Integration adds a world-state snapshot after successful loading and saving. `IsCurrentStateSaved` compares it alongside the report and copy preference, so future runtime changes will mark the game unsaved.
-- No gameplay consequence, UI, or authored location list is included. Location ids are caller-defined; there is no registry of known places yet.
+- The Map page lists discoveries. `ACLCountyRoad` defines the initial known places and safe checkpoints; the storage struct itself remains independent of that registry. No case consequences depend on discovery yet.
 
 ## Verification (19 September 2026, UE 5.8 at `F:\Vacancy\Unreal\UE_5.8`)
 

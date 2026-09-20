@@ -59,16 +59,18 @@ ACLJailOffice::ACLJailOffice()
     Shape(TEXT("BackWall"), TEXT("Cube"), FVector(560,0,170), FVector(20,940,340), TEXT("Plaster"));
     Shape(TEXT("LeftWall"), TEXT("Cube"), FVector(0,-460,170), FVector(1140,20,340), TEXT("Plaster"));
     Shape(TEXT("RightWall"), TEXT("Cube"), FVector(0,460,170), FVector(1140,20,340), TEXT("Brick"));
-    Shape(TEXT("EntryWall"), TEXT("Cube"), FVector(-560,0,170), FVector(20,940,340), TEXT("Plaster"));
+    Shape(TEXT("EntryWallNorth"), TEXT("Cube"), FVector(-560,195,170), FVector(20,550,340), TEXT("Plaster"));
+    Shape(TEXT("EntryWallSouth"), TEXT("Cube"), FVector(-560,-380,170), FVector(20,180,340), TEXT("Plaster"));
+    Shape(TEXT("EntryLintel"), TEXT("Cube"), FVector(-560,-185,295), FVector(20,210,90), TEXT("Plaster"));
     Shape(TEXT("Ceiling"), TEXT("Cube"), FVector(0,0,350), FVector(1140,940,20), TEXT("Plaster"));
     for (int32 X = -450; X <= 450; X += 225)
         Shape(FString::Printf(TEXT("Beam%d"),X), TEXT("Cube"), FVector(X,0,328), FVector(16,920,25), TEXT("Wood"));
     Shape(TEXT("LeftWainscot"), TEXT("Cube"), FVector(0,-444,48), FVector(1100,8,96), TEXT("Wood"));
     Shape(TEXT("BackWainscot"), TEXT("Cube"), FVector(544,0,48), FVector(8,900,96), TEXT("Wood"));
-    Shape(TEXT("Door"), TEXT("Cube"), FVector(-545,-180,118), FVector(9,110,236), TEXT("Wood"));
-    Shape(TEXT("DoorGlass"), TEXT("Cube"), FVector(-538,-180,163), FVector(2,80,90), TEXT("Glass"),false);
-    Shape(TEXT("DoorKnob"), TEXT("Sphere"), FVector(-529,-139,95), FVector(9), TEXT("Brass"),false);
-    Label(TEXT("DoorSign"), TEXT("RIVAS COUNTY\nJAIL OFFICE"), FVector(-535,-180,163), FRotator(0,0,0), 10, FColor(239,229,204));
+    Shape(TEXT("Door"), TEXT("Cube"), FVector(-625,-285,118), FVector(130,9,236), TEXT("Wood"));
+    Shape(TEXT("DoorGlass"), TEXT("Cube"), FVector(-625,-279,163), FVector(80,2,90), TEXT("Glass"),false);
+    Shape(TEXT("DoorKnob"), TEXT("Sphere"), FVector(-675,-273,95), FVector(9), TEXT("Brass"),false);
+    Label(TEXT("DoorSign"), TEXT("RIVAS COUNTY\nJAIL OFFICE"), FVector(-625,-273,163), FRotator(0,90,0), 10, FColor(239,229,204));
     // Windows are translucent-looking opaque placeholders; the prototype remains an enclosed room.
     for (int32 Y : {-280, 320})
     {

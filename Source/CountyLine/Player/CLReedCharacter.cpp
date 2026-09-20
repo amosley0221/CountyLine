@@ -1,4 +1,5 @@
 #include "Player/CLReedCharacter.h"
+#include "World/CLCountyRoad.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -74,7 +75,7 @@ void ACLReedCharacter::Tick(float DeltaSeconds)
         if(StepDistance>=78.f)
         {
             StepDistance=FMath::Fmod(StepDistance,78.f);
-            Footsteps->SetSound(GetActorLocation().X>7000?DirtStep:WoodStep);
+            Footsteps->SetSound(ACLCountyRoad::LocationAt(GetActorLocation())!=TEXT("JailOffice")?DirtStep:WoodStep);
             Footsteps->SetPitchMultiplier((FootstepCount++%2)==0?.96f:1.04f);
             Footsteps->Play();
         }

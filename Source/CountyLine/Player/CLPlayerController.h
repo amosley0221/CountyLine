@@ -24,6 +24,8 @@ public:
     int32 ReachableFieldAction() const;
     void TravelToBend(bool bOutbound);
     bool IsInField() const;
+    void UpdateWorldProgress();
+    bool RestoreSafePosition();
     bool IsInspecting() const { return InspectionAction>=1 && InspectionAction<=3; }
     void AdjustInspection(float Orbit, float Zoom);
     bool FileFollowup(ECLFollowupOutcome Outcome);
@@ -47,4 +49,5 @@ private:
     TSharedPtr<class SCLCountyBook> Book;
     bool bPromptAvailable = false;
     bool bDeputyAvailable = false;
+    bool bWorldInitialized = false;
 };
