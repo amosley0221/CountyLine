@@ -101,6 +101,23 @@ bool FCLReportState::FileFollowup(ECLFollowupOutcome Outcome)
     SupplementFacts=FollowupFacts;FollowupOutcome=Outcome;return true;
 }
 
+FString FCLReportState::PruittResidentResponse() const
+{
+    const FName Account(TEXT("ResidentAccount"));
+    if(!FieldNotes.Contains(Account)) return FString();
+    FString Reply=TEXT("PRUITT\nFamilies use the bank path, then. That gives us people to ask, Sheriff. It doesn't place anyone there that morning or tell us how the man died.");
+    if(Status==ECLReportStatus::Draft)
+        Reply+=TEXT("\n\nThe report is still unsigned. Read it at the desk and decide whether to include that account with your field notes.");
+    else
+    {
+        Reply+=Status==ECLReportStatus::Signed?TEXT("\n\nYou've signed the report. Your original carbon stands."):TEXT("\n\nYou've held the report for inquiry. That account gives us a question to pursue, not an answer. The held carbon stands.");
+        if(IncludedFacts.Contains(Account)) Reply+=TEXT(" The resident's account is already included in it.");
+        else if(OmittedFacts.Contains(Account)) Reply+=TEXT(" You left that account out of the report. It remains in your Book.");
+        else Reply+=TEXT(" This later account stays in your Book; talking to me does not add it to the old report.");
+    }
+    return Reply;
+}
+
 FString FCLReportState::FollowupObjective() const
 {
     if(FollowupOutcome!=ECLFollowupOutcome::None) return TEXT("Follow-up filed. Write the date at the desk to save.");

@@ -37,7 +37,7 @@ Runtime checks cover collision-swept travel from the jail to the square, entry i
 
 Verified Unreal captures: [town overview](Verification/PecosBend/TownOverview.png), [residential lane](Verification/PecosBend/ResidentialLane.png), [jail frontage](Verification/PecosBend/JailFrontage.png), and [Lang's lobby](Verification/PecosBend/LangLobby.png).
 
-For a fresh capture, create `Saved/Screenshots/TownReview`, then launch the editor executable with the project and `/Game/Maps/L_JailOffice -game -windowed -ResX=1440 -ResY=900 -nosplash -CLSmokeTest -CLTownReview`. After the smoke checks pass, the game takes ten fixed-camera screenshots and five resident conversation/Book screenshots, then exits. This development-only mode does not use the player's save slot.
+For a fresh capture, create `Saved/Screenshots/TownReview`, then launch the editor executable with the project and `/Game/Maps/L_JailOffice -game -windowed -ResX=1440 -ResY=900 -nosplash -CLSmokeTest -CLTownReview`. After the smoke checks pass, the game takes ten fixed-camera screenshots and eight resident/Book/Pruitt screenshots, then exits. This development-only mode does not use the player's save slot.
 
 The initial town pass passed 10 automation suites and 68 runtime smoke assertions. Subsequent jogging and residential work expands that coverage; see [VERIFICATION.md](VERIFICATION.md) for current results and limitations.
 

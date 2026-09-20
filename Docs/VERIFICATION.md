@@ -171,3 +171,11 @@ CountyLineEditor Win64 Development built with -NoPCH -NoUBA -NoHotReloadFromIDE.
 All runs use the CLSmokeTest player-slot bypass. Physical-controller hardware, voice acting, unique resident art and packaged-build testing are not covered by this pass.
 
 The final offscreen rendered run also passed all 93 runtime checks. Reviewed the corrected resident facing, typed and handwritten conversation pages, and the Cases/People entries. The 15 captures are in Docs/Verification/PecosBend. The desktop checkout contains the rebuilt module; no player save was loaded or written.
+
+## Pruitt responds to the North Lane account - 20 September 2026
+
+Pruitt now opens with a response to the recorded resident account. Draft, signed and held reports get different copy; submitted reports further distinguish inclusion, omission and later discovery using the frozen carbon. Other county business remains available through a separate button. The dialogue is derived from existing fields and does not change or save the report.
+
+CountyLineEditor Win64 Development built successfully with -NoPCH -NoUBA -NoHotReloadFromIDE. Scripts/Test-Prototype.ps1 passed all 17 required Unreal suites, 10 map tests and 102 runtime checks, with zero automation warnings/errors. Expanded resident coverage checks absent accounts, draft guidance, both submitted dispositions, inclusion/omission/later discovery, repeatability and whole-report immutability. Runtime UI checks open all three dispositions, leave with controller B, and access other county business before leaving with Escape. All fixtures bypass the real save slot; physical-controller hardware and packaged-build tests were not performed.
+
+The offscreen rendered review also passed all 102 runtime checks. Draft, signed and held dialogue pages were visually reviewed at 1280 by 720; their captures are in Docs/Verification/PecosBend/PruittResident*.png. The desktop module is rebuilt and existing saved resident accounts require no replay or migration.

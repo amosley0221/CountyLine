@@ -386,6 +386,22 @@ void ACLPrototypeGameMode::RunSmokeTest()
         WalkRoute(FVector(-2200,4300,92));WalkRoute(FVector(-2200,-800,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-350,-180,92));
         WalkRoute(FVector(-100,-180,92));WalkRoute(FVector(-20,-110,92));
         Check(bRouteClear && PC->IsAtDesk() && PC->Case()->Report.FieldNotes.Contains(TEXT("ResidentAccount")),TEXT("The resident investigation loop returns to the jail desk with its note intact"));
+        const FCLReportState BeforePruitt=PC->Case()->Report;
+        for(const ECLReportStatus Disposition:{ECLReportStatus::Draft,ECLReportStatus::Signed,ECLReportStatus::Held})
+        {
+            FCLReportState Fixture;Fixture.bRead=true;Fixture.FieldNotes.Add(TEXT("ResidentAccount"));
+            if(Disposition!=ECLReportStatus::Draft) Fixture.Submit(Disposition);
+            PC->Case()->Report=Fixture;
+            PC->ShowBook(false,false,true);
+            Check(PC->IsBookOpen(),TEXT("Pruitt opens the recorded resident discussion"));
+            Press(EKeys::Gamepad_FaceButton_Right);
+            Check(!PC->IsBookOpen() && !PC->IsMoveInputIgnored() && FCLReportState::StaticStruct()->CompareScriptStruct(&PC->Case()->Report,&Fixture,0),TEXT("Controller leaves Pruitt's resident response without changing any report field"));
+            PC->ShowBook(false,false,true);Press(EKeys::Gamepad_FaceButton_Bottom);
+            Check(PC->IsBookOpen() && FCLReportState::StaticStruct()->CompareScriptStruct(&PC->Case()->Report,&Fixture,0),TEXT("Other county business remains accessible without altering the resident account"));
+            Press(EKeys::Escape);
+        }
+        PC->Case()->Report=BeforePruitt;
+
 
     }
     UE_LOG(LogTemp,Display,TEXT("CL_SMOKE_RESULT=%s"),Passed?TEXT("PASS"):TEXT("FAIL"));
@@ -415,7 +431,7 @@ void ACLPrototypeGameMode::CaptureTownReview()
     const FVector Targets[]={FVector(-3300,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230),FVector(-6550,1400,210),FVector(-950,2400,240),FVector(-4700,-150,85),FVector(-5350,4930,130)};
     const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png"),TEXT("WestMarketStreet.png"),TEXT("CourtStreetShops.png"),TEXT("SquareSeating.png"),TEXT("NorthLaneResident.png")};
     const int32 View=TownReviewStep/2;
-    if(View>=UE_ARRAY_COUNT(Positions)+5) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
+    if(View>=UE_ARRAY_COUNT(Positions)+8) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
     if(View>=UE_ARRAY_COUNT(Positions))
     {
         // Capture the actual Slate conversation and Book in the isolated fixture.
@@ -441,12 +457,18 @@ void ACLPrototypeGameMode::CaptureTownReview()
                 Press(EKeys::Gamepad_FaceButton_Bottom);
             }
             else if(Page==3) {Press(EKeys::Gamepad_FaceButton_Bottom);PC->Case()->bTypedCopy=true;PC->ShowBook();}
-            else Press(EKeys::Gamepad_RightShoulder);
+            else if(Page==4) Press(EKeys::Gamepad_RightShoulder);
+            else
+            {
+                PC->CloseBook();FCLReportState Fixture;Fixture.bRead=true;Fixture.FieldNotes.Add(TEXT("ResidentAccount"));
+                if(Page>5) Fixture.Submit(Page==6?ECLReportStatus::Signed:ECLReportStatus::Held);
+                PC->Case()->Report=Fixture;PC->ShowBook(false,false,true);
+            }
             PC->SetPause(false); // Let the QA capture timer advance; normal dialogue stays paused.
         }
         else
         {
-            const TCHAR* Pages[]={TEXT("ResidentGreeting.png"),TEXT("ResidentAccount.png"),TEXT("ResidentHandwritten.png"),TEXT("ResidentBook.png"),TEXT("ResidentPeople.png")};
+            const TCHAR* Pages[]={TEXT("ResidentGreeting.png"),TEXT("ResidentAccount.png"),TEXT("ResidentHandwritten.png"),TEXT("ResidentBook.png"),TEXT("ResidentPeople.png"),TEXT("PruittResidentDraft.png"),TEXT("PruittResidentSigned.png"),TEXT("PruittResidentHeld.png")};
             FScreenshotRequest::RequestScreenshot(FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("Screenshots/TownReview"),Pages[Page]),true,false);
         }
         ++TownReviewStep;return;

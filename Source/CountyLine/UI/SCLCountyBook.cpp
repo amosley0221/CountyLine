@@ -228,6 +228,18 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
     if(bConversation)
     {
         Line(TEXT("JAIL OFFICE  /  DEPUTY PRUITT"),18,true);
+        const FString ResidentResponse=Report.PruittResidentResponse();
+        if(!bGeneralPruittBusiness && !ResidentResponse.IsEmpty())
+        {
+            Line(TEXT("The account from North Lane"),38);
+            Line(ResidentResponse,24);
+            Line(State->IsCurrentStateSaved()?TEXT("The date is written. The resident's account is saved in your Book."):TEXT("Write the date at the desk to keep the account. This conversation does not save it."),20,true);
+            Page->AddSlot().AutoHeight().Padding(0,12)[Button(TEXT("OTHER COUNTY BUSINESS"),[this]{bGeneralPruittBusiness=true;ConversationStep=0;Rebuild(0);})];
+            Page->AddSlot().FillHeight(1)[SNew(SSpacer)];
+            Page->AddSlot().AutoHeight()[Button(TEXT("RETURN TO THE OFFICE"),[this]{Owner->CloseBook();})];
+            Line(TEXT("D-pad / left stick: choose     A / Enter: select     B / Escape: leave"),17,true);
+            FocusFirst();return;
+        }
         Line(TEXT("Before the ink dries"),42);
         if(Report.FollowupOutcome!=ECLFollowupOutcome::None)
         {

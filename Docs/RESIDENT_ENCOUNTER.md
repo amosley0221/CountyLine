@@ -26,3 +26,9 @@ The account is the `ResidentAccount` entry in the existing `FCLReportState::Fiel
 `CountyLine.Report.ResidentAccount` checks both dispositions, include/omit choices, receipt before/after submission, repeat recording, both copy preferences, and memory-only serialization through the production validator. Runtime smoke checks exercise the physical route, interaction gate, controller cancellation at both conversation stages, recording, repetition, out-of-range/look-away rejection, save round trip and return to the actual desk. Test runs bypass the player's real save slot.
 
 Claude's town-layout coverage is integrated from `b6f8d1f`. The map generator now keys frontage by building identity rather than displayed sign text. A new sandboxed regression gives opposite-facing shops identical titles and checks each arrow's origin and direction. The generated drawing is unchanged for the current town.
+
+## Pruitt's response to the resident account
+
+After recording the North Lane account, speaking with Pruitt opens a response appropriate to the report's current disposition. For a draft, he directs Reed to review whether the account belongs in the unsigned report. For signed and held reports, he acknowledges the disposition and distinguishes an account included in the original carbon, deliberately omitted from it, or learned after submission. He does not treat the resident as a witness to the death.
+
+**Other county business** retains access to the existing briefing and filed-follow-up response. **Return to the office**, controller B, or Escape leaves the discussion. The response is derived from existing saved state: no new flag, save migration, evidence, inquiry order or ledger change is introduced. Merely talking does not dirty or save the report. The existing saved/unsaved notice reflects whether the current Book has been written at the desk. This is additional prototype-authored dialogue.

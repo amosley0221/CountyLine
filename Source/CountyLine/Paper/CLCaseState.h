@@ -47,6 +47,7 @@ struct FCLReportState
     static FString FollowupTitle(ECLFollowupLead Lead);
     static FString FollowupFinding(ECLFollowupLead Lead);
     FString FollowupObjective() const;
+    FString PruittResidentResponse() const;
     FString FollowupConsequence() const;
     FString ClosingText(int32 Index) const;
     bool Submit(ECLReportStatus NewStatus);
