@@ -16,6 +16,7 @@ public:
     UPROPERTY(VisibleAnywhere) TObjectPtr<class UCameraComponent> FollowCamera;
     UPROPERTY(VisibleAnywhere) TObjectPtr<class UAudioComponent> Footsteps;
     int32 GetFootstepCount() const { return FootstepCount; }
+    void Jog(float Value);
 private:
     UPROPERTY() TObjectPtr<class USoundWave> DirtStep;
     UPROPERTY() TObjectPtr<class USoundWave> WoodStep;

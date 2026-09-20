@@ -1,4 +1,5 @@
 #include "Player/CLPlayerController.h"
+#include "Player/CLReedCharacter.h"
 #include "World/CLJailOffice.h"
 #include "World/CLBendLateral.h"
 #include "World/CLCountyRoad.h"
@@ -158,6 +159,7 @@ void ACLPlayerController::PauseMenu() {if(IsBookOpen()) CloseBook(); else ShowBo
 void ACLPlayerController::ShowBook(bool bReportCover,bool bPause,bool bConversation,int32 FieldAction)
 {
     if(IsBookOpen() || !GEngine || !GEngine->GameViewport) return;
+    if(ACLReedCharacter* Reed=Cast<ACLReedCharacter>(GetPawn())) Reed->Jog(0.f);
     if(ACharacter* C=Cast<ACharacter>(GetPawn())) C->GetCharacterMovement()->StopMovementImmediately();
     SetIgnoreMoveInput(true);SetIgnoreLookInput(true);
     if(FieldAction>=1 && FieldAction<=3 && IsInField()) BeginInspection(FieldAction);

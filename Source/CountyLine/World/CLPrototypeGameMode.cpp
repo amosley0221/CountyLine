@@ -28,6 +28,9 @@
 #include "Components/AudioComponent.h"
 #include "Sound/SoundWave.h"
 #include "Animation/AnimSingleNodeInstance.h"
+#include "Animation/BlendSpace.h"
+#include "Components/InputComponent.h"
+#include "GameFramework/InputSettings.h"
 
 ACLPrototypeGameMode::ACLPrototypeGameMode()
 {
@@ -90,6 +93,23 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Check(PosedHeight>55.f && PosedHeight<110.f,TEXT("Animated Reed pose remains at human scale"));
         Check(Reed->GetFootstepCount()>0 && Reed->Footsteps->Sound!=nullptr,TEXT("Walking schedules surface footsteps"));
         Check(Reed->GetCharacterMovement()->IsMovingOnGround(),TEXT("Character grounded on office floor"));
+        TArray<FInputAxisKeyMapping> JogKeys;
+        GetDefault<UInputSettings>()->GetAxisMappingByName(TEXT("Jog"),JogKeys);
+        auto HasJogKey=[&JogKeys](FKey Key) {return JogKeys.ContainsByPredicate([Key](const FInputAxisKeyMapping& M){return M.Key==Key && M.Scale==1.f;});};
+        Check(HasJogKey(EKeys::LeftShift) && HasJogKey(EKeys::Gamepad_LeftShoulder),TEXT("Jog maps keyboard Shift and controller LB"));
+        auto JogInput=[Reed](float Value)
+        {
+            for(FInputAxisBinding& Binding:Reed->InputComponent->AxisBindings)
+                if(Binding.AxisName==TEXT("Jog")) Binding.AxisDelegate.Execute(Value);
+        };
+        JogInput(1.f);
+        Check(Reed->GetCharacterMovement()->MaxWalkSpeed==360.f,TEXT("Jog input doubles walking speed"));
+        JogInput(2.f);
+        Check(Reed->GetCharacterMovement()->MaxWalkSpeed==360.f,TEXT("Combined jog controls cannot stack speed"));
+        JogInput(0.f);
+        Check(Reed->GetCharacterMovement()->MaxWalkSpeed==180.f,TEXT("Releasing jog restores walking speed"));
+        const UBlendSpace* JogBlend=LoadObject<UBlendSpace>(nullptr,TEXT("/Game/Art/Animations/BS_Reed_FieldLocomotion.BS_Reed_FieldLocomotion"));
+        Check(JogBlend && JogBlend->GetBlendParameter(0).Max>=360.f,TEXT("Locomotion blend supports jogging speed"));
         const FVector Initial=SmokeStart;
         FHitResult Hit;
         Reed->SetActorLocation(FVector(Initial.X,-650,Initial.Z),true,&Hit);
@@ -97,8 +117,11 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Reed->SetActorLocation(FVector(-20,-110,92));
         Check(PC->IsAtDesk(),TEXT("Desk range accepts near pawn"));
         PC->Case()->Report.bRead=true;
+        JogInput(1.f);
         PC->ShowBook();
         Check(PC->IsBookOpen() && PC->IsMoveInputIgnored() && UGameplayStatics::IsGamePaused(this),TEXT("Book owns input and pauses world"));
+        JogInput(1.f);
+        Check(Reed->GetCharacterMovement()->MaxWalkSpeed==180.f && Reed->GetVelocity().IsNearlyZero(),TEXT("Book stops jogging and rejects jog while reading"));
         PC->CloseBook();
         Check(!PC->IsBookOpen() && !PC->IsMoveInputIgnored() && !UGameplayStatics::IsGamePaused(this),TEXT("Closing book restores gameplay"));
         Reed->SetActorLocation(Initial);

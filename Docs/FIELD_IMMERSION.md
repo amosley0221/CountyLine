@@ -50,3 +50,9 @@ No music, voice recordings or third-party sound libraries were added.
   FBX exports otherwise introduce a 100x root unit scale despite centimetre child
   tracks; this must not propagate to the runtime pose.
 - Build CountyLineEditor and run `Scripts/Test-Prototype.ps1`.
+
+## Walking and jogging
+
+Hold Shift (either side) or controller LB while moving to jog at 360 cm/s; release to return to the existing 180 cm/s walk. Analog stick movement remains proportional. Holding multiple jog controls does not multiply speed. This uses the existing locomotion blend and a longer footstep spacing at jogging speed. There is no stamina restriction in this prototype.
+
+The Book stops movement and resets the speed cap; LB still turns pages while reading. Jog is a continuously refreshed axis, so it does not depend on receiving a separate release callback after changing input modes. This is not a fix for the reported system-wide controller-disconnect freeze.

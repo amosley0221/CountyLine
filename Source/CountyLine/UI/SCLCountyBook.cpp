@@ -252,7 +252,7 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
         Page->AddSlot().AutoHeight().Padding(0,10)[Button(TEXT("START AGAIN  (UNSAVED)"),[this]{Owner->Case()->Report=FCLReportState{}; Notice=TEXT("A fresh report waits on the desk. Your saved date remains until you write a new one.");Rebuild();})];
         Page->AddSlot().AutoHeight().Padding(0,10)[Button(Owner->IsAtDesk()?TEXT("WRITE THE DATE"):TEXT("WRITE THE DATE  (return to the desk)"),[this]{Notice=Owner->Case()->WriteDate()?TEXT("Date written. This report will be here when you return."):TEXT("The date could not be written. Try again."); Rebuild();},Owner->IsAtDesk())];
         Page->AddSlot().AutoHeight().Padding(0,10)[Button(TEXT("QUIT TO DESK"),[this]{Owner->ConsoleCommand(TEXT("quit"));})];
-        Line(TEXT("WASD / left stick: walk     Mouse / right stick: look\nE / A: interact     Tab / View: County Book\nD-pad / left stick: choose     A: select     B: back\nLB / RB: book pages     Menu: pause\nSave at the desk before leaving."),20,true);
+        Line(TEXT("WASD / left stick: walk     Mouse / right stick: look\nHold Shift / LB while moving: jog\nE / A: interact     Tab / View: County Book\nD-pad / left stick: choose     A: select     B: back\nLB / RB: book pages     Menu: pause\nSave at the desk before leaving."),20,true);
         Page=Frame;
         FocusFirst();
         return;

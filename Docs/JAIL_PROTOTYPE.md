@@ -9,6 +9,7 @@ For a separate game window using the installed editor runtime, run `Scripts/Play
 ## Controls and walkthrough
 
 - WASD / controller left stick: walk. Mouse / right stick: shoulder camera.
+- Hold Shift / controller LB while moving: jog at twice walking speed. Release to walk. The left stick still controls movement amount. In the Book, LB remains the previous-page control.
 - E / controller A (bottom face button): talk to Pruitt or read the report when in range and looking toward it.
 - Tab / View: County Book. Escape / Menu: pause menu. Escape / B closes a paper screen.
 - In the book and conversation: mouse, arrow keys + Enter, D-pad or left stick + A. A dark outline identifies the focused control; scrolling follows focus. Disabled controls are skipped. LB/RB change book pages. B closes a screen; View/Menu also return to gameplay. Controller labels use Xbox conventions; other PC controllers need to expose compatible gamepad input.

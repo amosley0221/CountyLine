@@ -72,9 +72,10 @@ void ACLReedCharacter::Tick(float DeltaSeconds)
     if(Distance<100.f && GetCharacterMovement()->IsMovingOnGround() && GetVelocity().Size2D()>15.f)
     {
         StepDistance+=Distance;
-        if(StepDistance>=78.f)
+        const float Stride=FMath::GetMappedRangeValueClamped(FVector2D(180.f,360.f),FVector2D(78.f,110.f),GetVelocity().Size2D());
+        if(StepDistance>=Stride)
         {
-            StepDistance=FMath::Fmod(StepDistance,78.f);
+            StepDistance=FMath::Fmod(StepDistance,Stride);
             const FName Place=ACLCountyRoad::LocationAt(GetActorLocation());
             Footsteps->SetSound(Place==TEXT("JailOffice") || Place==TEXT("LangHouse")?WoodStep:DirtStep);
             Footsteps->SetPitchMultiplier((FootstepCount++%2)==0?.96f:1.04f);
@@ -93,6 +94,13 @@ void ACLReedCharacter::SetupPlayerInputComponent(UInputComponent* Input)
     Input->BindAxis(TEXT("LookPitch"), this, &ACLReedCharacter::Pitch);
     Input->BindAxis(TEXT("LookYawRate"), this, &ACLReedCharacter::YawRate);
     Input->BindAxis(TEXT("LookPitchRate"), this, &ACLReedCharacter::PitchRate);
+    Input->BindAxis(TEXT("Jog"), this, &ACLReedCharacter::Jog);
+}
+void ACLReedCharacter::Jog(float Value)
+{
+    // An axis is refreshed every input frame, including zero on release/focus flush.
+    // Paper screens also reset it explicitly because UI-only input stops pawn bindings.
+    GetCharacterMovement()->MaxWalkSpeed = Value>0.f && Controller && !Controller->IsMoveInputIgnored()?360.f:180.f;
 }
 void ACLReedCharacter::Forward(float V) { if (Controller) AddMovementInput(FRotationMatrix(FRotator(0, Controller->GetControlRotation().Yaw, 0)).GetUnitAxis(EAxis::X), V); }
 void ACLReedCharacter::Right(float V) { if (Controller) AddMovementInput(FRotationMatrix(FRotator(0, Controller->GetControlRotation().Yaw, 0)).GetUnitAxis(EAxis::Y), V); }
