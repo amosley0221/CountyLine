@@ -10,6 +10,8 @@ The reference can be recreated as a navigable Unreal environment through authore
 
 ## Playable now
 
+- North Lane extends Court Street north past the courthouse to four modest homes. Explore the lane, porches and rear yards; houses and sheds have closed interiors. Brick, plaster and timber exteriors, pitched roofs, gardens and washing lines establish the first residential block.
+
 - Exit the jail and follow the road west to Court Street and the courthouse square. The road east still leads continuously to Bend Lateral.
 - The brick courthouse, cupola, five storefront exteriors, street poles, trees and signed jail frontage establish the first town silhouette. The courthouse and shops have closed interiors.
 - Lang's boardinghouse is south of the square. Walk through its open doorway into the ground-floor lobby, then inspect the guest register at the counter with E or controller A. B/Escape or the return button restores movement.
@@ -19,7 +21,7 @@ The register notice is prototype-authored text, not a new conversation with Mrs.
 
 ## Construction and scale
 
-`ACLPecosBend` builds the compact town from native mesh components and the project's existing materials. No map regeneration or new external asset dependency is required. Its approximately 80-metre footprint is a layout study, not the final eight-street town or literal county scale. `ACLCountyRoad` remains the initial location/checkpoint registry; town streets open the old western route boundary while outer perimeter barriers retain the slice's limits.
+`ACLPecosBend` builds the compact town from native mesh components and the project's existing materials. No map regeneration or new external asset dependency is required. Its approximately 80 by 115-metre footprint is a layout study, not the final eight-street town or literal county scale. `ACLCountyRoad` remains the initial location/checkpoint registry; town streets open the old western route boundary while outer perimeter barriers retain the slice's limits.
 
 The next art stages are proportion/layout approval, bespoke modular brick and timber building assets, modeled doors/windows/roofs, richer terrain and vegetation, and lighting/weather refinement. The goal is the reference's grounded period look; the current simplified geometry is deliberately an intermediate playable stage.
 
@@ -29,8 +31,8 @@ Runtime checks cover collision-swept travel from the jail to the square, entry i
 
 ## Rendered previews
 
-Verified Unreal captures: [town overview](Verification/PecosBend/TownOverview.png), [jail frontage](Verification/PecosBend/JailFrontage.png), and [Lang's lobby](Verification/PecosBend/LangLobby.png).
+Verified Unreal captures: [town overview](Verification/PecosBend/TownOverview.png), [residential lane](Verification/PecosBend/ResidentialLane.png), [jail frontage](Verification/PecosBend/JailFrontage.png), and [Lang's lobby](Verification/PecosBend/LangLobby.png).
 
-For a fresh capture, create `Saved/Screenshots/TownReview`, then launch the editor executable with the project and `/Game/Maps/L_JailOffice -game -windowed -ResX=1440 -ResY=900 -nosplash -CLSmokeTest -CLTownReview`. After the smoke checks pass, the game takes three fixed-camera screenshots without UI and exits. This development-only mode does not use the player's save slot.
+For a fresh capture, create `Saved/Screenshots/TownReview`, then launch the editor executable with the project and `/Game/Maps/L_JailOffice -game -windowed -ResX=1440 -ResY=900 -nosplash -CLSmokeTest -CLTownReview`. After the smoke checks pass, the game takes four fixed-camera screenshots without UI and exits. This development-only mode does not use the player's save slot.
 
-Final verification on 20 September 2026: editor target build succeeded, all 10 automation suites and 68 runtime smoke assertions passed. See [VERIFICATION.md](VERIFICATION.md) for scope and limitations.
+The initial town pass passed 10 automation suites and 68 runtime smoke assertions. Subsequent jogging and residential work expands that coverage; see [VERIFICATION.md](VERIFICATION.md) for current results and limitations.

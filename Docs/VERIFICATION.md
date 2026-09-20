@@ -127,3 +127,11 @@ The engine-rendered town overview, jail frontage and lobby were visually inspect
 CountyLineEditor Win64 Development built successfully with -NoPCH -NoUBA -NoHotReloadFromIDE. Scripts/Test-Prototype.ps1 exited 0: all 10 required automation suites and 74 runtime smoke assertions passed. Added checks verify Shift/LB mappings, execution through the pawn's jog axis binding, the 360 cm/s cap, non-stacking combined controls, release restoring 180 cm/s, locomotion blend speed coverage, and blocked jogging/zero velocity while the Book is open. Existing route, case and save checks remain green.
 
 Verification was headless and uses simulated input; no physical-controller, visual jog-animation or packaged-build playtest was performed. No player save was read or written. The controller-disconnect system freeze is outside this change.
+
+## First residential block - 20 September 2026
+
+The editor target built successfully with -NoPCH -NoUBA -NoHotReloadFromIDE. Scripts/Test-Prototype.ps1 exited 0 after a rerun: all 10 required automation suites and 77 runtime checks passed. The initial automation log ended before the final test completion record; the runner correctly rejected that incomplete result. A shared engine build lock delayed subsequent checks while Claude's separate worktree compiled; its process was left untouched.
+
+New collision-swept runtime routes cover the northward Court Street extension, house-front approaches, access between the plots to the rear yards, and the return to the jail. They verify grounded movement, the unchanged Court Street recovery point, and preservation of the original carbon. No existing checkpoint coordinates or save ids changed. Claude-owned automation test files and Test-Prototype.ps1 were not edited.
+
+The rendered review exposed inverted roof slopes, which were corrected and rebuilt. The final offscreen run with -Multiprocess -RenderOffscreen -CLSmokeTest -CLTownReview passed all 77 checks and produced the reviewed residential and overview images in Docs/Verification/PecosBend. The map generator produced 12 building markers and its SVG parsed successfully. No player save was used. These remain prototype exteriors with accessible yards and porches, not occupied homes or accessible interiors. Physical-controller and packaged-build testing were not performed in this pass.

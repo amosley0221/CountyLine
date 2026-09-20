@@ -46,10 +46,62 @@ void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,floa
     Shape(Name+TEXT("Boardwalk"),P+FVector(0,-490,2),FVector(Width+30,340,8),TEXT("Timber"));
 }
 
+// Small closed homes face the residential lane; porches and yards are walkable.
+void ACLPecosBend::Home(const FString& Name,FVector P,float W,float D,const TCHAR* Material)
+{
+    Shape(Name+TEXT("Foundation"),P+FVector(0,0,18),FVector(W+25,D+25,36),TEXT("Rock"));
+    Shape(Name+TEXT("Walls"),P+FVector(0,0,180),FVector(W,D,300),Material);
+    const float Rise=D*.24f;
+    // Deep roof panels overlap at the ridge. Dark attic walls close the gable ends.
+    Shape(Name+TEXT("Attic"),P+FVector(0,0,330+Rise*.22f),FVector(W-20,D*.50f,Rise*.44f),TEXT("Timber"));
+    for(int32 Side:{-1,1})
+    {
+        auto* Roof=Shape(Name+FString::Printf(TEXT("Roof%d"),Side),P+FVector(0,Side*D*.25f,330+Rise*.5f),FVector(W+100,D*.60f,35),TEXT("Iron"));
+        Roof->SetRelativeRotation(FRotator(0,0,Side*26.f));
+        const FVector Window=P+FVector(Side*W*.29f,-D/2-12,185);
+        Shape(Name+FString::Printf(TEXT("WindowFrame%d"),Side),Window,FVector(155,20,165),TEXT("Plaster"));
+        Shape(Name+FString::Printf(TEXT("WindowGlass%d"),Side),Window+FVector(0,-15,0),FVector(125,8,135),TEXT("Iron"));
+        Shape(Name+FString::Printf(TEXT("WindowBar%d"),Side),Window+FVector(0,-21,0),FVector(7,6,135),TEXT("Timber"),TEXT("Cube"),false);
+        Shape(Name+FString::Printf(TEXT("PorchPost%d"),Side),P+FVector(Side*(W/2-55),-D/2-210,140),FVector(14,14,280),TEXT("Timber"));
+        // Yard side boundaries stop before the public lane.
+        Shape(Name+FString::Printf(TEXT("YardRail%d"),Side),P+FVector(Side*(W/2+100),120,80),FVector(10,D+650,14),TEXT("Timber"));
+        for(int32 I=0;I<5;++I)
+            Shape(Name+FString::Printf(TEXT("YardPost%d_%d"),Side,I),P+FVector(Side*(W/2+100),-D/2-180+I*(D+600)/4,55),FVector(12,12,110),TEXT("Timber"));
+    }
+    Shape(Name+TEXT("DoorFrame"),P+FVector(0,-D/2-10,145),FVector(122,20,245),TEXT("Plaster"));
+    Shape(Name+TEXT("Door"),P+FVector(0,-D/2-24,137),FVector(100,10,222),TEXT("Timber"));
+    Shape(Name+TEXT("Porch"),P+FVector(0,-D/2-125,10),FVector(W,250,20),TEXT("Timber"));
+    Shape(Name+TEXT("PorchRoof"),P+FVector(0,-D/2-120,285),FVector(W+70,310,20),TEXT("Timber"));
+    Shape(Name+TEXT("Chimney"),P+FVector(W*.28f,D*.20f,410),FVector(80,90,390),TEXT("Brick"));
+    Shape(Name+TEXT("FrontPath"),P+FVector(0,-D/2-425,1),FVector(140,600,3),TEXT("RoadDust"),TEXT("Cube"),false);
+    Shape(Name+TEXT("Bench"),P+FVector(-W*.28f,-D/2-105,52),FVector(170,55,18),TEXT("Timber"));
+    for(int32 Side:{-1,1}) Shape(Name+FString::Printf(TEXT("BenchLeg%d"),Side),P+FVector(-W*.28f+Side*65,-D/2-105,25),FVector(14,45,50),TEXT("Timber"));
+    Shape(Name+TEXT("Shed"),P+FVector(-W*.28f,D/2+330,115),FVector(290,250,230),TEXT("Timber"));
+    auto* ShedRoof=Shape(Name+TEXT("ShedRoof"),P+FVector(-W*.28f,D/2+330,250),FVector(330,300,25),TEXT("Iron"));
+    ShedRoof->SetRelativeRotation(FRotator(0,0,8));
+    Shape(Name+TEXT("ShedDoor"),P+FVector(-W*.28f,D/2+199,105),FVector(95,8,200),TEXT("Iron"));
+    Shape(Name+TEXT("GardenBed"),P+FVector(W*.25f,D/2+290,5),FVector(270,260,10),TEXT("Soil"));
+    for(int32 Row=0;Row<3;++Row) for(int32 Plant=0;Plant<4;++Plant)
+        Shape(Name+FString::Printf(TEXT("Garden%d_%d"),Row,Plant),P+FVector(W*.25f-90+Row*90,D/2+200+Plant*60,24),FVector(28,28,35),TEXT("Leaf"),TEXT("Sphere"),false);
+    for(int32 Side:{-1,1}) Shape(Name+FString::Printf(TEXT("ClothesPost%d"),Side),P+FVector(Side*W*.3f,D/2+650,110),FVector(10,10,220),TEXT("Timber"));
+    Shape(Name+TEXT("ClothesLine"),P+FVector(0,D/2+650,205),FVector(W*.6f,2,2),TEXT("Iron"),TEXT("Cube"),false);
+    for(int32 I=0;I<3;++I) Shape(Name+FString::Printf(TEXT("Laundry%d"),I),P+FVector(-W*.2f+I*W*.2f,D/2+650,168),FVector(70,3,72),TEXT("Plaster"),TEXT("Cube"),false);
+}
+
 ACLPecosBend::ACLPecosBend()
 {
     RootComponent=CreateDefaultSubobject<USceneComponent>(TEXT("PecosBend"));
     Shape(TEXT("TownGround"),FVector(-2800,-100,-42),FVector(7800,8200,80),TEXT("Soil"));
+    Shape(TEXT("ResidentialGround"),FVector(-2800,5650,-42),FVector(7800,3700,80),TEXT("Soil"));
+    Shape(TEXT("ResidentialLane"),FVector(-2800,4300,.2),FVector(7500,600,2),TEXT("RoadDust"),TEXT("Cube"),false);
+    Shape(TEXT("CourtNorthExtension"),FVector(-2200,4100,.2),FVector(620,950,2),TEXT("RoadDust"),TEXT("Cube"),false);
+    Home(TEXT("HomeWest"),FVector(-5500,5550,0),1000,900,TEXT("Plaster"));
+    Home(TEXT("HomeBrick"),FVector(-3650,5650,0),1100,950,TEXT("Brick"));
+    Home(TEXT("HomeTimber"),FVector(-1250,5550,0),1000,900,TEXT("Timber"));
+    Home(TEXT("HomeEast"),FVector(400,5600,0),850,800,TEXT("Plaster"));
+    Sign(TEXT("ResidentialSign"),TEXT("HOMES  /  NORTH LANE"),FVector(-1850,3750,180),-90,23);
+    Shape(TEXT("ResidentialSignBoard"),FVector(-1850,3760,180),FVector(430,15,60),TEXT("Timber"));
+    Shape(TEXT("ResidentialSignPost"),FVector(-1850,3760,85),FVector(12,12,170),TEXT("Timber"));
     Shape(TEXT("CourtStreet"),FVector(-2200,-100,.2),FVector(620,7700,2),TEXT("RoadDust"),TEXT("Cube"),false);
     Shape(TEXT("SquareRoad"),FVector(-3650,-800,.2),FVector(6100,600,2),TEXT("RoadDust"),TEXT("Cube"),false);
     Shape(TEXT("CourthouseWalk"),FVector(-3900,-100,1),FVector(2400,760,4),TEXT("RoadDust"),TEXT("Cube"),false);
@@ -161,11 +213,11 @@ ACLPecosBend::ACLPecosBend()
     // Town edge: visible rail barriers around the compact authored footprint.
     for(int32 I=0;I<21;++I) for(int32 Side:{-1,1})
     {
-        const float X=-6600+I*380,Y=Side<0?-4060:3900;
+        const float X=-6600+I*380,Y=Side<0?-4060:7400;
         Shape(FString::Printf(TEXT("TownFencePost%d_%d"),I,Side),FVector(X,Y,70),FVector(12,12,140),TEXT("Timber"));
         if(I<20) for(int32 Rail=0;Rail<2;++Rail) Shape(FString::Printf(TEXT("TownRail%d_%d_%d"),I,Side,Rail),FVector(X+190,Y,50+Rail*55),FVector(380,8,10),TEXT("Timber"));
     }
-    Shape(TEXT("WestTownWall"),FVector(-6640,-80,90),FVector(25,8000,180),TEXT("Rock"));
-    Shape(TEXT("TownEastNorth"),FVector(1060,2750,90),FVector(25,2400,180),TEXT("Rock"));
+    Shape(TEXT("WestTownWall"),FVector(-6640,1670,90),FVector(25,11500,180),TEXT("Rock"));
+    Shape(TEXT("TownEastNorth"),FVector(1060,4475,90),FVector(25,5850,180),TEXT("Rock"));
     Shape(TEXT("TownEastSouth"),FVector(1060,-2800,90),FVector(25,2400,180),TEXT("Rock"));
 }

@@ -303,6 +303,16 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Check(CLSaveValidation::CopyIfValid(TownLoaded,TownReport,bTownTyped,TownWorld) && TownWorld.IsLocationDiscovered(TEXT("LangHouse")) && TownWorld.IsLocationDiscovered(TEXT("CourtStreet")) && TownWorld.LastSafeLocation==TEXT("LangHouse") && TownReport.IncludedFacts==Carbon,TEXT("Town discoveries and checkpoint survive a memory-only save with the original carbon"));
         WalkRoute(FVector(-4200,-1920,92));WalkRoute(FVector(-4200,-800,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-350,-180,92));
         Check(bRouteClear && PC->Case()->World.LastSafeLocation==TEXT("JailOffice"),TEXT("Return walk from Lang's preserves an open route to the jail"));
+        WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-2200,-800,92));
+        WalkRoute(FVector(-2200,4300,92));WalkRoute(FVector(-5500,4300,92));WalkRoute(FVector(-5500,4750,92));
+        Check(bRouteClear && PC->Case()->World.LastSafeLocation==TEXT("CourtStreet"),TEXT("Residential lane connects to Court Street and retains its safe checkpoint"));
+        WalkRoute(FVector(-5500,4300,92));WalkRoute(FVector(400,4300,92));WalkRoute(FVector(400,4800,92));
+        WalkRoute(FVector(400,4300,92));WalkRoute(FVector(-2650,4300,92));WalkRoute(FVector(-2650,7000,92));
+        WalkRoute(FVector(-5500,7000,92));WalkRoute(FVector(400,7000,92));WalkRoute(FVector(-2650,7000,92));
+        Check(bRouteClear,TEXT("Residential fronts and rear yard access have grounded collision-clear routes"));
+        WalkRoute(FVector(-2650,4300,92));WalkRoute(FVector(-2200,4300,92));WalkRoute(FVector(-2200,-800,92));
+        WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-350,-180,92));
+        Check(bRouteClear && PC->Case()->World.LastSafeLocation==TEXT("JailOffice") && PC->Case()->Report.IncludedFacts==Carbon,TEXT("Residential return preserves the jail route and original carbon"));
     }
     UE_LOG(LogTemp,Display,TEXT("CL_SMOKE_RESULT=%s"),Passed?TEXT("PASS"):TEXT("FAIL"));
     if(Passed && FParse::Param(FCommandLine::Get(),TEXT("CLTownReview")))
@@ -327,11 +337,11 @@ void ACLPrototypeGameMode::CaptureTownReview()
 {
     // Engine-rendered QA artifacts, isolated by the required CLSmokeTest run.
     // These cameras do not alter the player's saved location or normal view.
-    const FVector Positions[]={FVector(-8500,-6200,5000),FVector(-1600,-480,260),FVector(-4340,-1820,190)};
-    const FVector Targets[]={FVector(-2900,-600,450),FVector(-560,0,260),FVector(-4000,-2330,110)};
-    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png")};
+    const FVector Positions[]={FVector(-10000,-7600,8500),FVector(-1600,-480,260),FVector(-4340,-1820,190),FVector(-7600,2800,2500)};
+    const FVector Targets[]={FVector(-2900,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150)};
+    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png")};
     const int32 View=TownReviewStep/2;
-    if(View>=3) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
+    if(View>=4) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
     if(TownReviewStep%2==0)
     {
         TownReviewCamera->SetActorLocationAndRotation(Positions[View],(Targets[View]-Positions[View]).Rotation());

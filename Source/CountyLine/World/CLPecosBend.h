@@ -15,4 +15,5 @@ private:
     class UStaticMeshComponent* Shape(const FString& Name, FVector Position, FVector Size, const TCHAR* Material, const TCHAR* Mesh=TEXT("Cube"), bool Collision=true);
     void Sign(const FString& Name,const FString& Text,FVector Position,float Yaw,float Size);
     void Store(const FString& Name,const FString& Title,FVector Position,float Width,float Height);
+    void Home(const FString& Name,FVector Position,float Width,float Depth,const TCHAR* Material);
 };
