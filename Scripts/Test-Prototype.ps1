@@ -18,9 +18,25 @@ $expectedTests=@(
     'CountyLine.Movement.WalkAndJogControls',
     'CountyLine.World.CheckpointRecovery',
     'CountyLine.World.LocationZones',
+    'CountyLine.World.CommercialBlockZones',
+    'CountyLine.World.LocationContract',
     'CountyLine.World.SavePersistence',
+    'CountyLine.World.ShopFrontage',
     'CountyLine.World.StateOperations'
 )
+# The map generator is plain Python, so it is checked with the engine's interpreter
+# rather than an automation suite. It draws into a temporary tree, never Docs/Maps.
+$python=Join-Path $EngineRoot 'Engine/Binaries/ThirdParty/Python3/Win64/python.exe'
+$mapTests=Join-Path $PSScriptRoot 'Tests/test_town_layout_map.py'
+if (-not (Test-Path -LiteralPath $python)) { throw "Engine Python not found at $python." }
+# Windows PowerShell turns native stderr into terminating errors under Stop.
+$previousPreference=$ErrorActionPreference
+$ErrorActionPreference='Continue'
+& $python $mapTests
+$mapExit=$LASTEXITCODE
+$ErrorActionPreference=$previousPreference
+if ($mapExit -ne 0) { throw 'Town layout map generator tests failed.' }
+Write-Output 'Town layout map generator tests passed.'
 & $commandlet $projectPath -unattended -nullrhi -nosplash '-ExecCmds=Automation RunTests CountyLine' '-TestExit=Automation Test Queue Empty' "-abslog=$testLog"
 if ($LASTEXITCODE -ne 0) { throw 'Unreal automation tests failed; inspect PrototypeTests.log.' }
 $completed=@{}
