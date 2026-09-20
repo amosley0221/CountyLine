@@ -15,6 +15,9 @@ $expectedTests=@(
     'CountyLine.Save.Validation.CompleteCopy',
     'CountyLine.Save.Validation.RejectionKeepsState',
     'CountyLine.Save.Validation.Rejections',
+    'CountyLine.Movement.WalkAndJogControls',
+    'CountyLine.World.CheckpointRecovery',
+    'CountyLine.World.LocationZones',
     'CountyLine.World.SavePersistence',
     'CountyLine.World.StateOperations'
 )
