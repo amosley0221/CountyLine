@@ -1,5 +1,7 @@
 # Pecos Bend: first playable town pass
 
+Geography decision: the user has authorized the game layout to lead the final map artwork. See [WORLD_GEOGRAPHY.md](WORLD_GEOGRAPHY.md) and the [current footprint map](Maps/PecosBend-layout.svg). Lang's remains south of the square and the jail east of the courthouse; these intentionally differ from the supplied illustrated town plan.
+
 ## Visual target
 
 The user's reference is `Docs/Reference/design_handoff_county_line/boards/uploads/Grok Image 2026-09-17 at 7.26.33 PM.png`, reconfirmed on 20 September 2026. It guides the courthouse silhouette, low brick storefronts, dusty street grid, utility poles, sparse shade trees, and the town's relationship to open country. Its visual quality is a production target, not a claim that this first pass reproduces its realism or full extent.
