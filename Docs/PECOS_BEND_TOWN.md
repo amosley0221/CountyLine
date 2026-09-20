@@ -4,6 +4,8 @@ Geography decision: the user has authorized the game layout to lead the final ma
 
 ## Visual target
 
+The subsequent [architecture detail pass](TOWN_DETAIL_PASS.md) adds procedural surface finishes, façade trim, residential details and revised outdoor lighting within the approved layout.
+
 The user's reference is `Docs/Reference/design_handoff_county_line/boards/uploads/Grok Image 2026-09-17 at 7.26.33 PM.png`, reconfirmed on 20 September 2026. It guides the courthouse silhouette, low brick storefronts, dusty street grid, utility poles, sparse shade trees, and the town's relationship to open country. Its visual quality is a production target, not a claim that this first pass reproduces its realism or full extent.
 
 The reference can be recreated as a navigable Unreal environment through authored buildings, terrain, vegetation, materials, lighting and camera composition. A single concept image does not specify hidden building faces, interiors, accurate dimensions or exact geography. Those require additional design and asset work. The written Design Bible takes the railway around the west edge, rather than through the square; that remains the intended layout despite differences in the image. The river, railway, water tower, vehicles and distant oil field are not implemented in this pass.
@@ -33,6 +35,6 @@ Runtime checks cover collision-swept travel from the jail to the square, entry i
 
 Verified Unreal captures: [town overview](Verification/PecosBend/TownOverview.png), [residential lane](Verification/PecosBend/ResidentialLane.png), [jail frontage](Verification/PecosBend/JailFrontage.png), and [Lang's lobby](Verification/PecosBend/LangLobby.png).
 
-For a fresh capture, create `Saved/Screenshots/TownReview`, then launch the editor executable with the project and `/Game/Maps/L_JailOffice -game -windowed -ResX=1440 -ResY=900 -nosplash -CLSmokeTest -CLTownReview`. After the smoke checks pass, the game takes four fixed-camera screenshots without UI and exits. This development-only mode does not use the player's save slot.
+For a fresh capture, create `Saved/Screenshots/TownReview`, then launch the editor executable with the project and `/Game/Maps/L_JailOffice -game -windowed -ResX=1440 -ResY=900 -nosplash -CLSmokeTest -CLTownReview`. After the smoke checks pass, the game takes six fixed-camera screenshots without UI and exits. This development-only mode does not use the player's save slot.
 
 The initial town pass passed 10 automation suites and 68 runtime smoke assertions. Subsequent jogging and residential work expands that coverage; see [VERIFICATION.md](VERIFICATION.md) for current results and limitations.

@@ -13,6 +13,17 @@ UStaticMeshComponent* ACLPecosBend::Shape(const FString& Name,FVector P,FVector 
     const bool bPrototype=FString(Material)==TEXT("Brick") || FString(Material)==TEXT("Plaster");
     const FString Asset=bPrototype?FString::Printf(TEXT("/Game/Prototype/Materials/M_%s.M_%s"),Material,Material):FString::Printf(TEXT("/Game/Art/Materials/M_CL_%s.M_CL_%s"),Material,Material);
     C->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,*Asset));
+    FString Finish;
+    const FString Kind(Material);
+    if(Name.Contains(TEXT("Inner")) || Name.Contains(TEXT("Laundry"))) {} // Keep plain interior plaster and cloth.
+    else if(Name.StartsWith(TEXT("Home")) && Name.EndsWith(TEXT("Walls")) && Kind==TEXT("Plaster")) Finish=TEXT("Siding");
+    else if(Name.Contains(TEXT("Glass"))) Finish=TEXT("Glass");
+    else if(Kind==TEXT("Brick")) Finish=TEXT("Brick");
+    else if(Kind==TEXT("Timber")) Finish=TEXT("Wood");
+    else if(Kind==TEXT("Iron")) Finish=TEXT("Metal");
+    else if(Kind==TEXT("Plaster")) Finish=TEXT("Stone");
+    if(!Finish.IsEmpty())
+        if(auto* TownMaterial=LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Art/Town/Materials/M_Town%s.M_Town%s"),*Finish,*Finish))) C->SetMaterial(0,TownMaterial);
     C->SetCollisionEnabled(Collision?ECollisionEnabled::QueryAndPhysics:ECollisionEnabled::NoCollision);C->SetCollisionResponseToAllChannels(ECR_Block);
     return C;
 }
@@ -44,6 +55,13 @@ void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,floa
     Shape(Name+TEXT("PorchRoof"),P+FVector(0,-470,275),FVector(Width+30,300,15),TEXT("Timber"));
     for(int32 Side:{-1,1}) Shape(Name+FString::Printf(TEXT("PorchPost%d"),Side),P+FVector(Side*(Width/2-20),-600,135),FVector(12,12,270),TEXT("Timber"));
     Shape(Name+TEXT("Boardwalk"),P+FVector(0,-490,2),FVector(Width+30,340,8),TEXT("Timber"));
+    for(int32 Side:{-1,1})
+    {
+        Shape(Name+FString::Printf(TEXT("Pilaster%d"),Side),P+FVector(Side*(Width/2-22),-368,Height/2),FVector(45,35,Height),TEXT("Plaster"),TEXT("Cube"),false);
+        Shape(Name+FString::Printf(TEXT("Sill%d"),Side),P+FVector(Side*Width*.28f,-380,65),FVector(Width*.28f+20,40,15),TEXT("Plaster"),TEXT("Cube"),false);
+    }
+    Shape(Name+TEXT("DoorTransom"),P+FVector(0,-375,245),FVector(100,10,32),TEXT("Iron"),TEXT("Cube"),false);
+    Shape(Name+TEXT("DoorHandle"),P+FVector(34,-374,112),FVector(5,8,24),TEXT("Brass"),TEXT("Cube"),false);
 }
 
 // Small closed homes face the residential lane; porches and yards are walkable.
@@ -52,6 +70,24 @@ void ACLPecosBend::Home(const FString& Name,FVector P,float W,float D,const TCHA
     Shape(Name+TEXT("Foundation"),P+FVector(0,0,18),FVector(W+25,D+25,36),TEXT("Rock"));
     Shape(Name+TEXT("Walls"),P+FVector(0,0,180),FVector(W,D,300),Material);
     const float Rise=D*.24f;
+    // Boarded gable ends follow the roof pitch and close the old attic gaps.
+    for(int32 Side:{-1,1})
+    {
+        for(int32 Row=0;Row<12;++Row)
+            Shape(Name+FString::Printf(TEXT("Gable%d_%d"),Side,Row),P+FVector(Side*(W/2-5),0,330+(Row+.5f)*Rise/12),FVector(14,D*(1.f-float(Row)/12),Rise/12+1),TEXT("Timber"),TEXT("Cube"),false);
+        for(int32 Bay:{-1,1})
+        {
+            const FVector Window=P+FVector(Side*(W/2+8),Bay*D*.25f,180);
+            Shape(Name+FString::Printf(TEXT("SideFrame%d_%d"),Side,Bay),Window,FVector(18,135,160),TEXT("Plaster"),TEXT("Cube"),false);
+            Shape(Name+FString::Printf(TEXT("SideGlass%d_%d"),Side,Bay),Window+FVector(Side*14,0,0),FVector(7,110,135),TEXT("Iron"),TEXT("Cube"),false);
+            Shape(Name+FString::Printf(TEXT("SideSash%d_%d"),Side,Bay),Window+FVector(Side*20,0,0),FVector(5,110,6),TEXT("Timber"),TEXT("Cube"),false);
+        }
+        Shape(Name+FString::Printf(TEXT("Corner%d"),Side),P+FVector(Side*(W/2-9),-D/2-7,180),FVector(20,20,300),TEXT("Plaster"),TEXT("Cube"),false);
+        Shape(Name+FString::Printf(TEXT("PorchRail%d"),Side),P+FVector(Side*(W*.32f),-D/2-210,100),FVector(W*.28f,10,12),TEXT("Timber"));
+        for(int32 Rail=0;Rail<5;++Rail)
+            Shape(Name+FString::Printf(TEXT("PorchSpindle%d_%d"),Side,Rail),P+FVector(Side*(W*.18f+Rail*W*.07f),-D/2-210,60),FVector(7,7,75),TEXT("Timber"),TEXT("Cube"),false);
+    }
+    Shape(Name+TEXT("RidgeCap"),P+FVector(0,0,330+Rise+12),FVector(W+105,24,18),TEXT("Iron"),TEXT("Cube"),false);
     // Deep roof panels overlap at the ridge. Dark attic walls close the gable ends.
     Shape(Name+TEXT("Attic"),P+FVector(0,0,330+Rise*.22f),FVector(W-20,D*.50f,Rise*.44f),TEXT("Timber"));
     for(int32 Side:{-1,1})
@@ -70,6 +106,8 @@ void ACLPecosBend::Home(const FString& Name,FVector P,float W,float D,const TCHA
     }
     Shape(Name+TEXT("DoorFrame"),P+FVector(0,-D/2-10,145),FVector(122,20,245),TEXT("Plaster"));
     Shape(Name+TEXT("Door"),P+FVector(0,-D/2-24,137),FVector(100,10,222),TEXT("Timber"));
+    Shape(Name+TEXT("DoorHandle"),P+FVector(34,-D/2-33,125),FVector(6,8,20),TEXT("Brass"),TEXT("Cube"),false);
+    for(int32 Panel=0;Panel<2;++Panel) Shape(Name+FString::Printf(TEXT("DoorPanel%d"),Panel),P+FVector(0,-D/2-31,85+Panel*98),FVector(75,5,75),TEXT("Timber"),TEXT("Cube"),false);
     Shape(Name+TEXT("Porch"),P+FVector(0,-D/2-125,10),FVector(W,250,20),TEXT("Timber"));
     Shape(Name+TEXT("PorchRoof"),P+FVector(0,-D/2-120,285),FVector(W+70,310,20),TEXT("Timber"));
     Shape(Name+TEXT("Chimney"),P+FVector(W*.28f,D*.20f,410),FVector(80,90,390),TEXT("Brick"));
@@ -114,6 +152,19 @@ ACLPecosBend::ACLPecosBend()
     Shape(TEXT("CourtCentralBay"),Court+FVector(0,-735,515),FVector(470,100,1030),TEXT("Brick"));
     Shape(TEXT("CourtEntryFrame"),Court+FVector(0,-800,175),FVector(250,30,350),TEXT("Plaster"));
     Shape(TEXT("CourtEntryDoor"),Court+FVector(0,-820,155),FVector(195,16,310),TEXT("Timber"));
+    Shape(TEXT("CourtFloorBand"),Court+FVector(0,0,510),FVector(1830,1430,28),TEXT("Plaster"),TEXT("Cube"),false);
+    for(int32 Side:{-1,1})
+    {
+        for(int32 Row=0;Row<15;++Row)
+            Shape(FString::Printf(TEXT("CourtQuoin%d_%d"),Side,Row),Court+FVector(Side*865,-716,105+Row*60),FVector(Row%2?65:100,38,42),TEXT("Plaster"),TEXT("Cube"),false);
+        for(int32 Bay=0;Bay<3;++Bay)
+        {
+            const FVector Seat=Court+FVector(Side*1120,-550+Bay*650,0);
+            Shape(FString::Printf(TEXT("SquareSeat%d_%d"),Side,Bay),Seat+FVector(0,0,46),FVector(60,190,12),TEXT("Timber"));
+            Shape(FString::Printf(TEXT("SquareSeatBack%d_%d"),Side,Bay),Seat+FVector(Side*26,0,82),FVector(10,190,70),TEXT("Timber"));
+            for(int32 Leg:{-1,1}) Shape(FString::Printf(TEXT("SquareSeatLeg%d_%d_%d"),Side,Bay,Leg),Seat+FVector(0,Leg*65,20),FVector(45,12,40),TEXT("Iron"));
+        }
+    }
     Sign(TEXT("CourtEntryText"),TEXT("RIVAS COUNTY\nCOURTHOUSE"),Court+FVector(0,-810,410),-90,30);
     for(int32 Floor=0;Floor<2;++Floor) for(int32 Bay=-3;Bay<=3;++Bay)
     {
@@ -123,6 +174,9 @@ ACLPecosBend::ACLPecosBend()
         Shape(Name+TEXT("Stone"),P,FVector(150,25,270),TEXT("Plaster"));
         Shape(Name+TEXT("Glass"),P+FVector(0,-20,0),FVector(120,8,235),TEXT("Iron"));
         Shape(Name+TEXT("Cross"),P+FVector(0,-25,0),FVector(120,8,8),TEXT("Timber"),TEXT("Cube"),false);
+        Shape(Name+TEXT("Sill"),P+FVector(0,-28,-145),FVector(178,55,18),TEXT("Plaster"),TEXT("Cube"),false);
+        Shape(Name+TEXT("Lintel"),P+FVector(0,-20,145),FVector(180,38,30),TEXT("Plaster"),TEXT("Cube"),false);
+        Shape(Name+TEXT("VerticalSash"),P+FVector(0,-26,0),FVector(7,8,235),TEXT("Timber"),TEXT("Cube"),false);
     }
     for(int32 Side:{-1,1}) for(int32 Bay=-2;Bay<=2;++Bay) for(int32 Floor=0;Floor<2;++Floor)
     {

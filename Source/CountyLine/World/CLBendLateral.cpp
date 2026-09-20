@@ -22,12 +22,12 @@ ACLBendLateral::ACLBendLateral()
     Sky->SetupAttachment(RootComponent);
     auto* Sun=CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("Sun"));
     Sun->SetupAttachment(RootComponent);Sun->SetMobility(EComponentMobility::Movable);
-    Sun->SetRelativeRotation(FRotator(-32,-40,0));Sun->SetIntensity(3);
+    Sun->SetRelativeRotation(FRotator(-38,125,0));Sun->SetIntensity(3);
     Sun->SetLightColor(FLinearColor(1.f,.90f,.74f));Sun->bAtmosphereSunLight=true;
     Sun->LightSourceAngle=2.f;
     auto* Ambient=CreateDefaultSubobject<USkyLightComponent>(TEXT("OpenSkyFill"));
     Ambient->SetupAttachment(RootComponent);Ambient->SetMobility(EComponentMobility::Movable);
-    Ambient->SetIntensity(.65f);Ambient->SetRealTimeCaptureEnabled(true);
+    Ambient->SetIntensity(1.25f);Ambient->SetRealTimeCaptureEnabled(true);
     auto* Fog=CreateDefaultSubobject<UExponentialHeightFogComponent>(TEXT("DistanceHaze"));
     Fog->SetupAttachment(RootComponent);Fog->SetFogDensity(.008f);
     Fog->SetFogHeightFalloff(.25f);Fog->SetFogInscatteringColor(FLinearColor(.48f,.49f,.43f));

@@ -143,3 +143,11 @@ Integrated Claude's commits 8f135a5 and 9fd895a, based on residential commit 673
 In the separate CountyLine-Integration checkout, CountyLineEditor Win64 Development built with -NoPCH -NoUBA -NoHotReloadFromIDE. Scripts/Test-Prototype.ps1 exited 0: all 13 automation suites and 77 runtime checks passed. The recovery helper in the new unit tests duplicates the acceptance rule; it does not itself exercise production teleporting. The existing runtime smoke covers that live path. Save fixtures remain memory-only, and the player's slot was not touched. No visible game window was launched.
 
 The running desktop prototype in CountyLine-Office was deliberately not replaced during the user's residential playtest. GitHub includes the tested integration; deploying that module to the desktop checkout is a separate step once the game is closed. The user reported that the residential block looked good during this test.
+
+## Town architecture detail pass - 20 September 2026
+
+Generated six original procedural Unreal material assets with Scripts/build_town_materials.py. The final generator run reported CL_TOWN_MATERIALS_SUCCESS without errors or warnings. Added façade trim, residential gables/windows/porch rails and courthouse benches. All building footprints, door positions and checkpoint definitions remain unchanged.
+
+CountyLineEditor Win64 Development built with -NoPCH -NoUBA -NoHotReloadFromIDE. Scripts/Test-Prototype.ps1 exited 0: all 13 automation suites and 77 runtime checks passed. Initial close-up captures exposed overly dark shaded fronts. Adjusted the shared outdoor sun direction and skylight intensity, rebuilt, and reran the offscreen rendered fixture: all 77 runtime checks passed again, with no shader compilation errors reported. Reviewed the final courthouse and home close-ups and town overview; the six current engine captures are in Docs/Verification/PecosBend.
+
+The desktop checkout contains the rebuilt module and generated materials. No player save was loaded or written by these checks. This is an intermediate surface/detail pass with fixed daylight, opaque windows and simplified geometry/vegetation; it is not a packaged-build, physical-controller or performance certification. See TOWN_DETAIL_PASS.md for reproduction and limits.

@@ -337,11 +337,11 @@ void ACLPrototypeGameMode::CaptureTownReview()
 {
     // Engine-rendered QA artifacts, isolated by the required CLSmokeTest run.
     // These cameras do not alter the player's saved location or normal view.
-    const FVector Positions[]={FVector(-10000,-7600,8500),FVector(-1600,-480,260),FVector(-4340,-1820,190),FVector(-7600,2800,2500)};
-    const FVector Targets[]={FVector(-2900,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150)};
-    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png")};
+    const FVector Positions[]={FVector(-10000,-7600,8500),FVector(-1600,-480,260),FVector(-4340,-1820,190),FVector(-7600,2800,2500),FVector(-4400,-1400,450),FVector(-6250,4250,220)};
+    const FVector Targets[]={FVector(-2900,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230)};
+    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png")};
     const int32 View=TownReviewStep/2;
-    if(View>=4) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
+    if(View>=6) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
     if(TownReviewStep%2==0)
     {
         TownReviewCamera->SetActorLocationAndRotation(Positions[View],(Targets[View]-Positions[View]).Rotation());
