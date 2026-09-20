@@ -255,6 +255,24 @@ bool FCLTownGeographyTest::RunTest(const FString& Parameters)
     ExpectWalkable(*this, TEXT("Jail door to the road"), OutOfJail);
     TestTrue(TEXT("Leaving the jail reaches the road: ") + Describe(OutOfJail.Visited), OutOfJail.Visited.Num() == 2 && OutOfJail.Visited[0] == FName(TEXT("JailOffice")) && OutOfJail.Visited[1] == FName(TEXT("CountyRoad")));
 
+    // The residential lane north of the square is part of Court Street for
+    // discovery and shares its recovery point, per Docs/WORLD_GEOGRAPHY.md.
+    TestTrue(TEXT("North Lane belongs to Court Street"), PlaceAt(-2800, 4300) == FName(TEXT("CourtStreet")));
+    TestTrue(TEXT("Residential homes stand on Court Street"), PlaceAt(-5500, 5600) == FName(TEXT("CourtStreet")) && PlaceAt(400, 5600) == FName(TEXT("CourtStreet")));
+    TestTrue(TEXT("The lane ends at the northern boundary"), PlaceAt(-2800, 7380).IsNone() && PlaceAt(-2800, 7379) == FName(TEXT("CourtStreet")));
+    TestTrue(TEXT("East of the lane is unnamed"), PlaceAt(1040, 5600).IsNone());
+    const FWalk ToLane = WalkSegment({-2800, -100}, {-2800, 5600});
+    ExpectWalkable(*this, TEXT("Square to the residential lane"), ToLane);
+    TestTrue(TEXT("The lane walk stays on Court Street: ") + Describe(ToLane.Visited), ToLane.Visited.Num() == 1 && ToLane.Visited[0] == FName(TEXT("CourtStreet")));
+    {
+        // The lane uses the existing Court Street checkpoint; no new id was added.
+        FCLWorldState Lane;
+        FTransform Authored;
+        TestTrue(TEXT("Court Street checkpoint serves the lane"), ACLCountyRoad::SafeCheckpoint(PlaceAt(-2800, 4300), Authored));
+        Lane.SetLastSafePosition(PlaceAt(-2800, 4300), Authored);
+        TestTrue(TEXT("A walk home is recoverable"), WouldKeepSavedPosition(Lane));
+    }
+
     // The seam between Court Street and the county road. Exactly on the boundary
     // no zone matches; a step either side does. This pins current behaviour: if
     // the boundary is ever closed, update this and the note in Docs/Verification.
