@@ -4,6 +4,7 @@
 #include "Paper/CLSaveValidation.h"
 #include "World/CLWorldState.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/GameInstance.h"
 #include <limits>
 
 // Memory-only fixtures. Nothing here loads, writes, or deletes the player's slot.
@@ -206,6 +207,22 @@ bool FCLWorldStateSaveTest::RunTest(const FString& Parameters)
 {
     using namespace CLWorldStateTestUtil;
     auto SameReport = [](const FCLReportState& A, const FCLReportState& B) { return FCLReportState::StaticStruct()->CompareScriptStruct(&A, &B, 0); };
+
+    // Exercise dirty tracking without touching the player's slot. The default
+    // snapshot represents a successfully saved empty game.
+    {
+        UGameInstance* GameInstance = NewObject<UGameInstance>();
+        UCLCaseState* State = NewObject<UCLCaseState>(GameInstance);
+        TestFalse(TEXT("New game is not saved"), State->IsCurrentStateSaved());
+        State->bHasWrittenDate = true;
+        TestTrue(TEXT("Empty saved snapshot matches"), State->IsCurrentStateSaved());
+        State->World.DiscoverLocation(TEXT("JailOffice"));
+        TestFalse(TEXT("Discovery marks state unsaved"), State->IsCurrentStateSaved());
+        State->World.Reset();
+        TestTrue(TEXT("Restoring snapshot clears world difference"), State->IsCurrentStateSaved());
+        State->World.SetLastSafePosition(TEXT("BendLateral"), MakeTransform(1, 2, 3));
+        TestFalse(TEXT("Safe position marks state unsaved"), State->IsCurrentStateSaved());
+    }
 
     // World state rides along with report, evidence, follow-up, and copy preference.
     const FCLReportState Report = FollowedUpReport();

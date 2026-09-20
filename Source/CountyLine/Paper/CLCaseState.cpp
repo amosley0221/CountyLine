@@ -129,6 +129,7 @@ void UCLCaseState::Initialize(FSubsystemCollectionBase& Collection)
     {
         bHasWrittenDate = true;
         SavedReport = Report;
+        SavedWorld = World;
         bSavedTypedCopy = bTypedCopy;
     }
 }
@@ -144,6 +145,7 @@ bool UCLCaseState::WriteDate()
     if (bHasWrittenDate)
     {
         SavedReport = Report;
+        SavedWorld = World;
         bSavedTypedCopy = bTypedCopy;
     }
     return bHasWrittenDate;
@@ -152,7 +154,8 @@ bool UCLCaseState::WriteDate()
 bool UCLCaseState::IsCurrentStateSaved() const
 {
     return bHasWrittenDate && bTypedCopy == bSavedTypedCopy &&
-        FCLReportState::StaticStruct()->CompareScriptStruct(&Report, &SavedReport, 0);
+        FCLReportState::StaticStruct()->CompareScriptStruct(&Report, &SavedReport, 0) &&
+        FCLWorldState::StaticStruct()->CompareScriptStruct(&World, &SavedWorld, 0);
 }
 
 FString UCLCaseState::StatusText(ECLReportStatus Status)

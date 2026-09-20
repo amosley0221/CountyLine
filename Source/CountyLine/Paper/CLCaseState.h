@@ -83,5 +83,6 @@ public:
     static const TCHAR* ClosingLines[3];
 private:
     FCLReportState SavedReport;
+    FCLWorldState SavedWorld;
     bool bSavedTypedCopy = true;
 };

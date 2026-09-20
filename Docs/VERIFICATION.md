@@ -92,8 +92,16 @@ Audio files were checked for valid PCM data and headroom; Unreal initialized the
 
 ## Evidence follow-up and consequences — 19 September 2026
 
+
 The UE 5.8.2 editor target built successfully with -NoPCH -NoUBA. Scripts/Test-Prototype.ps1 exited 0: all eight named automation suites and all 51 runtime smoke assertions passed. The new suite covers each lead and its prerequisites, cancellation/repeat protection, pending and completed lead persistence, and all seven nonempty finding combinations across both original report dispositions and both follow-up outcomes. Malformed follow-up records are rejected without mutating the destination. Save fixtures use memory serialization only.
 
 Simulated controller input selects a lead in Cases, cancels and reopens its field inspection, records the finding, opens the consequence preview, and confirms filing at the desk. The checks also verify rejection away from the desk, unchanged original carbon, unsaved-state detection, and safe focus after filing. This does not replace a physical-controller playtest.
 
 At 1440 x 900, inspected the filed inquiry and its complete prose in the scrollable Cases page, the changed Ledger, and Pruitt's inquiry response/save reminder. This used -CLSmokeTest -CLSmokeKeepOpen, which retains the successful smoke scenario for inspection while preventing player-slot loading or writes. No player save was changed. Follow-up decisions currently produce persistent records, Ledger prose, and dialogue; offscreen inquiry simulation, medical findings, and a full hearing remain future work. See Docs/EVIDENCE_FOLLOWUP.md for the playable sequence and scope.
+## World-state foundation integration — 19 September 2026
+
+Integrated Claude's commit 085e11b, preserving its implementation and fixture improvements. Added a saved world-state snapshot after successful load/save and included it in IsCurrentStateSaved. Memory-only tests verify that discovery and safe-position changes mark the state unsaved. An initial integration test constructed the subsystem without its required GameInstance outer; the fixture was corrected before the final run.
+
+The integrated UE 5.8.2 editor target built successfully with -NoPCH -NoUBA -NoHotReloadFromIDE. Scripts/Test-Prototype.ps1 exited 0: all ten expected automation suites passed, with zero automation warnings/errors, and all 51 runtime smoke checks passed. Player save slots were not used. No new visual behavior was introduced, and no interactive playtest was required for this storage integration.
+
+Travel, spawning, and discovery triggers remain unwired. Compatibility testing covers default world state through memory serialization, not a genuine historical binary save. Older builds can discard the new fields if they rewrite a save; see Docs/WORLD_STATE_FOUNDATION.md.

@@ -50,7 +50,7 @@ Save version stays **1**. World state is a new tagged property, so older saves s
 ## Not wired up
 
 - Nothing calls `DiscoverLocation` or `SetLastSafePosition` during play. Travel and spawning are unchanged.
-- `IsCurrentStateSaved` still compares only the report and copy preference. Once something mutates world state at runtime, add `World` there, or the "unsaved" notice will miss world-state changes.
+- Integration adds a world-state snapshot after successful loading and saving. `IsCurrentStateSaved` compares it alongside the report and copy preference, so future runtime changes will mark the game unsaved.
 - No gameplay consequence, UI, or authored location list is included. Location ids are caller-defined; there is no registry of known places yet.
 
 ## Verification (19 September 2026, UE 5.8 at `F:\Vacancy\Unreal\UE_5.8`)
@@ -63,7 +63,7 @@ Save version stays **1**. World state is a new tagged property, so older saves s
 
 ## Compatibility limitations
 
-- Old-save behavior is covered by a save whose world state was never set, which is what an older save deserializes to. Genuine pre-change bytes cannot be produced in a test, because the save class name is written into the data; this rests on Unreal's tagged property serialization, as the follow-up fields do.
+- Old-save behavior is covered by a save whose world state was never set, which is what an older save deserializes to. No genuine pre-change binary fixture is exercised here; compatibility relies on Unreal's tagged property serialization, as the follow-up fields do.
 - Saves written after this change carry world state and still read as version 1. An older build reading such a save ignores the unknown property, so round-tripping a save through an older build silently drops world state.
 - Case-insensitive ids mean `BendLateral` and `bendlateral` cannot be different locations. Pick one spelling per place.
 - The rotation must be normalized, so a caller passing a raw interpolated quaternion should normalize it first.
