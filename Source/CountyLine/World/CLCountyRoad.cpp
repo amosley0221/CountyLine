@@ -59,8 +59,8 @@ FName ACLCountyRoad::LocationAt(FVector P)
     if(P.Z < -20 || P.Z > 250) return NAME_None;
     if(P.X>-560 && P.X<560 && P.Y>-450 && P.Y<450) return TEXT("JailOffice");
     if(P.X>-4750 && P.X<-3650 && P.Y>-2690 && P.Y<-1700) return TEXT("LangHouse");
-    if(P.X>-6620 && P.X<-1520 && P.Y>-4040 && P.Y<3880) return TEXT("CourtStreet");
-    if(P.X>-6620 && P.X<1040 && P.Y>=3880 && P.Y<7380) return TEXT("CourtStreet"); // Residential extension; same recovery point.
+    if(P.X>-7620 && P.X<-1520 && P.Y>-4040 && P.Y<3880) return TEXT("CourtStreet");
+    if(P.X>-7620 && P.X<1040 && P.Y>=1630 && P.Y<7380) return TEXT("CourtStreet"); // Commercial and residential blocks; same recovery point.
     if(P.X>8220 && P.X<11760 && P.Y>-1200 && P.Y<330) return TEXT("BendLateral");
     if(P.X>=-1520 && P.X<=8220 && P.Y>-1480 && P.Y<1630) return TEXT("CountyRoad");
     return NAME_None;

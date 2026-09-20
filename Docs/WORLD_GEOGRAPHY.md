@@ -27,6 +27,8 @@ The first residential block extends the northern town boundary to Y 7400. It is 
 
 The five existing shops retain their prototype identities for now. Their eventual business names and architecture can change as the town expands. Do not silently treat the existing repair shop as an implemented hotel or livery.
 
+Following the user's street-level review, the commercial plan now takes priority over the illustrations: repairs, general store and dry goods form an east-facing row on Market Street, with a rear service lane. Drugs and post office form a west-facing row on Court Street. Four courthouse benches face the forecourt or north green with their backs toward the building. See [TOWN_LAYOUT_REVIEW.md](TOWN_LAYOUT_REVIEW.md). The west boundary is now X=-7640; the civic buildings and residential plots remain in place.
+
 ## Reserved county geography — future construction
 
 These are design allocations, not existing playable destinations or exact coordinates:

@@ -151,3 +151,11 @@ Generated six original procedural Unreal material assets with Scripts/build_town
 CountyLineEditor Win64 Development built with -NoPCH -NoUBA -NoHotReloadFromIDE. Scripts/Test-Prototype.ps1 exited 0: all 13 automation suites and 77 runtime checks passed. Initial close-up captures exposed overly dark shaded fronts. Adjusted the shared outdoor sun direction and skylight intensity, rebuilt, and reran the offscreen rendered fixture: all 77 runtime checks passed again, with no shader compilation errors reported. Reviewed the final courthouse and home close-ups and town overview; the six current engine captures are in Docs/Verification/PecosBend.
 
 The desktop checkout contains the rebuilt module and generated materials. No player save was loaded or written by these checks. This is an intermediate surface/detail pass with fixed daylight, opaque windows and simplified geometry/vegetation; it is not a packaged-build, physical-controller or performance certification. See TOWN_DETAIL_PASS.md for reproduction and limits.
+
+## Coherent commercial blocks and courthouse seating - 20 September 2026
+
+Reorganized five shops into two street-facing rows, added connected frontage and service routes, and replaced wall-facing benches with four outward-facing seats. Existing civic buildings, homes and recovery checkpoints retain their positions. The generated map now accounts for rotated shop footprints and shows frontage and seating directions.
+
+CountyLineEditor Win64 Development built successfully. Scripts/Test-Prototype.ps1 exited 0: all 13 automation suites and 81 runtime checks passed. The initial new eastern frontage route caught the North Lane sign blocking the diagonal connection; the sign was moved to the verge and the build and full test runner passed afterward. New checks exercise capsule-swept frontage/service routes, actual door orientation and approach clearance, and bench back placement and view clearance.
+
+The final offscreen rendered review also passed all 81 runtime checks. Visually reviewed the overview, both commercial rows and courthouse seating. All nine current captures are backed up in Docs/Verification/PecosBend. The desktop checkout contains the rebuilt module. Tests bypass the player's save slot; no physical-controller, vehicle-navigation or packaged-build certification is implied.

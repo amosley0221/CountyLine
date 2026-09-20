@@ -7,7 +7,7 @@
 
 UStaticMeshComponent* ACLPecosBend::Shape(const FString& Name,FVector P,FVector Size,const TCHAR* Material,const TCHAR* Mesh,bool Collision)
 {
-    auto* C=CreateDefaultSubobject<UStaticMeshComponent>(*Name);C->SetupAttachment(RootComponent);
+    auto* C=CreateDefaultSubobject<UStaticMeshComponent>(*Name);C->SetupAttachment(ConstructionParent?ConstructionParent:RootComponent.Get());
     C->SetRelativeLocation(P);C->SetRelativeScale3D(Size/100.f);
     C->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*FString::Printf(TEXT("/Engine/BasicShapes/%s.%s"),Mesh,Mesh)));
     const bool bPrototype=FString(Material)==TEXT("Brick") || FString(Material)==TEXT("Plaster");
@@ -30,16 +30,19 @@ UStaticMeshComponent* ACLPecosBend::Shape(const FString& Name,FVector P,FVector 
 
 void ACLPecosBend::Sign(const FString& Name,const FString& Text,FVector P,float Yaw,float Size)
 {
-    auto* T=CreateDefaultSubobject<UTextRenderComponent>(*Name);T->SetupAttachment(RootComponent);
+    auto* T=CreateDefaultSubobject<UTextRenderComponent>(*Name);T->SetupAttachment(ConstructionParent?ConstructionParent:RootComponent.Get());
     T->SetRelativeLocation(P);T->SetRelativeRotation(FRotator(0,Yaw,0));T->SetText(FText::FromString(Text));
     T->SetWorldSize(Size);T->SetHorizontalAlignment(EHTA_Center);T->SetVerticalAlignment(EVRTA_TextCenter);
     T->SetTextRenderColor(FColor(235,222,187));T->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-// Closed storefronts face south toward the square. Their signs establish
-// function without pretending these businesses have implemented interiors.
-void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,float Width,float Height)
+// Each complete shop has a local frame, so doors, awnings and signs all face
+// its street. Local front is -Y; +90 faces east and -90 faces west.
+void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,float Width,float Height,float Yaw)
 {
+    auto* Block=CreateDefaultSubobject<USceneComponent>(*(Name+TEXT("Block")));
+    Block->SetupAttachment(RootComponent);Block->SetRelativeLocation(P);Block->SetRelativeRotation(FRotator(0,Yaw,0));
+    ConstructionParent=Block;P=FVector::ZeroVector;
     Shape(Name+TEXT("Walls"),P+FVector(0,0,Height/2),FVector(Width,700,Height),TEXT("Brick"));
     Shape(Name+TEXT("Cornice"),P+FVector(0,0,Height),FVector(Width+35,735,35),TEXT("Plaster"));
     Shape(Name+TEXT("Parapet"),P+FVector(0,-350,Height+65),FVector(Width,35,120),TEXT("Brick"));
@@ -62,6 +65,7 @@ void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,floa
     }
     Shape(Name+TEXT("DoorTransom"),P+FVector(0,-375,245),FVector(100,10,32),TEXT("Iron"),TEXT("Cube"),false);
     Shape(Name+TEXT("DoorHandle"),P+FVector(34,-374,112),FVector(5,8,24),TEXT("Brass"),TEXT("Cube"),false);
+    ConstructionParent=nullptr;
 }
 
 // Small closed homes face the residential lane; porches and yards are walkable.
@@ -129,19 +133,22 @@ void ACLPecosBend::Home(const FString& Name,FVector P,float W,float D,const TCHA
 ACLPecosBend::ACLPecosBend()
 {
     RootComponent=CreateDefaultSubobject<USceneComponent>(TEXT("PecosBend"));
-    Shape(TEXT("TownGround"),FVector(-2800,-100,-42),FVector(7800,8200,80),TEXT("Soil"));
-    Shape(TEXT("ResidentialGround"),FVector(-2800,5650,-42),FVector(7800,3700,80),TEXT("Soil"));
-    Shape(TEXT("ResidentialLane"),FVector(-2800,4300,.2),FVector(7500,600,2),TEXT("RoadDust"),TEXT("Cube"),false);
+    Shape(TEXT("TownGround"),FVector(-3300,-100,-42),FVector(8800,8200,80),TEXT("Soil"));
+    Shape(TEXT("ResidentialGround"),FVector(-3300,5650,-42),FVector(8800,3700,80),TEXT("Soil"));
+    Shape(TEXT("ResidentialLane"),FVector(-3300,4300,.2),FVector(8500,600,2),TEXT("RoadDust"),TEXT("Cube"),false);
+    Shape(TEXT("WestMarketStreet"),FVector(-5650,1750,.2),FVector(500,5100,2),TEXT("RoadDust"),TEXT("Cube"),false);
+    Shape(TEXT("WestServiceLane"),FVector(-7250,1750,.2),FVector(300,5100,2),TEXT("RoadDust"),TEXT("Cube"),false);
+    Shape(TEXT("EastShopWalk"),FVector(-1770,2125,1),FVector(230,2700,4),TEXT("RoadDust"),TEXT("Cube"),false);
     Shape(TEXT("CourtNorthExtension"),FVector(-2200,4100,.2),FVector(620,950,2),TEXT("RoadDust"),TEXT("Cube"),false);
     Home(TEXT("HomeWest"),FVector(-5500,5550,0),1000,900,TEXT("Plaster"));
     Home(TEXT("HomeBrick"),FVector(-3650,5650,0),1100,950,TEXT("Brick"));
     Home(TEXT("HomeTimber"),FVector(-1250,5550,0),1000,900,TEXT("Timber"));
     Home(TEXT("HomeEast"),FVector(400,5600,0),850,800,TEXT("Plaster"));
-    Sign(TEXT("ResidentialSign"),TEXT("HOMES  /  NORTH LANE"),FVector(-1850,3750,180),-90,23);
-    Shape(TEXT("ResidentialSignBoard"),FVector(-1850,3760,180),FVector(430,15,60),TEXT("Timber"));
-    Shape(TEXT("ResidentialSignPost"),FVector(-1850,3760,85),FVector(12,12,170),TEXT("Timber"));
+    Sign(TEXT("ResidentialSign"),TEXT("HOMES  /  NORTH LANE"),FVector(-1300,3750,180),-90,23);
+    Shape(TEXT("ResidentialSignBoard"),FVector(-1300,3760,180),FVector(430,15,60),TEXT("Timber"));
+    Shape(TEXT("ResidentialSignPost"),FVector(-1300,3760,85),FVector(12,12,170),TEXT("Timber"));
     Shape(TEXT("CourtStreet"),FVector(-2200,-100,.2),FVector(620,7700,2),TEXT("RoadDust"),TEXT("Cube"),false);
-    Shape(TEXT("SquareRoad"),FVector(-3650,-800,.2),FVector(6100,600,2),TEXT("RoadDust"),TEXT("Cube"),false);
+    Shape(TEXT("SquareRoad"),FVector(-4100,-800,.2),FVector(7000,600,2),TEXT("RoadDust"),TEXT("Cube"),false);
     Shape(TEXT("CourthouseWalk"),FVector(-3900,-100,1),FVector(2400,760,4),TEXT("RoadDust"),TEXT("Cube"),false);
     // Reference landmark: brick county courthouse, two storeys and a cupola.
     const FVector Court(-3900,1200,0);
@@ -157,13 +164,15 @@ ACLPecosBend::ACLPecosBend()
     {
         for(int32 Row=0;Row<15;++Row)
             Shape(FString::Printf(TEXT("CourtQuoin%d_%d"),Side,Row),Court+FVector(Side*865,-716,105+Row*60),FVector(Row%2?65:100,38,42),TEXT("Plaster"),TEXT("Cube"),false);
-        for(int32 Bay=0;Bay<3;++Bay)
-        {
-            const FVector Seat=Court+FVector(Side*1120,-550+Bay*650,0);
-            Shape(FString::Printf(TEXT("SquareSeat%d_%d"),Side,Bay),Seat+FVector(0,0,46),FVector(60,190,12),TEXT("Timber"));
-            Shape(FString::Printf(TEXT("SquareSeatBack%d_%d"),Side,Bay),Seat+FVector(Side*26,0,82),FVector(10,190,70),TEXT("Timber"));
-            for(int32 Leg:{-1,1}) Shape(FString::Printf(TEXT("SquareSeatLeg%d_%d_%d"),Side,Bay,Leg),Seat+FVector(0,Leg*65,20),FVector(45,12,40),TEXT("Iron"));
-        }
+    }
+    // Backs point toward the courthouse; seating looks across the forecourt
+    // or the open north green, never straight into a nearby wall.
+    for(int32 Side:{-1,1}) for(int32 End:{-1,1})
+    {
+        const FVector Seat(-3900+Side*800,End<0?-150:2600,0);
+        Shape(FString::Printf(TEXT("SquareSeat%d_%d"),Side,End),Seat+FVector(0,0,46),FVector(190,60,12),TEXT("Timber"));
+        Shape(FString::Printf(TEXT("SquareSeatBack%d_%d"),Side,End),Seat+FVector(0,-End*26,82),FVector(190,10,70),TEXT("Timber"));
+        for(int32 Leg:{-1,1}) Shape(FString::Printf(TEXT("SquareSeatLeg%d_%d_%d"),Side,End,Leg),Seat+FVector(Leg*65,0,20),FVector(12,45,40),TEXT("Iron"));
     }
     Sign(TEXT("CourtEntryText"),TEXT("RIVAS COUNTY\nCOURTHOUSE"),Court+FVector(0,-810,410),-90,30);
     for(int32 Floor=0;Floor<2;++Floor) for(int32 Bay=-3;Bay<=3;++Bay)
@@ -190,11 +199,11 @@ ACLPecosBend::ACLPecosBend()
     for(int32 X:{-1,1}) for(int32 Y:{-1,1}) Shape(FString::Printf(TEXT("CupolaPillar%d%d"),X,Y),Court+FVector(X*130,Y*130,1380),FVector(25,25,210),TEXT("Plaster"));
     Shape(TEXT("CupolaCap"),Court+FVector(0,0,1560),FVector(460,460,250),TEXT("Iron"),TEXT("Cone"));
     Shape(TEXT("CupolaFinial"),Court+FVector(0,0,1720),FVector(12,12,150),TEXT("Iron"),TEXT("Cylinder"));
-    Store(TEXT("DryGoods"),TEXT("DRY GOODS"),FVector(-5900,1700,0),850,520);
-    Store(TEXT("Grocer"),TEXT("GENERAL STORE"),FVector(-5900,400,0),850,450);
-    Store(TEXT("PostOffice"),TEXT("POST OFFICE"),FVector(-800,1800,0),950,560);
-    Store(TEXT("Drugs"),TEXT("DRUGS"),FVector(450,1800,0),950,480);
-    Store(TEXT("ClosedShop"),TEXT("REPAIRS"),FVector(-5900,-2450,0),850,420);
+    Store(TEXT("DryGoods"),TEXT("DRY GOODS"),FVector(-6600,2300,0),950,520,90);
+    Store(TEXT("Grocer"),TEXT("GENERAL STORE"),FVector(-6600,1150,0),1000,450,90);
+    Store(TEXT("PostOffice"),TEXT("POST OFFICE"),FVector(-950,2800,0),950,560,-90);
+    Store(TEXT("Drugs"),TEXT("DRUGS"),FVector(-950,1500,0),950,480,-90);
+    Store(TEXT("ClosedShop"),TEXT("REPAIRS"),FVector(-6600,50,0),900,420,90);
 
     // Jail exterior wraps its existing room without moving its report or deputy.
     Shape(TEXT("JailFrontNorth"),FVector(-579,195,180),FVector(18,550,360),TEXT("Brick"));
@@ -265,13 +274,13 @@ ACLPecosBend::ACLPecosBend()
             Shape(FString::Printf(TEXT("SquareTreeCrown%d_%d"),I,J),Trees[I]+FVector((J%2)*130-65,(J/2)*130-65,450+(J%2)*65),FVector(250,250,300),J%2?TEXT("LeafLight"):TEXT("Leaf"),TEXT("Sphere"),false);
     }
     // Town edge: visible rail barriers around the compact authored footprint.
-    for(int32 I=0;I<21;++I) for(int32 Side:{-1,1})
+    for(int32 I=0;I<24;++I) for(int32 Side:{-1,1})
     {
-        const float X=-6600+I*380,Y=Side<0?-4060:7400;
+        const float X=-7600+I*(8600.f/23.f),Y=Side<0?-4060:7400;
         Shape(FString::Printf(TEXT("TownFencePost%d_%d"),I,Side),FVector(X,Y,70),FVector(12,12,140),TEXT("Timber"));
-        if(I<20) for(int32 Rail=0;Rail<2;++Rail) Shape(FString::Printf(TEXT("TownRail%d_%d_%d"),I,Side,Rail),FVector(X+190,Y,50+Rail*55),FVector(380,8,10),TEXT("Timber"));
+        if(I<23) for(int32 Rail=0;Rail<2;++Rail) Shape(FString::Printf(TEXT("TownRail%d_%d_%d"),I,Side,Rail),FVector(X+4300.f/23.f,Y,50+Rail*55),FVector(8600.f/23.f,8,10),TEXT("Timber"));
     }
-    Shape(TEXT("WestTownWall"),FVector(-6640,1670,90),FVector(25,11500,180),TEXT("Rock"));
+    Shape(TEXT("WestTownWall"),FVector(-7640,1670,90),FVector(25,11500,180),TEXT("Rock"));
     Shape(TEXT("TownEastNorth"),FVector(1060,4475,90),FVector(25,5850,180),TEXT("Rock"));
     Shape(TEXT("TownEastSouth"),FVector(1060,-2800,90),FVector(25,2400,180),TEXT("Rock"));
 }

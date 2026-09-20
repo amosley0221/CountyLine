@@ -313,6 +313,45 @@ void ACLPrototypeGameMode::RunSmokeTest()
         WalkRoute(FVector(-2650,4300,92));WalkRoute(FVector(-2200,4300,92));WalkRoute(FVector(-2200,-800,92));
         WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-350,-180,92));
         Check(bRouteClear && PC->Case()->World.LastSafeLocation==TEXT("JailOffice") && PC->Case()->Report.IncludedFacts==Carbon,TEXT("Residential return preserves the jail route and original carbon"));
+        WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-5850,-800,92));
+        WalkRoute(FVector(-5850,3300,92));WalkRoute(FVector(-5650,4300,92));WalkRoute(FVector(-7250,4300,92));
+        WalkRoute(FVector(-7250,-800,92));WalkRoute(FVector(-2200,-800,92));
+        Check(bRouteClear,TEXT("Western shop fronts and rear service lane connect to both cross streets"));
+        WalkRoute(FVector(-2200,4300,92));WalkRoute(FVector(-1780,3500,92));WalkRoute(FVector(-1780,800,92));
+        WalkRoute(FVector(-2200,800,92));WalkRoute(FVector(-2200,-800,92));
+        WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-350,-180,92));
+        Check(bRouteClear && PC->Case()->World.LastSafeLocation==TEXT("JailOffice"),TEXT("Eastern storefront walk connects North Lane and the jail without crossing a shop"));
+        ACLPecosBend* Town=nullptr;
+        for(TActorIterator<ACLPecosBend> It(GetWorld());It;++It) {Town=*It;break;}
+        auto Part=[Town](const FString& Name)->UStaticMeshComponent*
+        {
+            return Town?FindObjectFast<UStaticMeshComponent>(Town,FName(*Name)):nullptr;
+        };
+        FCollisionQueryParams LayoutParams(SCENE_QUERY_STAT(TownLayout),false,Reed);
+        bool bShopApproaches=Town!=nullptr;
+        for(const TCHAR* Name:{TEXT("DryGoods"),TEXT("Grocer"),TEXT("ClosedShop"),TEXT("PostOffice"),TEXT("Drugs")})
+        {
+            const auto* Door=Part(FString(Name)+TEXT("Door"));
+            if(!Door) {bShopApproaches=false;continue;}
+            const FVector Facing=Door->GetComponentQuat().RotateVector(FVector(0,-1,0));
+            const float ExpectedX=(FString(Name)==TEXT("PostOffice") || FString(Name)==TEXT("Drugs"))?-1.f:1.f;
+            FHitResult Obstruction;
+            const FVector Start=Door->GetComponentLocation()+Facing*60;
+            bShopApproaches &= Facing.X*ExpectedX>.99f && !GetWorld()->LineTraceSingleByChannel(Obstruction,Start,Start+Facing*850,ECC_Visibility,LayoutParams);
+        }
+        Check(bShopApproaches,TEXT("Every shop faces its public street with an unobstructed approach"));
+        bool bSeatViews=Town!=nullptr;
+        for(int32 Side:{-1,1}) for(int32 End:{-1,1})
+        {
+            const auto* Seat=Part(FString::Printf(TEXT("SquareSeat%d_%d"),Side,End));
+            const auto* Back=Part(FString::Printf(TEXT("SquareSeatBack%d_%d"),Side,End));
+            if(!Seat || !Back) {bSeatViews=false;continue;}
+            const FVector Facing(0,End,0);
+            const FVector Start=Seat->GetComponentLocation()+Facing*80+FVector(0,0,65);
+            FHitResult Obstruction;
+            bSeatViews &= FVector::DotProduct(Back->GetComponentLocation()-Seat->GetComponentLocation(),Facing)<-20.f && !GetWorld()->LineTraceSingleByChannel(Obstruction,Start,Start+Facing*600,ECC_Visibility,LayoutParams);
+        }
+        Check(bSeatViews,TEXT("Public benches face open space with their backs toward the courthouse"));
     }
     UE_LOG(LogTemp,Display,TEXT("CL_SMOKE_RESULT=%s"),Passed?TEXT("PASS"):TEXT("FAIL"));
     if(Passed && FParse::Param(FCommandLine::Get(),TEXT("CLTownReview")))
@@ -337,11 +376,11 @@ void ACLPrototypeGameMode::CaptureTownReview()
 {
     // Engine-rendered QA artifacts, isolated by the required CLSmokeTest run.
     // These cameras do not alter the player's saved location or normal view.
-    const FVector Positions[]={FVector(-10000,-7600,8500),FVector(-1600,-480,260),FVector(-4340,-1820,190),FVector(-7600,2800,2500),FVector(-4400,-1400,450),FVector(-6250,4250,220)};
-    const FVector Targets[]={FVector(-2900,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230)};
-    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png")};
+    const FVector Positions[]={FVector(-11000,-8500,9500),FVector(-1600,-480,260),FVector(-4340,-1820,190),FVector(-7600,2800,2500),FVector(-4400,-1400,450),FVector(-6250,4250,220),FVector(-5350,-150,210),FVector(-2350,550,210),FVector(-4400,-900,180)};
+    const FVector Targets[]={FVector(-3300,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230),FVector(-6550,1400,210),FVector(-950,2400,240),FVector(-4700,-150,85)};
+    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png"),TEXT("WestMarketStreet.png"),TEXT("CourtStreetShops.png"),TEXT("SquareSeating.png")};
     const int32 View=TownReviewStep/2;
-    if(View>=6) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
+    if(View>=UE_ARRAY_COUNT(Positions)) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
     if(TownReviewStep%2==0)
     {
         TownReviewCamera->SetActorLocationAndRotation(Positions[View],(Targets[View]-Positions[View]).Rotation());
