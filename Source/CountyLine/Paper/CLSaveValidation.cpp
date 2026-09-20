@@ -23,6 +23,8 @@ ECLSaveRejection CLSaveValidation::Validate(const USaveGame* Save)
         if(!R.SupplementFacts.IsEmpty()) return ECLSaveRejection::InvalidFollowup;
     }
     else if(!R.bRead || R.Status==ECLReportStatus::Draft || R.FollowupLead!=ECLFollowupLead::None || R.SupplementFacts.IsEmpty() || R.SupplementFacts!=R.FollowupFacts) return ECLSaveRejection::InvalidFollowup;
+    // Empty world state, the default for saves written before it existed, is valid.
+    if (!Prototype->World.IsValidState()) return ECLSaveRejection::InvalidWorldState;
     return ECLSaveRejection::None;
 }
 
@@ -38,6 +40,19 @@ bool CLSaveValidation::CopyIfValid(const USaveGame* Save, FCLReportState& OutRep
     return true;
 }
 
+bool CLSaveValidation::CopyIfValid(const USaveGame* Save, FCLReportState& OutReport, bool& OutTypedCopy, FCLWorldState& OutWorld, ECLSaveRejection* OutRejection)
+{
+    const ECLSaveRejection Rejection = Validate(Save);
+    if (OutRejection) *OutRejection = Rejection;
+    if (Rejection != ECLSaveRejection::None) return false;
+    const UCLPrototypeSave* Prototype = CastChecked<UCLPrototypeSave>(Save);
+    OutReport = Prototype->Report;
+    OutTypedCopy = Prototype->bTypedCopy;
+    // Whole-struct assignment again, so later world-state fields come along.
+    OutWorld = Prototype->World;
+    return true;
+}
+
 const TCHAR* CLSaveValidation::RejectionText(ECLSaveRejection Rejection)
 {
     switch (Rejection)
@@ -48,6 +63,7 @@ const TCHAR* CLSaveValidation::RejectionText(ECLSaveRejection Rejection)
     case ECLSaveRejection::InvalidClosingLine: return TEXT("invalid closing line");
     case ECLSaveRejection::InvalidStatus: return TEXT("invalid report status");
     case ECLSaveRejection::InvalidFollowup: return TEXT("invalid follow-up record");
+    case ECLSaveRejection::InvalidWorldState: return TEXT("invalid world state");
     default: return TEXT("unknown");
     }
 }

@@ -48,6 +48,13 @@ namespace CLSaveValidationTestUtil
         // Selection flag changed after submission so it too is off default; validation
         // does not judge whether selections match the carbon.
         R.bIncludeBottle = false;
+        // Follow-up data, built through the state's own rules so it stays a state the
+        // game can actually reach. A draft cannot file, so it carries a completed fact
+        // and a second pending lead instead; a filed report has no pending lead.
+        R.Pursue(ECLFollowupLead::Bottle);
+        R.CompleteFollowup(2);
+        if (Status == ECLReportStatus::Draft) R.Pursue(ECLFollowupLead::Bank);
+        else R.FileFollowup(ECLFollowupOutcome::FileSupplement);
         return R;
     }
 
@@ -193,7 +200,15 @@ bool FCLSaveValidationCopyTest::RunTest(const FString& Parameters)
         {
             if (It->Identical_InContainer(&Full, &Defaults))
             {
-                if (Status == ECLReportStatus::Draft && It->GetFName() == GET_MEMBER_NAME_CHECKED(FCLReportState, Status)) continue;
+                // Fields that cannot be set in a valid state for this status: a draft
+                // cannot file a follow-up, and a filed report has no pending lead.
+                const FName Field = It->GetFName();
+                const bool bUnreachable = Status == ECLReportStatus::Draft
+                    ? Field == GET_MEMBER_NAME_CHECKED(FCLReportState, Status) ||
+                      Field == GET_MEMBER_NAME_CHECKED(FCLReportState, FollowupOutcome) ||
+                      Field == GET_MEMBER_NAME_CHECKED(FCLReportState, SupplementFacts)
+                    : Field == GET_MEMBER_NAME_CHECKED(FCLReportState, FollowupLead);
+                if (bUnreachable) continue;
                 AddWarning(FString::Printf(TEXT("FullReport(%s) leaves field %s at its default; add it to the fixture"), *UCLCaseState::StatusText(Status), *It->GetName()));
             }
         }

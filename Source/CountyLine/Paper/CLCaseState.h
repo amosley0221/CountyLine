@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameFramework/SaveGame.h"
+#include "World/CLWorldState.h"
 #include "CLCaseState.generated.h"
 
 UENUM()
@@ -59,6 +60,9 @@ public:
     UPROPERTY() int32 Version = 1;
     UPROPERTY() FCLReportState Report;
     UPROPERTY() bool bTypedCopy = true;
+    // Absent in saves written before world state existed; Unreal leaves it at
+    // its empty default, which is a valid world state.
+    UPROPERTY() FCLWorldState World;
 };
 
 UCLASS()
@@ -68,6 +72,9 @@ class COUNTYLINE_API UCLCaseState : public UGameInstanceSubsystem
 public:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     UPROPERTY() FCLReportState Report;
+    // Persistent world state. Loaded and saved with the report; nothing reads it
+    // for spawning or travel yet.
+    UPROPERTY() FCLWorldState World;
     bool bTypedCopy = true;
     bool bHasWrittenDate = false;
     bool WriteDate();

@@ -125,7 +125,7 @@ void UCLCaseState::Initialize(FSubsystemCollectionBase& Collection)
     if (FParse::Param(FCommandLine::Get(), TEXT("CLSmokeTest"))) return;
     if (!UGameplayStatics::DoesSaveGameExist(TEXT("CountyLine_JailPrototype"), 0)) return;
     const USaveGame* Save = UGameplayStatics::LoadGameFromSlot(TEXT("CountyLine_JailPrototype"), 0);
-    if (CLSaveValidation::CopyIfValid(Save, Report, bTypedCopy))
+    if (CLSaveValidation::CopyIfValid(Save, Report, bTypedCopy, World))
     {
         bHasWrittenDate = true;
         SavedReport = Report;
@@ -139,6 +139,7 @@ bool UCLCaseState::WriteDate()
     UCLPrototypeSave* Save = Cast<UCLPrototypeSave>(UGameplayStatics::CreateSaveGameObject(UCLPrototypeSave::StaticClass()));
     Save->Report = Report;
     Save->bTypedCopy = bTypedCopy;
+    Save->World = World;
     bHasWrittenDate = UGameplayStatics::SaveGameToSlot(Save, TEXT("CountyLine_JailPrototype"), 0);
     if (bHasWrittenDate)
     {

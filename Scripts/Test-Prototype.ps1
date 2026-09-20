@@ -14,7 +14,9 @@ $expectedTests=@(
     'CountyLine.Save.Validation.Acceptance',
     'CountyLine.Save.Validation.CompleteCopy',
     'CountyLine.Save.Validation.RejectionKeepsState',
-    'CountyLine.Save.Validation.Rejections'
+    'CountyLine.Save.Validation.Rejections',
+    'CountyLine.World.SavePersistence',
+    'CountyLine.World.StateOperations'
 )
 & $commandlet $projectPath -unattended -nullrhi -nosplash '-ExecCmds=Automation RunTests CountyLine' '-TestExit=Automation Test Queue Empty' "-abslog=$testLog"
 if ($LASTEXITCODE -ne 0) { throw 'Unreal automation tests failed; inspect PrototypeTests.log.' }
