@@ -4,6 +4,8 @@
 
 - Title: The County Line.
 - Platform: PC; perspective: third person; period: 1926–1928.
+- Open-world direction confirmed in conversation; current playable areas remain compact development slices.
+- Pecos Bend's visual target is the supplied aerial town image, reconfirmed on 20 September 2026. See `PECOS_BEND_TOWN.md` for its relationship to the current town pass and written guide.
 - Engine: Unreal Engine 5.8 (local installation is 5.8.2).
 - Repository: https://github.com/amosley0221/CountyLine.
 - Codex handles most of the project; Claude Code assists with some work.

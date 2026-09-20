@@ -1,5 +1,7 @@
 # First walkable county route
 
+Update: Court Street and Lang's boardinghouse now extend the western end into Pecos Bend. See `Docs/PECOS_BEND_TOWN.md`. The original road and investigation route remain connected.
+
 The jail office and Bend Lateral now share a continuous, compact walking route. Leave the open office doorway, turn south onto the dirt road, and follow it east through the gap in the lateral's western fence. Return along the same road. Signs provide directions; their Book interaction does not teleport the player. Keyboard and controller movement are unchanged.
 
 This is a roughly 100-metre prototype connection, not the final county scale, town plan, or World Partition implementation. The route uses existing original materials, simple ground and roadside geometry, and the authored Bend landscape. The channel remains inaccessible and swimming is not implemented. Vehicles, wider county exploration, and additional destinations remain future work.

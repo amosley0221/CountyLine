@@ -2,6 +2,7 @@
 #include "World/CLJailOffice.h"
 #include "World/CLBendLateral.h"
 #include "World/CLCountyRoad.h"
+#include "World/CLPecosBend.h"
 #include "Paper/CLCaseState.h"
 #include "UI/SCLCountyBook.h"
 #include "EngineUtils.h"
@@ -29,6 +30,7 @@ void ACLPlayerController::BeginPlay()
     for(TActorIterator<ACLJailOffice> It(GetWorld());It;++It) {Office=*It;break;}
     Bend=GetWorld()->SpawnActor<ACLBendLateral>(FVector(10000,0,0),FRotator::ZeroRotator);
     GetWorld()->SpawnActor<ACLCountyRoad>();
+    Town=GetWorld()->SpawnActor<ACLPecosBend>();
     PlayerCameraManager->ViewPitchMin=-45;
     PlayerCameraManager->ViewPitchMax=30;
     SetControlRotation(FRotator(-10,0,0));
@@ -40,7 +42,7 @@ void ACLPlayerController::BeginPlay()
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24,24,24,88)
         [SNew(SBorder).Padding(14).BorderBackgroundColor(FLinearColor(0.035f,0.03f,0.02f,0.9f))
             .Visibility_Lambda([this]{return (bPromptAvailable||bDeputyAvailable||ReachableFieldAction()>=0)&&!IsBookOpen()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
-            [SNew(STextBlock).Text_Lambda([this]{const int32 Field=ReachableFieldAction();if(Field>=0) {const TCHAR* Names[]={TEXT("Return to the jail office"),TEXT("Speak with Salazar"),TEXT("Inspect the bottle"),TEXT("Examine the ditch bank"),TEXT("Take the road to Bend Lateral")};return FText::FromString(FString(TEXT("[ E / A ]   "))+Names[Field]);}return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
+            [SNew(STextBlock).Text_Lambda([this]{const int32 Field=ReachableFieldAction();if(Field>=0) {const TCHAR* Names[]={TEXT("Return to the jail office"),TEXT("Speak with Salazar"),TEXT("Inspect the bottle"),TEXT("Examine the ditch bank"),TEXT("Read the road directions"),TEXT("Read the guest register")};return FText::FromString(FString(TEXT("[ E / A ]   "))+Names[Field]);}return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24)
         [SNew(STextBlock).Text(FText::FromString(TEXT("WASD / LS  Walk     Mouse / RS  Look\nE / A  Interact     Tab / View  Book     Esc / Menu  Pause"))).Justification(ETextJustify::Center).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.93f,0.88f,0.77f))];
     GEngine->GameViewport->AddViewportWidgetContent(HUD.ToSharedRef(),0);
@@ -220,6 +222,12 @@ int32 ACLPlayerController::ReachableFieldAction() const
 {
     if(!GetPawn() || !Bend.IsValid()) return -1;
     FVector Eye; FRotator View; GetPlayerViewPoint(Eye,View);
+    if(Town.IsValid() && WithinInteractionGate(GetPawn()->GetActorLocation(),Eye,View.Vector(),Town->RegisterLocation()))
+    {
+        FHitResult Hit;FCollisionQueryParams Params(SCENE_QUERY_STAT(LangRegister),false,GetPawn());
+        const bool bHit=GetWorld()->LineTraceSingleByChannel(Hit,Eye,Town->RegisterLocation()+FVector(0,0,3),ECC_Visibility,Params);
+        if(!bHit || Hit.GetComponent()==Town->GuestRegister) return 5;
+    }
     for(int32 I=0;I<5;++I)
     {
         if((I==4)==IsInField()) continue;

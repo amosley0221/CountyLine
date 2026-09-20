@@ -45,6 +45,7 @@ private:
     void PauseMenu();
     TWeakObjectPtr<class ACLJailOffice> Office;
     TWeakObjectPtr<class ACLBendLateral> Bend;
+    TWeakObjectPtr<class ACLPecosBend> Town;
     TSharedPtr<class SWidget> HUD;
     TSharedPtr<class SCLCountyBook> Book;
     bool bPromptAvailable = false;

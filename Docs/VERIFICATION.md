@@ -115,3 +115,9 @@ A first route test caught the office sign obstructing the approach; the sign was
 Tests use memory-only saves and the CLSmokeTest player-slot bypass. Interactive review uses CLSmokeTest with CLSmokeKeepOpen; no player save was loaded or written. Existing controller navigation and investigation regressions are included, but no physical controller or packaged-build test was performed. The route is a compact prototype connection, not the final county size or a streaming implementation. See Docs/COUNTY_ROAD.md for controls, checkpoint/save behavior, and asset reproduction.
 
 Final visual recheck confirmed the continuous road surface after reimport; the rendered smoke fixture also completed all 60 checks.
+
+## Pecos Bend town pass - 20 September 2026
+
+The UE 5.8.2 CountyLineEditor Win64 Development target built successfully. Scripts/Test-Prototype.ps1 exited 0: all 10 required automation suites succeeded and all 68 runtime smoke assertions passed. New checks cover collision-swept travel through Court Street into Lang's lobby and back, location discovery, lobby checkpoint restoration, guest-register interaction and simulated controller exit, and memory-only persistence without changing the original carbon. Tests do not load or write the player's save slot.
+
+The engine-rendered town overview, jail frontage and lobby were visually inspected after the final build. Captures are backed up in [Verification/PecosBend](Verification/PecosBend). This is a compact playable layout with prototype geometry and materials; it does not establish production visual quality, packaged-build compatibility or physical-controller behavior. The user reported a system-wide controller-disconnect/window-freeze issue, which remains unresolved and is not covered by these checks.

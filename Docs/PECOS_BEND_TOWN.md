@@ -1,0 +1,34 @@
+# Pecos Bend: first playable town pass
+
+## Visual target
+
+The user's reference is `Docs/Reference/design_handoff_county_line/boards/uploads/Grok Image 2026-09-17 at 7.26.33 PM.png`, reconfirmed on 20 September 2026. It guides the courthouse silhouette, low brick storefronts, dusty street grid, utility poles, sparse shade trees, and the town's relationship to open country. Its visual quality is a production target, not a claim that this first pass reproduces its realism or full extent.
+
+The reference can be recreated as a navigable Unreal environment through authored buildings, terrain, vegetation, materials, lighting and camera composition. A single concept image does not specify hidden building faces, interiors, accurate dimensions or exact geography. Those require additional design and asset work. The written Design Bible takes the railway around the west edge, rather than through the square; that remains the intended layout despite differences in the image. The river, railway, water tower, vehicles and distant oil field are not implemented in this pass.
+
+## Playable now
+
+- Exit the jail and follow the road west to Court Street and the courthouse square. The road east still leads continuously to Bend Lateral.
+- The brick courthouse, cupola, five storefront exteriors, street poles, trees and signed jail frontage establish the first town silhouette. The courthouse and shops have closed interiors.
+- Lang's boardinghouse is south of the square. Walk through its open doorway into the ground-floor lobby, then inspect the guest register at the counter with E or controller A. B/Escape or the return button restores movement.
+- Court Street and Lang's are recorded on the Book's Map page when Reed reaches them while grounded. Both have safe checkpoints and are persisted with the existing world state when the date is written at the jail desk.
+
+The register notice is prototype-authored text, not a new conversation with Mrs. Lang. Rooms, sleeping, meals, tenancy, a hotel save station and scheduled NPC routines remain future work. No case evidence, report decision, calendar time, money or reputation changes when reading the notice. The original investigation remains available.
+
+## Construction and scale
+
+`ACLPecosBend` builds the compact town from native mesh components and the project's existing materials. No map regeneration or new external asset dependency is required. Its approximately 80-metre footprint is a layout study, not the final eight-street town or literal county scale. `ACLCountyRoad` remains the initial location/checkpoint registry; town streets open the old western route boundary while outer perimeter barriers retain the slice's limits.
+
+The next art stages are proportion/layout approval, bespoke modular brick and timber building assets, modeled doors/windows/roofs, richer terrain and vegetation, and lighting/weather refinement. The goal is the reference's grounded period look; the current simplified geometry is deliberately an intermediate playable stage.
+
+## Verification scope
+
+Runtime checks cover collision-swept travel from the jail to the square, entry into Lang's and return; location discovery; a safe lobby checkpoint; normal range/view/occlusion gating for the register; controller opening/closing; preservation of the original carbon; and memory-only serialization of the new location ids and checkpoint. Existing report, evidence, follow-up, save-validation and route tests remain required. Tests do not use the player's save slot.
+
+## Rendered previews
+
+Verified Unreal captures: [town overview](Verification/PecosBend/TownOverview.png), [jail frontage](Verification/PecosBend/JailFrontage.png), and [Lang's lobby](Verification/PecosBend/LangLobby.png).
+
+For a fresh capture, create `Saved/Screenshots/TownReview`, then launch the editor executable with the project and `/Game/Maps/L_JailOffice -game -windowed -ResX=1440 -ResY=900 -nosplash -CLSmokeTest -CLTownReview`. After the smoke checks pass, the game takes three fixed-camera screenshots without UI and exits. This development-only mode does not use the player's save slot.
+
+Final verification on 20 September 2026: editor target build succeeded, all 10 automation suites and 68 runtime smoke assertions passed. See [VERIFICATION.md](VERIFICATION.md) for scope and limitations.

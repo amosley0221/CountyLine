@@ -75,7 +75,8 @@ void ACLReedCharacter::Tick(float DeltaSeconds)
         if(StepDistance>=78.f)
         {
             StepDistance=FMath::Fmod(StepDistance,78.f);
-            Footsteps->SetSound(ACLCountyRoad::LocationAt(GetActorLocation())!=TEXT("JailOffice")?DirtStep:WoodStep);
+            const FName Place=ACLCountyRoad::LocationAt(GetActorLocation());
+            Footsteps->SetSound(Place==TEXT("JailOffice") || Place==TEXT("LangHouse")?WoodStep:DirtStep);
             Footsteps->SetPitchMultiplier((FootstepCount++%2)==0?.96f:1.04f);
             Footsteps->Play();
         }

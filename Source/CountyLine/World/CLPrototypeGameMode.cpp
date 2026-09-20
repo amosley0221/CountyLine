@@ -2,6 +2,14 @@
 #include "World/CLJailOffice.h"
 #include "World/CLBendLateral.h"
 #include "World/CLCountyRoad.h"
+#include "World/CLPecosBend.h"
+#include "Paper/CLSaveValidation.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraActor.h"
+#include "Camera/CameraComponent.h"
+#include "UnrealClient.h"
+#include "Misc/Paths.h"
 #include "Player/CLReedCharacter.h"
 #include "Player/CLPlayerController.h"
 #include "Paper/CLCaseState.h"
@@ -246,8 +254,43 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Check(PC->RestoreSafePosition() && PC->Case()->World.LastSafeLocation==TEXT("JailOffice") && PC->IsAtDesk()==false,TEXT("Unknown safe location falls back to the office entrance"));
         PC->Case()->World.SetLastSafePosition(TEXT("BendLateral"),FTransform(FVector(0,0,-5000)));
         Check(PC->RestoreSafePosition() && !PC->IsInField(),TEXT("Known location with unsafe coordinates falls back to the office"));
+        // Teleport recovery starts above the floor. This synchronous route
+        // fixture must enter walking mode before simulating grounded steps.
+        Reed->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+        WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-2200,-800,92));
+        WalkRoute(FVector(-3900,-250,92));
+        Check(bRouteClear && PC->Case()->World.IsLocationDiscovered(TEXT("CourtStreet")),TEXT("Walk from jail reaches Court Street and the courthouse square"));
+        WalkRoute(FVector(-3900,-800,92));WalkRoute(FVector(-4200,-800,92));WalkRoute(FVector(-4200,-1920,92));
+        Check(bRouteClear && PC->Case()->World.IsLocationDiscovered(TEXT("LangHouse")),TEXT("Lang's open doorway admits Reed and records discovery"));
+        Check(PC->Case()->World.LastSafeLocation==TEXT("LangHouse") && PC->RestoreSafePosition(),TEXT("Lang's has a reachable safe checkpoint"));
+        Reed->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+        WalkRoute(FVector(-3900,-1970,92));
+        PC->SetControlRotation(FRotator(-15,-90,0));
+        Reed->CameraArm->TickComponent(1.f,LEVELTICK_All,nullptr);
+        PC->PlayerCameraManager->UpdateCamera(1.f);
+        Check(PC->ReachableFieldAction()==5,TEXT("Lang register can be reached through the normal interaction gate"));
+        PC->Interact();
+        Check(PC->IsBookOpen() && !PC->IsInspecting(),TEXT("Guest register opens its own readable page"));
+        Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(!PC->IsBookOpen() && !PC->IsMoveInputIgnored() && PC->Case()->Report.IncludedFacts==Carbon,TEXT("Controller exits Lang's notice without changing case evidence"));
+        UCLPrototypeSave* TownSave=NewObject<UCLPrototypeSave>();TownSave->Report=PC->Case()->Report;TownSave->World=PC->Case()->World;
+        TArray<uint8> TownBytes;FCLReportState TownReport;FCLWorldState TownWorld;bool bTownTyped=false;
+        const bool bTownSerialized=UGameplayStatics::SaveGameToMemory(TownSave,TownBytes);
+        USaveGame* TownLoaded=bTownSerialized?UGameplayStatics::LoadGameFromMemory(TownBytes):nullptr;
+        Check(CLSaveValidation::CopyIfValid(TownLoaded,TownReport,bTownTyped,TownWorld) && TownWorld.IsLocationDiscovered(TEXT("LangHouse")) && TownWorld.IsLocationDiscovered(TEXT("CourtStreet")) && TownWorld.LastSafeLocation==TEXT("LangHouse") && TownReport.IncludedFacts==Carbon,TEXT("Town discoveries and checkpoint survive a memory-only save with the original carbon"));
+        WalkRoute(FVector(-4200,-1920,92));WalkRoute(FVector(-4200,-800,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-350,-180,92));
+        Check(bRouteClear && PC->Case()->World.LastSafeLocation==TEXT("JailOffice"),TEXT("Return walk from Lang's preserves an open route to the jail"));
     }
     UE_LOG(LogTemp,Display,TEXT("CL_SMOKE_RESULT=%s"),Passed?TEXT("PASS"):TEXT("FAIL"));
+    if(Passed && FParse::Param(FCommandLine::Get(),TEXT("CLTownReview")))
+    {
+        bSmoke=false;PC->CloseBook();Reed->SetActorHiddenInGame(true);
+        TownReviewCamera=GetWorld()->SpawnActor<ACameraActor>();
+        PC->SetViewTarget(TownReviewCamera);
+        CaptureTownReview();
+        GetWorldTimerManager().SetTimer(TownReviewTimer,this,&ACLPrototypeGameMode::CaptureTownReview,2.f,true);
+        return;
+    }
     // Optional visual review fixture. CL smoke runs already bypass the player's
     // save slot and block WriteDate; keeping this one open cannot overwrite it.
     if(Passed && FParse::Param(FCommandLine::Get(),TEXT("CLSmokeKeepOpen")))
@@ -255,4 +298,22 @@ void ACLPrototypeGameMode::RunSmokeTest()
         bSmoke=false;PC->ShowBook();return;
     }
     FPlatformMisc::RequestExitWithStatus(false,Passed?0:1);
+}
+
+void ACLPrototypeGameMode::CaptureTownReview()
+{
+    // Engine-rendered QA artifacts, isolated by the required CLSmokeTest run.
+    // These cameras do not alter the player's saved location or normal view.
+    const FVector Positions[]={FVector(-8500,-6200,5000),FVector(-1600,-480,260),FVector(-4340,-1820,190)};
+    const FVector Targets[]={FVector(-2900,-600,450),FVector(-560,0,260),FVector(-4000,-2330,110)};
+    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png")};
+    const int32 View=TownReviewStep/2;
+    if(View>=3) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
+    if(TownReviewStep%2==0)
+    {
+        TownReviewCamera->SetActorLocationAndRotation(Positions[View],(Targets[View]-Positions[View]).Rotation());
+        TownReviewCamera->GetCameraComponent()->SetFieldOfView(View==2?85.f:70.f);
+    }
+    else FScreenshotRequest::RequestScreenshot(FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("Screenshots/TownReview"),Names[View]),false,false);
+    ++TownReviewStep;
 }

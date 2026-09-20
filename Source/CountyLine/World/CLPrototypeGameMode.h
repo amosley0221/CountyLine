@@ -13,6 +13,10 @@ public:
     virtual void Tick(float DeltaSeconds) override;
 private:
     void RunSmokeTest();
+    void CaptureTownReview();
+    int32 TownReviewStep = 0;
+    FTimerHandle TownReviewTimer;
+    UPROPERTY() TObjectPtr<class ACameraActor> TownReviewCamera;
     bool bSmoke = false;
     float SmokeTime = 0;
     FVector SmokeStart = FVector::ZeroVector;

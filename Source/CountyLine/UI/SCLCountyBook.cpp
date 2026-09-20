@@ -164,10 +164,17 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
     if(FieldAction>=0)
     {
         const bool bInspect=Owner->IsInspecting();
-        Line(TEXT("BEND LATERAL / FIELD STUDY"),18,true);
-        const TCHAR* Titles[]={TEXT("Back to Pecos Bend"),TEXT("Salazar's account"),TEXT("A bottle by the bank"),TEXT("The ditch bank"),TEXT("The road to Bend Lateral")};
+        Line(FieldAction==5?TEXT("PECOS BEND / LANG'S BOARDINGHOUSE"):TEXT("BEND LATERAL / FIELD STUDY"),18,true);
+        const TCHAR* Titles[]={TEXT("Back to Pecos Bend"),TEXT("Salazar's account"),TEXT("A bottle by the bank"),TEXT("The ditch bank"),TEXT("The road to Bend Lateral"),TEXT("Rooms and board")};
         Line(Titles[FieldAction],bInspect?32:40);
-        if(FieldAction==0 || FieldAction==4)
+        if(FieldAction==5)
+        {
+            Line(TEXT("HOUSE NOTICE\nRooms upstairs. Meals downstairs. Leave messages with Mrs. Lang."),26);
+            Line(TEXT("Reed's room is here, across Court Street from county business. The courthouse stands beyond the square; the jail is east along the road."),24);
+            Line(TEXT("The lobby is open for this town study. Rooms, meals and conversations are still to come. Write the date at the jail desk to save your discoveries."),20,true);
+            Page->AddSlot().AutoHeight()[Button(TEXT("BACK TO THE LOBBY"),[this]{Owner->CloseBook();})];
+        }
+        else if(FieldAction==0 || FieldAction==4)
         {
             Line(TEXT("Walk through the open office doorway, turn south to the dirt road, then follow it east to Bend Lateral. The same road leads home."),24);
             Line(TEXT("Field notes stay in your book. Write the date at the office desk to save them."),22,true);
@@ -375,10 +382,10 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
     {
         Line(TEXT("Rivas County"),30);
         Line(TEXT("County Clerk's Office  /  October 1926"),20,true);
-        Line(TEXT("Jail office: leave through the open doorway, turn south, then follow the dirt road east. Bend Lateral lies beyond the last sign. Return west along the same road."),24);
+        Line(TEXT("Leave the jail doorway and turn south to the road. West leads to Court Street: the courthouse is north of the square and Lang's is south. East leads to Bend Lateral."),24);
         Line(TEXT("PLACES ENTERED IN THE BOOK"),20,true);
-        for(FName Id : {FName(TEXT("JailOffice")),FName(TEXT("CountyRoad")),FName(TEXT("BendLateral"))})
-            if(State->World.IsLocationDiscovered(Id)) Line(Id==TEXT("JailOffice")?TEXT("Jail office / Pecos Bend"):Id==TEXT("CountyRoad")?TEXT("Road to Bend Lateral"):TEXT("Bend Lateral / irrigation bank"),22);
+        for(FName Id : {FName(TEXT("JailOffice")),FName(TEXT("CourtStreet")),FName(TEXT("LangHouse")),FName(TEXT("CountyRoad")),FName(TEXT("BendLateral"))})
+            if(State->World.IsLocationDiscovered(Id)) Line(Id==TEXT("JailOffice")?TEXT("Jail office / Pecos Bend"):Id==TEXT("CourtStreet")?TEXT("Court Street / courthouse square"):Id==TEXT("LangHouse")?TEXT("Lang's / rooms and board"):Id==TEXT("CountyRoad")?TEXT("Road to Bend Lateral"):TEXT("Bend Lateral / irrigation bank"),22);
         Line(TEXT("Discoveries are kept when you write the date at the desk. This first route is a compact study of the county."),18,true);
     }
     else if(ActivePage==3)

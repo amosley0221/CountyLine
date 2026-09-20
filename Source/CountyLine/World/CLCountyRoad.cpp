@@ -27,6 +27,7 @@ ACLCountyRoad::ACLCountyRoad()
         for(int32 I=0;I<26;++I)
         {
             const float X=-1500+I*380;
+            if(X<800) continue; // Court Street now opens into the town footprint.
             const float Y=Side<0?-1500:1650;
             Box(FString::Printf(TEXT("FencePost%d_%d"),Side,I),FVector(X,Y,70),FVector(12,12,140),TEXT("Timber"));
             if(I<25) for(int32 Rail=0;Rail<2;++Rail)
@@ -34,7 +35,6 @@ ACLCountyRoad::ACLCountyRoad()
         }
     }
     // Visible perimeter barriers prevent walking off the small prototype ground.
-    Box(TEXT("WestBoundary"),FVector(-1540,75,100),FVector(20,3170,200),TEXT("Rock"));
     for(int32 I=0;I<9;++I)
     {
         const float X=800+I*850;
@@ -58,6 +58,8 @@ FName ACLCountyRoad::LocationAt(FVector P)
 {
     if(P.Z < -20 || P.Z > 250) return NAME_None;
     if(P.X>-560 && P.X<560 && P.Y>-450 && P.Y<450) return TEXT("JailOffice");
+    if(P.X>-4750 && P.X<-3650 && P.Y>-2690 && P.Y<-1700) return TEXT("LangHouse");
+    if(P.X>-6620 && P.X<-1520 && P.Y>-4040 && P.Y<3880) return TEXT("CourtStreet");
     if(P.X>8220 && P.X<11760 && P.Y>-1200 && P.Y<330) return TEXT("BendLateral");
     if(P.X>-1520 && P.X<=8220 && P.Y>-1480 && P.Y<1630) return TEXT("CountyRoad");
     return NAME_None;
@@ -68,6 +70,8 @@ bool ACLCountyRoad::SafeCheckpoint(FName Location,FTransform& OutTransform)
     if(Location==TEXT("JailOffice")) OutTransform=FTransform(FRotator(0,0,0),FVector(-350,-180,100));
     else if(Location==TEXT("CountyRoad")) OutTransform=FTransform(FRotator(0,0,0),FVector(4000,-800,100));
     else if(Location==TEXT("BendLateral")) OutTransform=FTransform(FRotator(0,45,0),FVector(8800,-700,100));
+    else if(Location==TEXT("CourtStreet")) OutTransform=FTransform(FRotator(0,180,0),FVector(-2200,-800,100));
+    else if(Location==TEXT("LangHouse")) OutTransform=FTransform(FRotator(0,-90,0),FVector(-4200,-1920,100));
     else return false;
     return true;
 }
