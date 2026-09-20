@@ -9,6 +9,10 @@ class COUNTYLINE_API ACLPecosBend : public AActor
     GENERATED_BODY()
 public:
     ACLPecosBend();
+    virtual void BeginPlay() override;
+    FVector ResidentLocation() const { return GetActorTransform().TransformPosition(FVector(-5350,4930,130)); }
+    UPROPERTY() TObjectPtr<class UCapsuleComponent> ResidentCollision;
+    UPROPERTY() TObjectPtr<class USkeletalMeshComponent> ResidentMesh;
     FVector RegisterLocation() const { return FVector(-3900,-2200,107); }
     UPROPERTY() TObjectPtr<class UStaticMeshComponent> GuestRegister;
 private:

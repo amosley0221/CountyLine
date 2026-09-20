@@ -3,6 +3,10 @@
 #include "Components/TextRenderComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/SkeletalMesh.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Animation/AnimSequence.h"
 #include "Materials/MaterialInterface.h"
 
 UStaticMeshComponent* ACLPecosBend::Shape(const FString& Name,FVector P,FVector Size,const TCHAR* Material,const TCHAR* Mesh,bool Collision)
@@ -144,6 +148,19 @@ ACLPecosBend::ACLPecosBend()
     Home(TEXT("HomeBrick"),FVector(-3650,5650,0),1100,950,TEXT("Brick"));
     Home(TEXT("HomeTimber"),FVector(-1250,5550,0),1000,900,TEXT("Timber"));
     Home(TEXT("HomeEast"),FVector(400,5600,0),850,800,TEXT("Plaster"));
+    // Temporary civilian art; this unnamed River Road visitor is not Salazar.
+    ResidentCollision=CreateDefaultSubobject<UCapsuleComponent>(TEXT("ResidentCollision"));
+    ResidentCollision->SetupAttachment(RootComponent);
+    ResidentCollision->SetRelativeLocation(FVector(-5350,4930,105));
+    ResidentCollision->InitCapsuleSize(30,85);
+    ResidentCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+    ResidentMesh=CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ResidentMesh"));
+    ResidentMesh->SetupAttachment(RootComponent);
+    ResidentMesh->SetRelativeLocation(FVector(-5350,4930,20));
+    ResidentMesh->SetRelativeRotation(FRotator(0,180,0));
+    ResidentMesh->SetRelativeScale3D(FVector(.94f));
+    ResidentMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr,TEXT("/Game/Art/Characters/SK_Salazar_Period.SK_Salazar_Period")));
+    ResidentMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     Sign(TEXT("ResidentialSign"),TEXT("HOMES  /  NORTH LANE"),FVector(-1300,3750,180),-90,23);
     Shape(TEXT("ResidentialSignBoard"),FVector(-1300,3760,180),FVector(430,15,60),TEXT("Timber"));
     Shape(TEXT("ResidentialSignPost"),FVector(-1300,3760,85),FVector(12,12,170),TEXT("Timber"));
@@ -283,4 +300,11 @@ ACLPecosBend::ACLPecosBend()
     Shape(TEXT("WestTownWall"),FVector(-7640,1670,90),FVector(25,11500,180),TEXT("Rock"));
     Shape(TEXT("TownEastNorth"),FVector(1060,4475,90),FVector(25,5850,180),TEXT("Rock"));
     Shape(TEXT("TownEastSouth"),FVector(1060,-2800,90),FVector(25,2400,180),TEXT("Rock"));
+}
+
+void ACLPecosBend::BeginPlay()
+{
+    Super::BeginPlay();
+    if(UAnimSequence* Idle=LoadObject<UAnimSequence>(nullptr,TEXT("/Game/Art/Animations/A_FieldIdle.A_FieldIdle")))
+        ResidentMesh->PlayAnimation(Idle,true);
 }

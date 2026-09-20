@@ -10,6 +10,7 @@ $expectedTests=@(
     'CountyLine.Interaction.RangeAndView',
     'CountyLine.Followup.ChoicesAndPersistence',
     'CountyLine.Report.SaveRoundTrip',
+    'CountyLine.Report.ResidentAccount',
     'CountyLine.Report.SubmissionAndCarbon',
     'CountyLine.Save.Validation.Acceptance',
     'CountyLine.Save.Validation.CompleteCopy',

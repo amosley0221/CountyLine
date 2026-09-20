@@ -107,12 +107,26 @@ class TownMapTests(unittest.TestCase):
             self.assertEqual(facings[name], (-1, 0), f'{name} should face west onto its walk')
 
     def test_every_building_gets_its_own_front_arrow(self):
-        """Fronts are keyed by label, so two shops sharing a title lose one."""
+        """Every building has an arrow, independently of its displayed title."""
         numbered = len(re.findall(r'<circle cx="[\d.]+" cy="[\d.]+" r="14"', self.svg))
         arrows = len(re.findall(r'<path d="M [\d.]+ [\d.]+ L ', self.svg))
         benches = 4
         self.assertEqual(arrows - benches, numbered,
                          'a building is missing its front arrow; check for duplicate titles')
+
+    def test_duplicate_titles_keep_independent_front_directions(self):
+        # Give the opposing pharmacy and general store the same sign text.
+        duplicate = self.source.replace('TEXT("DRUGS")', 'TEXT("GENERAL STORE")')
+        self.assertNotEqual(duplicate, self.source)
+        result, svg = run_generator(duplicate)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for name, _title, position, width, _height, yaw in self.shops:
+            x, y, _ = map(float, position.split(','))
+            fx, fy = expected_facing(float(yaw))
+            w, h = (700.0, float(width)) if fx else (float(width), 700.0)
+            sx, sy = to_drawing(x + fx * w / 2, y + fy * h / 2)
+            ex, ey = sx + fx * 15, sy - fy * 15
+            self.assertIn(f'<path d="M {sx} {sy} L {ex} {ey} ', svg, name)
 
     def test_a_non_cardinal_shop_is_refused(self):
         """The map has no polygon for an angled shop, so it must fail loudly."""

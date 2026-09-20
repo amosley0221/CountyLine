@@ -43,7 +43,7 @@ void ACLPlayerController::BeginPlay()
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24,24,24,88)
         [SNew(SBorder).Padding(14).BorderBackgroundColor(FLinearColor(0.035f,0.03f,0.02f,0.9f))
             .Visibility_Lambda([this]{return (bPromptAvailable||bDeputyAvailable||ReachableFieldAction()>=0)&&!IsBookOpen()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
-            [SNew(STextBlock).Text_Lambda([this]{const int32 Field=ReachableFieldAction();if(Field>=0) {const TCHAR* Names[]={TEXT("Return to the jail office"),TEXT("Speak with Salazar"),TEXT("Inspect the bottle"),TEXT("Examine the ditch bank"),TEXT("Read the road directions"),TEXT("Read the guest register")};return FText::FromString(FString(TEXT("[ E / A ]   "))+Names[Field]);}return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
+            [SNew(STextBlock).Text_Lambda([this]{const int32 Field=ReachableFieldAction();if(Field>=0) {const TCHAR* Names[]={TEXT("Return to the jail office"),TEXT("Speak with Salazar"),TEXT("Inspect the bottle"),TEXT("Examine the ditch bank"),TEXT("Read the road directions"),TEXT("Read the guest register"),TEXT("Speak with the River Road resident")};return FText::FromString(FString(TEXT("[ E / A ]   "))+Names[Field]);}return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24)
         [SNew(STextBlock).Text(FText::FromString(TEXT("WASD / LS  Walk     Mouse / RS  Look\nE / A  Interact     Tab / View  Book     Esc / Menu  Pause"))).Justification(ETextJustify::Center).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.93f,0.88f,0.77f))];
     GEngine->GameViewport->AddViewportWidgetContent(HUD.ToSharedRef(),0);
@@ -124,10 +124,25 @@ bool ACLPlayerController::CanReachDeputy() const
     return !bHit || Hit.GetComponent()==Office->DeputyCollision;
 }
 
+bool ACLPlayerController::CanReachResident() const
+{
+    if(!Town.IsValid() || !GetPawn()) return false;
+    FVector Eye; FRotator View; GetPlayerViewPoint(Eye,View);
+    const FVector Target=Town->ResidentLocation();
+    if(!WithinInteractionGate(GetPawn()->GetActorLocation(),Eye,View.Vector(),Target)) return false;
+    FHitResult Hit;
+    FCollisionQueryParams Params(SCENE_QUERY_STAT(ResidentInteraction),false,GetPawn());
+    return !GetWorld()->LineTraceSingleByChannel(Hit,Eye,Target,ECC_Visibility,Params) || Hit.GetComponent()==Town->ResidentCollision;
+}
+
 FString ACLPlayerController::ObjectiveText() const
 {
     const UCLCaseState* State=Case();
     if(!State) return TEXT("Jail office");
+    if(State->Report.FieldNotes.Contains(TEXT("ResidentAccount")) && !State->IsCurrentStateSaved())
+        return TEXT("Resident's account entered. Return to the jail desk and write the date to save.");
+    if(State->World.LastSafeLocation==TEXT("CourtStreet") && !State->Report.FieldNotes.Contains(TEXT("ResidentAccount")))
+        return TEXT("North Lane: speak with the resident at the west house, beyond the market shops.");
     if(State->Report.FollowupOutcome!=ECLFollowupOutcome::None)
         return State->IsCurrentStateSaved()?TEXT("Follow-up saved. Read the Ledger and speak with Pruitt."):TEXT("Follow-up filed. Write the date at the desk to save.");
     const FString Followup=State->Report.FollowupObjective();
@@ -224,6 +239,7 @@ int32 ACLPlayerController::ReachableFieldAction() const
 {
     if(!GetPawn() || !Bend.IsValid()) return -1;
     FVector Eye; FRotator View; GetPlayerViewPoint(Eye,View);
+    if(CanReachResident()) return 6;
     if(Town.IsValid() && WithinInteractionGate(GetPawn()->GetActorLocation(),Eye,View.Vector(),Town->RegisterLocation()))
     {
         FHitResult Hit;FCollisionQueryParams Params(SCENE_QUERY_STAT(LangRegister),false,GetPawn());

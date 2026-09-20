@@ -352,6 +352,41 @@ void ACLPrototypeGameMode::RunSmokeTest()
             bSeatViews &= FVector::DotProduct(Back->GetComponentLocation()-Seat->GetComponentLocation(),Facing)<-20.f && !GetWorld()->LineTraceSingleByChannel(Obstruction,Start,Start+Facing*600,ECC_Visibility,LayoutParams);
         }
         Check(bSeatViews,TEXT("Public benches face open space with their backs toward the courthouse"));
+        WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-2200,-800,92));
+        WalkRoute(FVector(-2200,4300,92));WalkRoute(FVector(-5350,4300,92));WalkRoute(FVector(-5350,4730,92));
+        Check(bRouteClear,TEXT("Resident approach connects the jail and North Lane without crossing a building"));
+        auto LookAtResident=[&]
+        {
+            PC->SetControlRotation(FRotator(-5,90,0));
+            Reed->CameraArm->TickComponent(1.f,LEVELTICK_All,nullptr);
+            PC->PlayerCameraManager->UpdateCamera(1.f);
+        };
+        LookAtResident();
+        Check(Town && Town->ResidentMesh->GetSkeletalMeshAsset() && Town->ResidentMesh->GetSingleNodeInstance() && Town->ResidentMesh->GetComponentQuat().RotateVector(FVector(0,1,0)).Y<-.99f,TEXT("Resident has period art idle animation and faces the public approach"));
+        Check(PC->ReachableFieldAction()==6,TEXT("Resident is available through the normal distance view and occlusion gate"));
+        PC->Interact();Press(EKeys::Gamepad_FaceButton_Right);
+        Check(!PC->Case()->Report.FieldNotes.Contains(TEXT("ResidentAccount")) && !PC->IsBookOpen(),TEXT("Leaving the resident greeting adds no evidence"));
+        PC->Interact();Press(EKeys::Gamepad_FaceButton_Bottom);Press(EKeys::Gamepad_FaceButton_Right);
+        Check(!PC->Case()->Report.FieldNotes.Contains(TEXT("ResidentAccount")),TEXT("Hearing but not recording the resident account adds no evidence"));
+        PC->Interact();Press(EKeys::Gamepad_FaceButton_Bottom);Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(PC->Case()->Report.FieldNotes.Contains(TEXT("ResidentAccount")) && !PC->IsBookOpen() && !PC->IsMoveInputIgnored(),TEXT("Controller asks records and returns from the resident conversation"));
+        const int32 NotesAfterResident=PC->Case()->Report.FieldNotes.Num();
+        PC->Interact();Press(EKeys::Gamepad_FaceButton_Bottom);
+        Check(PC->Case()->Report.FieldNotes.Num()==NotesAfterResident && PC->Case()->Report.IncludedFacts==Carbon,TEXT("Repeat conversation adds no duplicate or change to the signed carbon"));
+        Check(PC->ObjectiveText().Contains(TEXT("write the date")) && !PC->Case()->IsCurrentStateSaved(),TEXT("Resident note prompts a return to the manual save desk"));
+        UCLPrototypeSave* ResidentSave=NewObject<UCLPrototypeSave>();ResidentSave->Report=PC->Case()->Report;ResidentSave->World=PC->Case()->World;
+        TArray<uint8> ResidentBytes;FCLReportState ResidentReport;FCLWorldState ResidentWorld;bool bResidentTyped=false;
+        const bool bResidentSerialized=UGameplayStatics::SaveGameToMemory(ResidentSave,ResidentBytes);
+        USaveGame* ResidentLoaded=bResidentSerialized?UGameplayStatics::LoadGameFromMemory(ResidentBytes):nullptr;
+        Check(CLSaveValidation::CopyIfValid(ResidentLoaded,ResidentReport,bResidentTyped,ResidentWorld) && ResidentReport.FieldNotes.Contains(TEXT("ResidentAccount")) && ResidentReport.IncludedFacts==Carbon,TEXT("Resident note survives production validation and memory save without rewriting the carbon"));
+        PC->SetControlRotation(FRotator(0,-90,0));Reed->CameraArm->TickComponent(1.f,LEVELTICK_All,nullptr);PC->PlayerCameraManager->UpdateCamera(1.f);
+        Check(!PC->CanReachResident(),TEXT("Resident cannot be addressed while looking away"));
+        WalkRoute(FVector(-5350,4300,92));LookAtResident();
+        Check(!PC->CanReachResident(),TEXT("Resident cannot be addressed from the street outside interaction range"));
+        WalkRoute(FVector(-2200,4300,92));WalkRoute(FVector(-2200,-800,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-350,-180,92));
+        WalkRoute(FVector(-100,-180,92));WalkRoute(FVector(-20,-110,92));
+        Check(bRouteClear && PC->IsAtDesk() && PC->Case()->Report.FieldNotes.Contains(TEXT("ResidentAccount")),TEXT("The resident investigation loop returns to the jail desk with its note intact"));
+
     }
     UE_LOG(LogTemp,Display,TEXT("CL_SMOKE_RESULT=%s"),Passed?TEXT("PASS"):TEXT("FAIL"));
     if(Passed && FParse::Param(FCommandLine::Get(),TEXT("CLTownReview")))
@@ -376,11 +411,46 @@ void ACLPrototypeGameMode::CaptureTownReview()
 {
     // Engine-rendered QA artifacts, isolated by the required CLSmokeTest run.
     // These cameras do not alter the player's saved location or normal view.
-    const FVector Positions[]={FVector(-11000,-8500,9500),FVector(-1600,-480,260),FVector(-4340,-1820,190),FVector(-7600,2800,2500),FVector(-4400,-1400,450),FVector(-6250,4250,220),FVector(-5350,-150,210),FVector(-2350,550,210),FVector(-4400,-900,180)};
-    const FVector Targets[]={FVector(-3300,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230),FVector(-6550,1400,210),FVector(-950,2400,240),FVector(-4700,-150,85)};
-    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png"),TEXT("WestMarketStreet.png"),TEXT("CourtStreetShops.png"),TEXT("SquareSeating.png")};
+    const FVector Positions[]={FVector(-11000,-8500,9500),FVector(-1600,-480,260),FVector(-4340,-1820,190),FVector(-7600,2800,2500),FVector(-4400,-1400,450),FVector(-6250,4250,220),FVector(-5350,-150,210),FVector(-2350,550,210),FVector(-4400,-900,180),FVector(-5350,4570,180)};
+    const FVector Targets[]={FVector(-3300,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230),FVector(-6550,1400,210),FVector(-950,2400,240),FVector(-4700,-150,85),FVector(-5350,4930,130)};
+    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png"),TEXT("WestMarketStreet.png"),TEXT("CourtStreetShops.png"),TEXT("SquareSeating.png"),TEXT("NorthLaneResident.png")};
     const int32 View=TownReviewStep/2;
-    if(View>=UE_ARRAY_COUNT(Positions)) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
+    if(View>=UE_ARRAY_COUNT(Positions)+5) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
+    if(View>=UE_ARRAY_COUNT(Positions))
+    {
+        // Capture the actual Slate conversation and Book in the isolated fixture.
+        auto* PC=Cast<ACLPlayerController>(UGameplayStatics::GetPlayerController(this,0));
+        const int32 Page=View-UE_ARRAY_COUNT(Positions);
+        if(TownReviewStep%2==0 && PC)
+        {
+            auto Press=[](FKey Key)
+            {
+                FKeyEvent Event(Key,FModifierKeysState(),0,false,0,0);
+                FSlateApplication::Get().ProcessKeyDownEvent(Event);
+                FSlateApplication::Get().ProcessKeyUpEvent(Event);
+            };
+            if(Page==0)
+            {
+                PC->Case()->Report.FieldNotes.Remove(TEXT("ResidentAccount"));
+                PC->ShowBook(false,false,false,6);
+            }
+            else if(Page==1) Press(EKeys::Gamepad_FaceButton_Bottom);
+            else if(Page==2)
+            {
+                PC->CloseBook();PC->Case()->bTypedCopy=false;PC->ShowBook(false,false,false,6);
+                Press(EKeys::Gamepad_FaceButton_Bottom);
+            }
+            else if(Page==3) {Press(EKeys::Gamepad_FaceButton_Bottom);PC->Case()->bTypedCopy=true;PC->ShowBook();}
+            else Press(EKeys::Gamepad_RightShoulder);
+            PC->SetPause(false); // Let the QA capture timer advance; normal dialogue stays paused.
+        }
+        else
+        {
+            const TCHAR* Pages[]={TEXT("ResidentGreeting.png"),TEXT("ResidentAccount.png"),TEXT("ResidentHandwritten.png"),TEXT("ResidentBook.png"),TEXT("ResidentPeople.png")};
+            FScreenshotRequest::RequestScreenshot(FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("Screenshots/TownReview"),Pages[Page]),true,false);
+        }
+        ++TownReviewStep;return;
+    }
     if(TownReviewStep%2==0)
     {
         TownReviewCamera->SetActorLocationAndRotation(Positions[View],(Targets[View]-Positions[View]).Rotation());

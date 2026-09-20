@@ -35,11 +35,11 @@ for name, color in [('TownGround','#e1d2ae'), ('ResidentialGround','#e1d2ae'), (
 court = numbers(re.search(r'const FVector Court\(([^)]+)\)', source)[1])
 court_size = numbers(re.search(r'Shape\(TEXT\("CourthouseMass"\).*?FVector\(([^)]+)\),TEXT\("Brick"\)', source)[1])
 lang, lang_size = shape('LangFloor')
-buildings = [('Courthouse (exterior)',court[0],court[1],court_size[0],court_size[1]),
-             ('Jail office',0,0,1120,900),
-             ("Lang’s (lobby open)",lang[0],lang[1],lang_size[0],lang_size[1])]
-fronts = {'Courthouse (exterior)': (0,-1), 'Jail office': (-1,0), "Lang’s (lobby open)": (0,1)}
-for title, pos, width, yaw in re.findall(r'Store\(TEXT\("[^"]+"\),TEXT\("([^"]+)"\),FVector\(([^)]+)\),([\d.]+),[\d.]+,(-?[\d.]+)\)', source):
+buildings = [('Courthouse','Courthouse (exterior)',court[0],court[1],court_size[0],court_size[1]),
+             ('Jail','Jail office',0,0,1120,900),
+             ("Lang","Lang’s (lobby open)",lang[0],lang[1],lang_size[0],lang_size[1])]
+fronts = {'Courthouse': (0,-1), 'Jail': (-1,0), 'Lang': (0,1)}
+for name, title, pos, width, yaw in re.findall(r'Store\(TEXT\("([^"]+)"\),TEXT\("([^"]+)"\),FVector\(([^)]+)\),([\d.]+),[\d.]+,(-?[\d.]+)\)', source):
     p = numbers(pos)
     angle=math.radians(float(yaw))
     assert float(yaw)%90==0, 'Map needs a polygon for non-cardinal shops'
@@ -47,12 +47,12 @@ for title, pos, width, yaw in re.findall(r'Store\(TEXT\("[^"]+"\),TEXT\("([^"]+)
     assert abs(facing[0])+abs(facing[1])==1, 'Map needs a polygon for non-cardinal shops'
     label=title.title()+' (closed)'
     w,h=(700,float(width)) if facing[0] else (float(width),700)
-    buildings.append((label,p[0],p[1],w,h))
-    fronts[label]=facing
+    buildings.append((name,label,p[0],p[1],w,h))
+    fronts[name]=facing
 
 for name, pos, width, depth in re.findall(r'Home\(TEXT\("([^" ]+)"\),FVector\(([^)]+)\),([\d.]+),([\d.]+),TEXT', source):
     p = numbers(pos)
-    buildings.append((name.replace('Home', '')+' home (closed)',p[0],p[1],float(width),float(depth)))
+    buildings.append((name,name.replace('Home', '')+' home (closed)',p[0],p[1],float(width),float(depth)))
     fronts[buildings[-1][0]]=(0,-1)
 
 def arrow(x,y,fx,fy,length=15,color='#245d75'):
@@ -61,9 +61,9 @@ def arrow(x,y,fx,fy,length=15,color='#245d75'):
     ex,ey=sx+dx*length,sy+dy*length
     parts.append(f'<path d="M {sx} {sy} L {ex} {ey} l {-dx*5-dy*3} {-dy*5+dx*3} M {ex} {ey} l {-dx*5+dy*3} {-dy*5-dx*3}" fill="none" stroke="{color}" stroke-width="2"/>')
 
-for i, (name,x,y,w,h) in enumerate(buildings,1):
+for i, (identity,name,x,y,w,h) in enumerate(buildings,1):
     box(x,y,w,h,'#99735b')
-    fx,fy=fronts[name]
+    fx,fy=fronts[identity]
     edge_x,edge_y=x+fx*w/2,y+fy*h/2
     arrow(edge_x,edge_y,fx,fy)
     sx,sy = point(x,y)

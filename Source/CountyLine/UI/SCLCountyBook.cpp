@@ -164,10 +164,31 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
     if(FieldAction>=0)
     {
         const bool bInspect=Owner->IsInspecting();
-        Line(FieldAction==5?TEXT("PECOS BEND / LANG'S BOARDINGHOUSE"):TEXT("BEND LATERAL / FIELD STUDY"),18,true);
-        const TCHAR* Titles[]={TEXT("Back to Pecos Bend"),TEXT("Salazar's account"),TEXT("A bottle by the bank"),TEXT("The ditch bank"),TEXT("The road to Bend Lateral"),TEXT("Rooms and board")};
+        Line(FieldAction==6?TEXT("PECOS BEND / NORTH LANE"):FieldAction==5?TEXT("PECOS BEND / LANG'S BOARDINGHOUSE"):TEXT("BEND LATERAL / FIELD STUDY"),18,true);
+        const TCHAR* Titles[]={TEXT("Back to Pecos Bend"),TEXT("Salazar's account"),TEXT("A bottle by the bank"),TEXT("The ditch bank"),TEXT("The road to Bend Lateral"),TEXT("Rooms and board"),TEXT("A River Road account")};
         Line(Titles[FieldAction],bInspect?32:40);
-        if(FieldAction==5)
+        if(FieldAction==6)
+        {
+            if(Report.FieldNotes.Contains(TEXT("ResidentAccount")))
+            {
+                Line(TEXT("RESIDENT\nYou have what I can tell you, Sheriff. I use that path. I did not see what happened to the man."),24);
+                Line(TEXT("The account is in Cases and People. Write the date at the jail desk to save it."),20,true);
+            }
+            else if(ConversationStep==0)
+            {
+                Line(TEXT("RESIDENT\nYou're asking about the lateral? I come in from River Road. We use the bank path to reach the fields."),24);
+                Page->AddSlot().AutoHeight()[Button(TEXT("ASK: DID YOU SEE WHAT HAPPENED?"),[this]{ConversationStep=1;Rebuild(0);})];
+                Line(TEXT("Nothing is entered until you choose to record the account."),18,true);
+            }
+            else
+            {
+                Line(TEXT("REED\nDid you see the man, or anyone with him?"),23);
+                Line(TEXT("RESIDENT\nNo. I heard about him here in town. That path isn't just for the lease men. Families use it too. I can't tell you who was there that morning."),24);
+                Line(TEXT("A reported use of the path, not an eyewitness account of the death."),20,true);
+                Page->AddSlot().AutoHeight()[Button(TEXT("RECORD THE RESIDENT'S ACCOUNT"),[this]{Owner->Case()->Report.FieldNotes.AddUnique(TEXT("ResidentAccount"));Owner->CloseBook();})];
+            }
+        }
+        else if(FieldAction==5)
         {
             Line(TEXT("HOUSE NOTICE\nRooms upstairs. Meals downstairs. Leave messages with Mrs. Lang."),26);
             Line(TEXT("Reed's room is here, across Court Street from county business. The courthouse stands beyond the square; the jail is east along the road."),24);
@@ -294,6 +315,8 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
         if(Report.FieldNotes.Contains(TEXT("SalazarStatement"))) Line(TEXT("Salazar: found the man; did not witness him entering the water."),20);
         if(Report.FieldNotes.Contains(TEXT("BottleObserved"))) Line(TEXT("Bottle: observed beside the bank; ownership and use unestablished."),20);
         if(Report.FieldNotes.Contains(TEXT("BankExamined"))) Line(TEXT("Bank: irrigation channel inspected; means of entry unestablished."),20);
+        if(Report.FieldNotes.Contains(TEXT("ResidentAccount"))) Line(TEXT("River Road resident, heard on North Lane: families use the bank path to reach fields. Did not see the man or witness the death; cannot say who was there that morning."),20);
+        else Line(TEXT("TOWN LEAD / A River Road resident is at the west house on North Lane, beyond the market shops."),20,true);
         if(Report.Status!=ECLReportStatus::Draft) Line(TEXT("New field notes do not change the submitted carbon."),18,true);
         if(!Report.bRead)
         {
@@ -386,11 +409,13 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
         Line(TEXT("PLACES ENTERED IN THE BOOK"),20,true);
         for(FName Id : {FName(TEXT("JailOffice")),FName(TEXT("CourtStreet")),FName(TEXT("LangHouse")),FName(TEXT("CountyRoad")),FName(TEXT("BendLateral"))})
             if(State->World.IsLocationDiscovered(Id)) Line(Id==TEXT("JailOffice")?TEXT("Jail office / Pecos Bend"):Id==TEXT("CourtStreet")?TEXT("Court Street / courthouse square"):Id==TEXT("LangHouse")?TEXT("Lang's / rooms and board"):Id==TEXT("CountyRoad")?TEXT("Road to Bend Lateral"):TEXT("Bend Lateral / irrigation bank"),22);
+        Line(TEXT("North Lane runs behind the courthouse and shops. The resident is at the west house, north of the market row."),20);
         Line(TEXT("Discoveries are kept when you write the date at the desk. This first route is a compact study of the county."),18,true);
     }
     else if(ActivePage==3)
     {
         Line(TEXT("People in the book"),30);
+        if(Report.FieldNotes.Contains(TEXT("ResidentAccount"))) Line(TEXT("RIVER ROAD RESIDENT / Met on North Lane\nSays families use the bank path to reach fields. Did not witness the death. Account entered with the Bend Lateral notes."));
         Line(TEXT("SAM REED  /  Acting Sheriff\nThe name on the door is mine, for now."));
         Line(TEXT("PRUITT  /  Deputy\nWaiting in the jail office. He brought the report to my attention."));
         Line(TEXT("INEZ PADILLA  /  County Clerk\nShe will see the carbon before Helm does."));
