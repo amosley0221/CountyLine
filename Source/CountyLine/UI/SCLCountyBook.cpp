@@ -1,6 +1,8 @@
 #include "UI/SCLCountyBook.h"
 #include "Player/CLPlayerController.h"
 #include "Paper/CLCaseState.h"
+#include "World/CLTestMission.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SScaleBox.h"
@@ -53,7 +55,8 @@ TSharedRef<SWidget> SCLCountyBook::Text(const FString& Copy, int32 Size, bool bM
     if(!Fonts.Contains(Face)) Fonts.Add(Face,MakeShared<FCompositeFont>(FName("Regular"),FPaths::ProjectContentDir()/TEXT("UI/Fonts")/Face,EFontHinting::Default,EFontLoadingPolicy::LazyLoad));
     return SNew(STextBlock).Text(FText::FromString(Copy))
         .Font(FSlateFontInfo(Fonts[Face],Size+(bTyped||Size>=30?0:4)))
-        .ColorAndOpacity(bMuted ? CLPaper::Carbon : CLPaper::Ink).AutoWrapText(true);
+        .ColorAndOpacity(bMuted ? CLPaper::Carbon : CLPaper::Ink)
+        .AutoWrapText(!Owner.IsValid() || !Owner->TestMission()).WrapTextAt(Owner.IsValid() && Owner->TestMission()?1072.f:0.f);
 }
 
 TSharedRef<SWidget> SCLCountyBook::Button(const FString& Copy, TFunction<void()> Action, bool bEnabled) const
@@ -161,6 +164,35 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
     ControlActions.Reset();
     Scroll.Reset();
     Page->ClearChildren();
+    if(auto* Trial=Owner->TestMission())
+    {
+        Line(TEXT("NON-CANON PLAYTEST / NO CAMPAIGN SAVING"),18,true);
+        Line(TEXT("The missing shipment"),36);
+        const auto Stage=Trial->State.Stage;
+        if(Stage==ECLTrialStage::Confrontation)
+        {
+            Line(TEXT("COURIER (temporary test character)\nThose are clinic supplies. They're paid for. I ran because I thought you'd impound them over a missing signature."),24);
+            Line(Trial->State.bManifest?TEXT("The dispatch slip confirms paid clinic supplies, but not an authorized release. You have evidence to demand a signed handover."):TEXT("You have not checked the dispatch slip. His explanation is unverified."),21,true);
+            Page->AddSlot().AutoHeight()[Button(TEXT("RECOVER THE SHIPMENT / hold it at the yard"),[this,Trial]{Trial->Resolve(ECLTrialChoice::Recover);Rebuild(0);})];
+            Page->AddSlot().AutoHeight()[Button(TEXT("USE THE DISPATCH SLIP / require signed handover"),[this,Trial]{Trial->Resolve(ECLTrialChoice::Verify);Rebuild(0);},Trial->State.bManifest)];
+            Page->AddSlot().AutoHeight()[Button(TEXT("LET HIM LEAVE / accept his word"),[this,Trial]{Trial->Resolve(ECLTrialChoice::Release);Rebuild(0);})];
+        }
+        else if(Stage==ECLTrialStage::Complete || Stage==ECLTrialStage::Escaped)
+        {
+            Line(Stage==ECLTrialStage::Complete?TEXT("OUTCOME"):TEXT("COURIER ESCAPED"),22,true);
+            Line(Trial->Summary(),22);
+            Page->AddSlot().AutoHeight()[Button(TEXT("REPLAY THE TEST"),[this,Trial]{Trial->Restart();Owner->CloseBook();})];
+        }
+        else
+        {
+            Line(TEXT("A shipment has been opened at this fictional freight yard. Find out what is missing, then stop the courier before he reaches the east exit."),24);
+            Line(TEXT("Explore first if you want: the dispatch desk holds an optional clue. Inspecting the broken crate starts the pursuit. Hold Shift / LB to jog. Open the gate south of the shed to cut ahead; get close, face the courier and press E / A to stop him."),22);
+            Line(TEXT("The timer pauses on this screen. Tab / View opens this briefing. Nothing here is a final-game mission; replay starts fresh and your campaign save is never loaded or written."),19,true);
+        }
+        Page->AddSlot().AutoHeight()[Button(TEXT("RETURN TO YARD / B"),[this]{Owner->CloseBook();})];
+        Page->AddSlot().AutoHeight()[Button(TEXT("EXIT PLAYTEST"),[this]{UKismetSystemLibrary::QuitGame(Owner.Get(),Owner.Get(),EQuitPreference::Quit,false);})];
+        FocusFirst();return;
+    }
     if(FieldAction>=0)
     {
         const bool bInspect=Owner->IsInspecting();

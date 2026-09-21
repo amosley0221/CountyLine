@@ -4,6 +4,7 @@
 #include "World/CLBendLateral.h"
 #include "World/CLCountyRoad.h"
 #include "World/CLPecosBend.h"
+#include "World/CLTestMission.h"
 #include "Paper/CLCaseState.h"
 #include "UI/SCLCountyBook.h"
 #include "EngineUtils.h"
@@ -28,10 +29,14 @@
 void ACLPlayerController::BeginPlay()
 {
     Super::BeginPlay();
+    if(ACLTestMission::IsEnabled()) Trial=GetWorld()->SpawnActor<ACLTestMission>(FVector(30000,0,0),FRotator::ZeroRotator);
+    else
+    {
     for(TActorIterator<ACLJailOffice> It(GetWorld());It;++It) {Office=*It;break;}
     Bend=GetWorld()->SpawnActor<ACLBendLateral>(FVector(10000,0,0),FRotator::ZeroRotator);
     GetWorld()->SpawnActor<ACLCountyRoad>();
     Town=GetWorld()->SpawnActor<ACLPecosBend>();
+    }
     PlayerCameraManager->ViewPitchMin=-45;
     PlayerCameraManager->ViewPitchMax=30;
     SetControlRotation(FRotator(-10,0,0));
@@ -39,13 +44,13 @@ void ACLPlayerController::BeginPlay()
     if(!IsLocalController() || !GEngine || !GEngine->GameViewport) return;
     HUD=SNew(SOverlay)
         +SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(32)
-        [SNew(STextBlock).Text_Lambda([this]{return FText::FromString(FString(TEXT("THE COUNTY LINE\n"))+ObjectiveText());}).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.88f,0.82f,0.68f))]
+        [SNew(STextBlock).Text_Lambda([this]{return FText::FromString(FString(TEXT("THE COUNTY LINE\n"))+ObjectiveText());}).WrapTextAt(Trial?1050.f:0.f).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.88f,0.82f,0.68f))]
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24,24,24,88)
         [SNew(SBorder).Padding(14).BorderBackgroundColor(FLinearColor(0.035f,0.03f,0.02f,0.9f))
-            .Visibility_Lambda([this]{return (bPromptAvailable||bDeputyAvailable||ReachableFieldAction()>=0)&&!IsBookOpen()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
-            [SNew(STextBlock).Text_Lambda([this]{const int32 Field=ReachableFieldAction();if(Field>=0) {const TCHAR* Names[]={TEXT("Return to the jail office"),TEXT("Speak with Salazar"),TEXT("Inspect the bottle"),TEXT("Examine the ditch bank"),TEXT("Read the road directions"),TEXT("Read the guest register"),TEXT("Speak with the River Road resident"),TEXT("Speak with Inez Padilla"),TEXT("Speak with Mara Holt"),TEXT("Read The Enterprise notice")};return FText::FromString(FString(TEXT("[ E / A ]   "))+Names[Field]);}return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
+            .Visibility_Lambda([this]{return (Trial?!Trial->Prompt(this).IsEmpty():(bPromptAvailable||bDeputyAvailable||ReachableFieldAction()>=0))&&!IsBookOpen()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
+            [SNew(STextBlock).Text_Lambda([this]{if(Trial) return FText::FromString(Trial->Prompt(this));const int32 Field=ReachableFieldAction();if(Field>=0) {const TCHAR* Names[]={TEXT("Return to the jail office"),TEXT("Speak with Salazar"),TEXT("Inspect the bottle"),TEXT("Examine the ditch bank"),TEXT("Read the road directions"),TEXT("Read the guest register"),TEXT("Speak with the River Road resident"),TEXT("Speak with Inez Padilla"),TEXT("Speak with Mara Holt"),TEXT("Read The Enterprise notice")};return FText::FromString(FString(TEXT("[ E / A ]   "))+Names[Field]);}return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24)
-        [SNew(STextBlock).Text(FText::FromString(TEXT("WASD / LS  Walk     Mouse / RS  Look\nE / A  Interact     Tab / View  Book     Esc / Menu  Pause"))).Justification(ETextJustify::Center).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.93f,0.88f,0.77f))];
+        [SNew(STextBlock).Text(FText::FromString(TEXT("WASD / LS  Walk     Shift / LB  Jog     Mouse / RS  Look\nE / A  Interact     Tab / View  Book     Esc / Menu  Pause"))).Justification(ETextJustify::Center).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.93f,0.88f,0.77f))];
     GEngine->GameViewport->AddViewportWidgetContent(HUD.ToSharedRef(),0);
 }
 
@@ -73,6 +78,7 @@ void ACLPlayerController::SetupInputComponent()
 void ACLPlayerController::PlayerTick(float DeltaSeconds)
 {
     Super::PlayerTick(DeltaSeconds);
+    if(Trial) return;
     if(GetPawn() && !bWorldInitialized)
     {
         bWorldInitialized=true;
@@ -148,6 +154,7 @@ bool ACLPlayerController::CanReachClerk() const
 
 FString ACLPlayerController::ObjectiveText() const
 {
+    if(Trial) return Trial->Objective();
     const UCLCaseState* State=Case();
     if(!State) return TEXT("Jail office");
     if(State->Report.FieldNotes.Contains(TEXT("ResidentAccount")) && !State->IsCurrentStateSaved())
@@ -174,6 +181,7 @@ bool ACLPlayerController::FileFollowup(ECLFollowupOutcome Outcome)
 void ACLPlayerController::Interact()
 {
     if(IsBookOpen()) return;
+    if(Trial) {Trial->Interact(this);return;}
     const int32 Action=ReachableFieldAction();
     if(Action>=0) ShowBook(false,false,false,Action);
     else if(CanReachDeputy()) ShowBook(false,false,true);
@@ -185,6 +193,7 @@ void ACLPlayerController::PauseMenu() {if(IsBookOpen()) CloseBook(); else ShowBo
 void ACLPlayerController::ShowBook(bool bReportCover,bool bPause,bool bConversation,int32 FieldAction)
 {
     if(IsBookOpen() || !GEngine || !GEngine->GameViewport) return;
+    if(Trial) {FieldAction=10;bReportCover=false;bPause=false;bConversation=false;}
     if(ACLReedCharacter* Reed=Cast<ACLReedCharacter>(GetPawn())) Reed->Jog(0.f);
     if(ACharacter* C=Cast<ACharacter>(GetPawn())) C->GetCharacterMovement()->StopMovementImmediately();
     SetIgnoreMoveInput(true);SetIgnoreLookInput(true);
@@ -218,6 +227,7 @@ bool ACLPlayerController::IsInField() const
 
 void ACLPlayerController::UpdateWorldProgress()
 {
+    if(Trial) return;
     ACharacter* ReedPawn=Cast<ACharacter>(GetPawn());
     if(!ReedPawn || !Case()) return;
     if(Bend.IsValid()) Bend->SetFieldActive(IsInField());
@@ -231,6 +241,7 @@ void ACLPlayerController::UpdateWorldProgress()
 
 bool ACLPlayerController::RestoreSafePosition()
 {
+    if(Trial) {Trial->Restart();return true;}
     if(!GetPawn() || !Case()) return false;
     FTransform Checkpoint;
     // Only authored checkpoints are valid spawn destinations in this slice.

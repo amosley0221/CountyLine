@@ -34,3 +34,5 @@ The startup map is `/Game/Maps/L_JailOffice`. Press Play in Unreal, or run `Scri
 - `Docs/Reference/design_handoff_county_line/boards/01-onesheet-system.dc.html`: start of the original linked boards.
 
 The reference images are concept stand-ins. The three UI fonts and their licenses are included. Unreal assets and future FBXs use Git LFS; small reference PNGs use ordinary Git. No production Reed mesh or vehicle model is included yet.
+
+The separate non-canon gameplay experiment is documented in [Docs/NONCANON_FREIGHT_TRIAL.md](Docs/NONCANON_FREIGHT_TRIAL.md). Launch it with the dedicated desktop shortcut or add -TestMission to Scripts/Play-Prototype.ps1. It never loads or writes campaign saves.

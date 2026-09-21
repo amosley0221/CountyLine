@@ -34,8 +34,10 @@ public:
     void CloseBook();
     bool IsBookOpen() const { return Book.IsValid(); }
     class UCLCaseState* Case() const;
+    class ACLTestMission* TestMission() const { return Trial; }
     static bool WithinInteractionGate(FVector PawnPosition, FVector Eye, FVector Forward, FVector Target);
 private:
+    UPROPERTY() TObjectPtr<class ACLTestMission> Trial;
     void BeginInspection(int32 Action);
     void EndInspection();
     void UpdateInspectionCamera();

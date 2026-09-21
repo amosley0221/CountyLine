@@ -182,7 +182,7 @@ void UCLCaseState::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
     // Test runs must never load or overwrite a player's slot.
-    if (FParse::Param(FCommandLine::Get(), TEXT("CLSmokeTest"))) return;
+    if ((FParse::Param(FCommandLine::Get(), TEXT("CLSmokeTest")) || FParse::Param(FCommandLine::Get(), TEXT("CLTestMission")))) return;
     if (!UGameplayStatics::DoesSaveGameExist(TEXT("CountyLine_JailPrototype"), 0)) return;
     const USaveGame* Save = UGameplayStatics::LoadGameFromSlot(TEXT("CountyLine_JailPrototype"), 0);
     if (CLSaveValidation::CopyIfValid(Save, Report, bTypedCopy, World))
@@ -196,7 +196,7 @@ void UCLCaseState::Initialize(FSubsystemCollectionBase& Collection)
 
 bool UCLCaseState::WriteDate()
 {
-    if (FParse::Param(FCommandLine::Get(), TEXT("CLSmokeTest"))) return false;
+    if ((FParse::Param(FCommandLine::Get(), TEXT("CLSmokeTest")) || FParse::Param(FCommandLine::Get(), TEXT("CLTestMission")))) return false;
     UCLPrototypeSave* Save = Cast<UCLPrototypeSave>(UGameplayStatics::CreateSaveGameObject(UCLPrototypeSave::StaticClass()));
     Save->Report = Report;
     Save->bTypedCopy = bTypedCopy;

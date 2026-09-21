@@ -1,4 +1,4 @@
-param([string]$EngineRoot)
+param([string]$EngineRoot,[switch]$TestMission)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $projectPath = Join-Path $projectRoot 'CountyLine.uproject'
@@ -15,4 +15,6 @@ if (-not (Test-Path -LiteralPath $editorPath)) { throw "UnrealEditor.exe was not
 if (-not (Test-Path -LiteralPath (Join-Path $projectRoot 'Binaries/Win64/UnrealEditor-CountyLine.dll'))) {
     throw 'Build CountyLineEditor in Development Win64 before running this prototype.'
 }
-& $editorPath $projectPath '/Game/Maps/L_JailOffice' -game -windowed -ResX=1440 -ResY=900 -nosplash
+$extraArguments=@()
+if ($TestMission) { $extraArguments+='-CLTestMission' }
+& $editorPath $projectPath '/Game/Maps/L_JailOffice' -game -windowed -ResX=1440 -ResY=900 -nosplash @extraArguments
