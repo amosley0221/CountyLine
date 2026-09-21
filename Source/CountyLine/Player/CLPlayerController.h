@@ -17,6 +17,7 @@ public:
     bool CanReachReport() const;
     bool CanReachDeputy() const;
     bool CanReachResident() const;
+    bool CanReachClerk() const;
     FString ObjectiveText() const;
     bool IsAtDesk() const;
     void Interact();

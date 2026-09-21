@@ -17,7 +17,7 @@ The reference can be recreated as a navigable Unreal environment through authore
 - North Lane extends Court Street north past the courthouse to four modest homes. Explore the lane, porches and rear yards; houses and sheds have closed interiors. Brick, plaster and timber exteriors, pitched roofs, gardens and washing lines establish the first residential block.
 
 - Exit the jail and follow the road west to Court Street and the courthouse square. The road east still leads continuously to Bend Lateral.
-- The brick courthouse, cupola, five storefront exteriors, street poles, trees and signed jail frontage establish the first town silhouette. The courthouse and shops have closed interiors.
+- The brick courthouse, cupola, five storefront exteriors, street poles, trees and signed jail frontage establish the first town silhouette. The courthouse ground-floor clerk lobby is open; upper rooms and shops remain closed.
 - Lang's boardinghouse is south of the square. Walk through its open doorway into the ground-floor lobby, then inspect the guest register at the counter with E or controller A. B/Escape or the return button restores movement.
 - Court Street and Lang's are recorded on the Book's Map page when Reed reaches them while grounded. Both have safe checkpoints and are persisted with the existing world state when the date is written at the jail desk.
 
@@ -37,8 +37,10 @@ Runtime checks cover collision-swept travel from the jail to the square, entry i
 
 Verified Unreal captures: [town overview](Verification/PecosBend/TownOverview.png), [residential lane](Verification/PecosBend/ResidentialLane.png), [jail frontage](Verification/PecosBend/JailFrontage.png), and [Lang's lobby](Verification/PecosBend/LangLobby.png).
 
-For a fresh capture, create `Saved/Screenshots/TownReview`, then launch the editor executable with the project and `/Game/Maps/L_JailOffice -game -windowed -ResX=1440 -ResY=900 -nosplash -CLSmokeTest -CLTownReview`. After the smoke checks pass, the game takes ten fixed-camera screenshots and eight resident/Book/Pruitt screenshots, then exits. This development-only mode does not use the player's save slot.
+For a fresh capture, create `Saved/Screenshots/TownReview`, then launch the editor executable with the project and `/Game/Maps/L_JailOffice -game -windowed -ResX=1440 -ResY=900 -nosplash -CLSmokeTest -CLTownReview`. After the smoke checks pass, the game takes ten fixed-camera screenshots and twelve resident/Book/Pruitt/clerk screenshots, then exits. This development-only mode does not use the player's save slot.
 
 The initial town pass passed 10 automation suites and 68 runtime smoke assertions. Subsequent jogging and residential work expands that coverage; see [VERIFICATION.md](VERIFICATION.md) for current results and limitations.
 
 The first North Lane resident conversation is documented in [RESIDENT_ENCOUNTER.md](RESIDENT_ENCOUNTER.md).
+
+The south courthouse entrance and clerk counter are now playable; see [COURTHOUSE_CLERK.md](COURTHOUSE_CLERK.md). Upper rooms remain closed.

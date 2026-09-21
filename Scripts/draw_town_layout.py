@@ -35,7 +35,7 @@ for name, color in [('TownGround','#e1d2ae'), ('ResidentialGround','#e1d2ae'), (
 court = numbers(re.search(r'const FVector Court\(([^)]+)\)', source)[1])
 court_size = numbers(re.search(r'Shape\(TEXT\("CourthouseMass"\).*?FVector\(([^)]+)\),TEXT\("Brick"\)', source)[1])
 lang, lang_size = shape('LangFloor')
-buildings = [('Courthouse','Courthouse (exterior)',court[0],court[1],court_size[0],court_size[1]),
+buildings = [('Courthouse','Courthouse (clerk lobby)',court[0],court[1],court_size[0],court_size[1]),
              ('Jail','Jail office',0,0,1120,900),
              ("Lang","Lang’s (lobby open)",lang[0],lang[1],lang_size[0],lang_size[1])]
 fronts = {'Courthouse': (0,-1), 'Jail': (-1,0), 'Lang': (0,1)}

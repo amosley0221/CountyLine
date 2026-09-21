@@ -14,7 +14,7 @@ See [the current footprint map](Maps/PecosBend-layout.svg). Solid footprints rep
 
 | Landmark | Current centre X, Y | Role |
 | --- | --- | --- |
-| Courthouse | -3900, 1200 | Main visual anchor; exterior only |
+| Courthouse | -3900, 1200 | Main visual anchor; ground-floor clerk lobby open |
 | Jail office | 0, 0 | Report, deputy and manual save |
 | Lang's | -4200, -2200 | Accessible lobby and register |
 | Court Street | -2200, -100 | North/south walking spine |
@@ -23,7 +23,7 @@ See [the current footprint map](Maps/PecosBend-layout.svg). Solid footprints rep
 | North Lane | -2800, 4300 | Residential lane linked to Court Street |
 | Residential homes | X -5500, -3650, -1250, 400; Y 5550–5650 | Four exterior-only homes with porches and yards |
 
-The first residential block extends the northern town boundary to Y 7400. It is treated as part of Court Street for discovery and uses the existing Court Street recovery point; no save ids or existing checkpoints moved. Rear yards have sheds, vegetable plots and washing lines. Residents and accessible house interiors remain future work.
+The first residential block extends the northern town boundary to Y 7400. It is treated as part of Court Street for discovery and uses the existing Court Street recovery point; no save ids or existing checkpoints moved. Rear yards have sheds, vegetable plots and washing lines. An unnamed River Road resident can be heard at the west house; accessible house interiors remain future work.
 
 The five existing shops retain their prototype identities for now. Their eventual business names and architecture can change as the town expands. Do not silently treat the existing repair shop as an implemented hotel or livery.
 

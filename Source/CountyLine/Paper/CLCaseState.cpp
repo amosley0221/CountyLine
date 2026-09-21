@@ -101,6 +101,20 @@ bool FCLReportState::FileFollowup(ECLFollowupOutcome Outcome)
     SupplementFacts=FollowupFacts;FollowupOutcome=Outcome;return true;
 }
 
+FString FCLReportState::ClerkResponse() const
+{
+    if(Status==ECLReportStatus::Draft)
+        return TEXT("INEZ PADILLA\nThis report is unsigned, Sheriff. Read it at the jail desk, choose what belongs in it, then sign it or hold it for inquiry. I need your disposition before I can review the carbon.");
+    FString Reply=Status==ECLReportStatus::Signed?
+        TEXT("INEZ PADILLA\nSigned by S. Reed. That is the disposition on this carbon. A signature records what you put forward; it does not settle the cause of death."):
+        TEXT("INEZ PADILLA\nHeld for inquiry. The carbon records that you left this matter open. The unanswered questions belong with it, not under a different closing line.");
+    Reply+=FString::Printf(TEXT("\n\nThis copy has %d included fact(s) and %d omitted. The original wording stays as submitted."),IncludedFacts.Num(),OmittedFacts.Num());
+    if(FieldNotes.Contains(TEXT("ResidentAccount")))
+        Reply+=IncludedFacts.Contains(TEXT("ResidentAccount"))?TEXT(" The resident's account is included."):OmittedFacts.Contains(TEXT("ResidentAccount"))?TEXT(" The resident's account was omitted; your Book still keeps it."):TEXT(" The resident's later account is in your Book, not on this carbon.");
+    if(FollowupOutcome!=ECLFollowupOutcome::None) Reply+=TEXT(" Your separate follow-up entry leaves this original carbon intact.");
+    return Reply;
+}
+
 FString FCLReportState::PruittResidentResponse() const
 {
     const FName Account(TEXT("ResidentAccount"));

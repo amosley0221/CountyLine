@@ -164,10 +164,23 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
     if(FieldAction>=0)
     {
         const bool bInspect=Owner->IsInspecting();
-        Line(FieldAction==6?TEXT("PECOS BEND / NORTH LANE"):FieldAction==5?TEXT("PECOS BEND / LANG'S BOARDINGHOUSE"):TEXT("BEND LATERAL / FIELD STUDY"),18,true);
-        const TCHAR* Titles[]={TEXT("Back to Pecos Bend"),TEXT("Salazar's account"),TEXT("A bottle by the bank"),TEXT("The ditch bank"),TEXT("The road to Bend Lateral"),TEXT("Rooms and board"),TEXT("A River Road account")};
+        Line(FieldAction==7?TEXT("COURTHOUSE / COUNTY CLERK"):FieldAction==6?TEXT("PECOS BEND / NORTH LANE"):FieldAction==5?TEXT("PECOS BEND / LANG'S BOARDINGHOUSE"):TEXT("BEND LATERAL / FIELD STUDY"),18,true);
+        const TCHAR* Titles[]={TEXT("Back to Pecos Bend"),TEXT("Salazar's account"),TEXT("A bottle by the bank"),TEXT("The ditch bank"),TEXT("The road to Bend Lateral"),TEXT("Rooms and board"),TEXT("A River Road account"),TEXT("The clerk's counter")};
         Line(Titles[FieldAction],bInspect?32:40);
-        if(FieldAction==6)
+        if(FieldAction==7)
+        {
+            if(Report.Status==ECLReportStatus::Draft || ConversationStep>0)
+            {
+                Line(Report.ClerkResponse(),24);
+                Line(TEXT("Reviewing the carbon does not change the report or save the Book. Write the date at the jail desk."),19,true);
+            }
+            else
+            {
+                Line(TEXT("INEZ PADILLA\nLet me see the carbon, Sheriff. We will keep what you signed separate from what you learned afterward."),24);
+                Page->AddSlot().AutoHeight()[Button(Report.Status==ECLReportStatus::Signed?TEXT("PRESENT THE SIGNED REPORT"):TEXT("PRESENT THE HELD REPORT"),[this]{ConversationStep=1;Rebuild(0);})];
+            }
+        }
+        else if(FieldAction==6)
         {
             if(Report.FieldNotes.Contains(TEXT("ResidentAccount")))
             {
@@ -421,6 +434,7 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
         Line(TEXT("PLACES ENTERED IN THE BOOK"),20,true);
         for(FName Id : {FName(TEXT("JailOffice")),FName(TEXT("CourtStreet")),FName(TEXT("LangHouse")),FName(TEXT("CountyRoad")),FName(TEXT("BendLateral"))})
             if(State->World.IsLocationDiscovered(Id)) Line(Id==TEXT("JailOffice")?TEXT("Jail office / Pecos Bend"):Id==TEXT("CourtStreet")?TEXT("Court Street / courthouse square"):Id==TEXT("LangHouse")?TEXT("Lang's / rooms and board"):Id==TEXT("CountyRoad")?TEXT("Road to Bend Lateral"):TEXT("Bend Lateral / irrigation bank"),22);
+        Line(TEXT("The courthouse south entrance opens from the square. Inez Padilla is at the clerk counter inside."),20);
         Line(TEXT("North Lane runs behind the courthouse and shops. The resident is at the west house, north of the market row."),20);
         Line(TEXT("Discoveries are kept when you write the date at the desk. This first route is a compact study of the county."),18,true);
     }
@@ -430,7 +444,7 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
         if(Report.FieldNotes.Contains(TEXT("ResidentAccount"))) Line(TEXT("RIVER ROAD RESIDENT / Met on North Lane\nSays families use the bank path to reach fields. Did not witness the death. Account entered with the Bend Lateral notes."));
         Line(TEXT("SAM REED  /  Acting Sheriff\nThe name on the door is mine, for now."));
         Line(TEXT("PRUITT  /  Deputy\nWaiting in the jail office. He brought the report to my attention."));
-        Line(TEXT("INEZ PADILLA  /  County Clerk\nShe will see the carbon before Helm does."));
+        Line(TEXT("INEZ PADILLA  /  County Clerk\nAt the courthouse clerk counter. She reviews the carbon before Helm sees it."));
         Line(TEXT("SALAZAR  /  Commissioner\nRiver Road. He found the man at the lateral."));
     }
     else

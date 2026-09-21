@@ -11,6 +11,7 @@ $expectedTests=@(
     'CountyLine.Followup.ChoicesAndPersistence',
     'CountyLine.Report.SaveRoundTrip',
     'CountyLine.Report.ResidentAccount',
+    'CountyLine.Report.ClerkReview',
     'CountyLine.Report.SubmissionAndCarbon',
     'CountyLine.Save.Validation.Acceptance',
     'CountyLine.Save.Validation.CompleteCopy',

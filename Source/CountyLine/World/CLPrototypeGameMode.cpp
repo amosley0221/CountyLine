@@ -401,6 +401,33 @@ void ACLPrototypeGameMode::RunSmokeTest()
             Press(EKeys::Escape);
         }
         PC->Case()->Report=BeforePruitt;
+        WalkRoute(FVector(-350,-180,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-3900,-800,92));
+        WalkRoute(FVector(-3900,100,92));WalkRoute(FVector(-3900,700,92));WalkRoute(FVector(-3900,1200,92));
+        Check(bRouteClear,TEXT("Courthouse doorway and lobby provide a grounded collision-clear route to the clerk"));
+        // The swept route advances positions without frames; settle the shoulder camera before aiming.
+        const bool bClerkCameraLag=Reed->CameraArm->bEnableCameraLag;Reed->CameraArm->bEnableCameraLag=false;
+        PC->SetControlRotation(FRotator(-5,90,0));Reed->CameraArm->TickComponent(1.f,LEVELTICK_All,nullptr);PC->PlayerCameraManager->UpdateCamera(1.f);
+        Reed->CameraArm->bEnableCameraLag=bClerkCameraLag;
+        Check(PC->ReachableFieldAction()==7,TEXT("Inez is reachable through the normal interaction gate across the counter"));
+        for(const ECLReportStatus Disposition:{ECLReportStatus::Draft,ECLReportStatus::Signed,ECLReportStatus::Held})
+        {
+            FCLReportState Fixture;Fixture.bRead=true;Fixture.FieldNotes.Add(TEXT("ResidentAccount"));
+            if(Disposition!=ECLReportStatus::Draft) Fixture.Submit(Disposition);
+            PC->Case()->Report=Fixture;PC->Interact();
+            Check(PC->IsBookOpen() && PC->IsMoveInputIgnored(),TEXT("Clerk interaction opens a focused report review"));
+            if(Disposition!=ECLReportStatus::Draft) Press(EKeys::Gamepad_FaceButton_Bottom);
+            Check(FCLReportState::StaticStruct()->CompareScriptStruct(&PC->Case()->Report,&Fixture,0),TEXT("Presenting a report to Inez preserves all evidence and the original carbon"));
+            Press(EKeys::Gamepad_FaceButton_Right);
+            Check(!PC->IsBookOpen() && !PC->IsMoveInputIgnored(),TEXT("Controller leaves the clerk counter and restores walking"));
+        }
+        PC->Case()->Report=BeforePruitt;
+        PC->SetControlRotation(FRotator(0,-90,0));Reed->CameraArm->TickComponent(1.f,LEVELTICK_All,nullptr);PC->PlayerCameraManager->UpdateCamera(1.f);
+        Check(!PC->CanReachClerk(),TEXT("Clerk cannot be addressed while looking away"));
+        WalkRoute(FVector(-3900,700,92));
+        Check(!PC->CanReachClerk(),TEXT("Clerk rejects interaction beyond counter range"));
+        WalkRoute(FVector(-3900,100,92));WalkRoute(FVector(-3900,-800,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-100,-180,92));WalkRoute(FVector(-20,-110,92));
+        Check(bRouteClear && PC->IsAtDesk() && FCLReportState::StaticStruct()->CompareScriptStruct(&PC->Case()->Report,&BeforePruitt,0),TEXT("Clerk visit returns to the jail desk with the full report unchanged"));
+
 
 
     }
@@ -431,7 +458,7 @@ void ACLPrototypeGameMode::CaptureTownReview()
     const FVector Targets[]={FVector(-3300,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230),FVector(-6550,1400,210),FVector(-950,2400,240),FVector(-4700,-150,85),FVector(-5350,4930,130)};
     const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png"),TEXT("WestMarketStreet.png"),TEXT("CourtStreetShops.png"),TEXT("SquareSeating.png"),TEXT("NorthLaneResident.png")};
     const int32 View=TownReviewStep/2;
-    if(View>=UE_ARRAY_COUNT(Positions)+8) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
+    if(View>=UE_ARRAY_COUNT(Positions)+12) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
     if(View>=UE_ARRAY_COUNT(Positions))
     {
         // Capture the actual Slate conversation and Book in the isolated fixture.
@@ -458,18 +485,30 @@ void ACLPrototypeGameMode::CaptureTownReview()
             }
             else if(Page==3) {Press(EKeys::Gamepad_FaceButton_Bottom);PC->Case()->bTypedCopy=true;PC->ShowBook();}
             else if(Page==4) Press(EKeys::Gamepad_RightShoulder);
-            else
+            else if(Page<8)
             {
                 PC->CloseBook();FCLReportState Fixture;Fixture.bRead=true;Fixture.FieldNotes.Add(TEXT("ResidentAccount"));
                 if(Page>5) Fixture.Submit(Page==6?ECLReportStatus::Signed:ECLReportStatus::Held);
                 PC->Case()->Report=Fixture;PC->ShowBook(false,false,true);
             }
+            else
+            {
+                PC->CloseBook();
+                TownReviewCamera->SetActorLocationAndRotation(FVector(-4100,770,185),(FVector(-3900,1400,145)-FVector(-4100,770,185)).Rotation());
+                if(Page>8)
+                {
+                    FCLReportState Fixture;Fixture.bRead=true;Fixture.FieldNotes.Add(TEXT("ResidentAccount"));
+                    if(Page>9) Fixture.Submit(Page==10?ECLReportStatus::Signed:ECLReportStatus::Held);
+                    PC->Case()->Report=Fixture;PC->ShowBook(false,false,false,7);
+                    if(Page>9) Press(EKeys::Gamepad_FaceButton_Bottom);
+                }
+            }
             PC->SetPause(false); // Let the QA capture timer advance; normal dialogue stays paused.
         }
         else
         {
-            const TCHAR* Pages[]={TEXT("ResidentGreeting.png"),TEXT("ResidentAccount.png"),TEXT("ResidentHandwritten.png"),TEXT("ResidentBook.png"),TEXT("ResidentPeople.png"),TEXT("PruittResidentDraft.png"),TEXT("PruittResidentSigned.png"),TEXT("PruittResidentHeld.png")};
-            FScreenshotRequest::RequestScreenshot(FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("Screenshots/TownReview"),Pages[Page]),true,false);
+            const TCHAR* Pages[]={TEXT("ResidentGreeting.png"),TEXT("ResidentAccount.png"),TEXT("ResidentHandwritten.png"),TEXT("ResidentBook.png"),TEXT("ResidentPeople.png"),TEXT("PruittResidentDraft.png"),TEXT("PruittResidentSigned.png"),TEXT("PruittResidentHeld.png"),TEXT("ClerkLobby.png"),TEXT("ClerkDraft.png"),TEXT("ClerkSigned.png"),TEXT("ClerkHeld.png")};
+            FScreenshotRequest::RequestScreenshot(FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("Screenshots/TownReview"),Pages[Page]),Page!=8,false);
         }
         ++TownReviewStep;return;
     }

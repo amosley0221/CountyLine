@@ -169,13 +169,62 @@ ACLPecosBend::ACLPecosBend()
     Shape(TEXT("CourthouseWalk"),FVector(-3900,-100,1),FVector(2400,760,4),TEXT("RoadDust"),TEXT("Cube"),false);
     // Reference landmark: brick county courthouse, two storeys and a cupola.
     const FVector Court(-3900,1200,0);
-    Shape(TEXT("CourthouseMass"),Court+FVector(0,0,510),FVector(1800,1400,1020),TEXT("Brick"));
-    Shape(TEXT("CourthouseBase"),Court+FVector(0,0,50),FVector(1860,1460,100),TEXT("Plaster"));
+    Shape(TEXT("CourthouseMass"),Court+FVector(0,0,700),FVector(1800,1400,640),TEXT("Brick"));
+    Shape(TEXT("CourthouseBase"),Court+FVector(0,0,-12),FVector(1860,1460,24),TEXT("Plaster"));
     Shape(TEXT("CourthouseCornice"),Court+FVector(0,0,1020),FVector(1900,1500,60),TEXT("Plaster"));
     Shape(TEXT("CourthouseRoof"),Court+FVector(0,0,1070),FVector(1760,1370,60),TEXT("Iron"));
-    Shape(TEXT("CourtCentralBay"),Court+FVector(0,-735,515),FVector(470,100,1030),TEXT("Brick"));
-    Shape(TEXT("CourtEntryFrame"),Court+FVector(0,-800,175),FVector(250,30,350),TEXT("Plaster"));
-    Shape(TEXT("CourtEntryDoor"),Court+FVector(0,-820,155),FVector(195,16,310),TEXT("Timber"));
+    // Ground-floor lobby replaces the old solid block; the exterior footprint stays put.
+    for(int32 Side:{-1,1})
+    {
+        Shape(FString::Printf(TEXT("CourtLobbySide%d"),Side),Court+FVector(Side*880,0,190),FVector(40,1400,380),TEXT("Brick"));
+        Shape(FString::Printf(TEXT("CourtLobbyFront%d"),Side),Court+FVector(Side*510,-680,190),FVector(780,40,380),TEXT("Brick"));
+        Shape(FString::Printf(TEXT("CourtBayPier%d"),Side),Court+FVector(Side*177.5,-735,175),FVector(115,100,350),TEXT("Brick"));
+        Shape(FString::Printf(TEXT("CourtDoorJamb%d"),Side),Court+FVector(Side*130,-800,155),FVector(30,30,310),TEXT("Plaster"));
+        Shape(FString::Printf(TEXT("CourtOpenDoor%d"),Side),Court+FVector(Side*155,-735,155),FVector(14,170,310),TEXT("Timber"));
+        Shape(FString::Printf(TEXT("CourtInnerSide%d"),Side),Court+FVector(Side*856,0,185),FVector(6,1320,370),TEXT("Plaster"),TEXT("Cube"),false);
+        Shape(FString::Printf(TEXT("CourtLobbyBench%d"),Side),Court+FVector(Side*650,-200,45),FVector(80,300,14),TEXT("Timber"));
+        for(int32 Leg:{-1,1}) Shape(FString::Printf(TEXT("CourtLobbyBenchLeg%d_%d"),Side,Leg),Court+FVector(Side*650,-200+Leg*115,20),FVector(60,14,40),TEXT("Timber"));
+    }
+    Shape(TEXT("CourtCentralBay"),Court+FVector(0,-735,685),FVector(470,100,670),TEXT("Brick"));
+    Shape(TEXT("CourtDoorHeader"),Court+FVector(0,-800,330),FVector(290,30,40),TEXT("Plaster"));
+    Shape(TEXT("CourtLobbyHeader"),Court+FVector(0,-680,345),FVector(240,40,70),TEXT("Brick"));
+    Shape(TEXT("CourtLobbyBack"),Court+FVector(0,680,190),FVector(1800,40,380),TEXT("Brick"));
+    Shape(TEXT("CourtInnerBack"),Court+FVector(0,656,185),FVector(1700,6,370),TEXT("Plaster"),TEXT("Cube"),false);
+    Shape(TEXT("CourtLobbyCeiling"),Court+FVector(0,0,377),FVector(1760,1360,6),TEXT("Plaster"),TEXT("Cube"),false);
+    Shape(TEXT("CourtCounter"),Court+FVector(0,100,46),FVector(440,80,92),TEXT("Timber"));
+    Shape(TEXT("CourtCounterTop"),Court+FVector(0,100,97),FVector(470,96,10),TEXT("Timber"));
+    Shape(TEXT("CourtCounterPaper"),Court+FVector(-120,75,103),FVector(35,45,2),TEXT("PaperLabel"),TEXT("Cube"),false);
+    Shape(TEXT("CourtStamp"),Court+FVector(-70,85,111),FVector(12,12,16),TEXT("Brass"),TEXT("Cube"),false);
+    Sign(TEXT("ClerkCounterName"),TEXT("INEZ PADILLA  /  COUNTY CLERK"),Court+FVector(0,47,68),-90,13);
+    Sign(TEXT("ClerkOfficeLabel"),TEXT("COUNTY CLERK\nREPORTS AND MINUTES"),Court+FVector(0,648,265),-90,22);
+    auto* LobbyLight=CreateDefaultSubobject<UPointLightComponent>(TEXT("CourtLobbyLight"));
+    LobbyLight->SetupAttachment(RootComponent);LobbyLight->SetRelativeLocation(Court+FVector(0,-80,325));
+    LobbyLight->SetIntensity(1800);LobbyLight->SetAttenuationRadius(1450);LobbyLight->SetLightColor(FLinearColor(1.f,.88f,.72f));LobbyLight->SetMobility(EComponentMobility::Movable);
+    Shape(TEXT("CourtCeilingLamp"),Court+FVector(0,-80,345),FVector(32,32,20),TEXT("Linen"),TEXT("Sphere"),false);
+    // Original static proxy, approximately 162 cm; unique animated character art comes later.
+    const FVector Inez= Court+FVector(0,200,0);
+    ClerkCollision=CreateDefaultSubobject<UCapsuleComponent>(TEXT("ClerkCollision"));
+    ClerkCollision->SetupAttachment(RootComponent);ClerkCollision->SetRelativeLocation(Inez+FVector(0,0,81));
+    ClerkCollision->InitCapsuleSize(28,81);ClerkCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+    auto Figure=[this,Inez](const TCHAR* Name,FVector Offset,FVector Size,const TCHAR* Material,const TCHAR* Mesh=TEXT("Sphere"))
+    {return Shape(Name,Inez+Offset,Size,Material,Mesh,false);};
+    Figure(TEXT("InezSkirt"),FVector(0,0,53),FVector(48,37,90),TEXT("Trouser"),TEXT("Cone"));
+    Figure(TEXT("InezBlouse"),FVector(0,0,110),FVector(42,28,48),TEXT("Linen"));
+    Figure(TEXT("InezNeck"),FVector(0,0,139),FVector(10,10,13),TEXT("Skin"));
+    Figure(TEXT("InezHead"),FVector(0,0,149),FVector(19,18,25),TEXT("Skin"));
+    Figure(TEXT("InezHair"),FVector(0,3,154),FVector(20,17,17),TEXT("Hair"));
+    Figure(TEXT("InezBun"),FVector(0,12,148),FVector(12,10,12),TEXT("Hair"));
+    Figure(TEXT("InezNose"),FVector(0,-9,148),FVector(4,5,6),TEXT("Skin"));
+    Figure(TEXT("InezMouth"),FVector(0,-8.5,142),FVector(6,1.5,1.5),TEXT("Mouth"));
+    for(int32 Side:{-1,1})
+    {
+        Figure(*FString::Printf(TEXT("InezEye%d"),Side),FVector(Side*4,-8,152),FVector(3,2,2),TEXT("EyeWhite"));
+        Figure(*FString::Printf(TEXT("InezIris%d"),Side),FVector(Side*4,-9,152),FVector(1.5,1,1.5),TEXT("Iris"));
+        Figure(*FString::Printf(TEXT("InezSleeve%d"),Side),FVector(Side*24,-5,111),FVector(13,15,38),TEXT("Linen"));
+        Figure(*FString::Printf(TEXT("InezHand%d"),Side),FVector(Side*24,-12,92),FVector(8,11,13),TEXT("Skin"));
+        Figure(*FString::Printf(TEXT("InezShoe%d"),Side),FVector(Side*10,-4,6),FVector(12,25,12),TEXT("Leather"));
+    }
+
     Shape(TEXT("CourtFloorBand"),Court+FVector(0,0,510),FVector(1830,1430,28),TEXT("Plaster"),TEXT("Cube"),false);
     for(int32 Side:{-1,1})
     {

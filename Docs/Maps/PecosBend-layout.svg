@@ -16,7 +16,7 @@
 <rect x="248.4" y="475.8" width="111.6" height="86.8" fill="#99735b" stroke="#6e6048"/>
 <path d="M 304.2 562.6 L 304.2 577.6 l -3 -5 M 304.2 577.6 l 3 -5" fill="none" stroke="#245d75" stroke-width="2"/>
 <circle cx="304.2" cy="519.2" r="14" fill="#fff5df"/><text x="304.2" y="524.2" text-anchor="middle" font-size="16">1</text>
-<text x="680" y="269" font-size="17">1. Courthouse (exterior)</text>
+<text x="680" y="269" font-size="17">1. Courthouse (clerk lobby)</text>
 <rect x="511.3" y="565.7" width="69.4" height="55.8" fill="#99735b" stroke="#6e6048"/>
 <path d="M 511.28 593.6 L 496.28 593.6 l 5 -3 M 496.28 593.6 l 5 3" fill="none" stroke="#245d75" stroke-width="2"/>
 <circle cx="546.0" cy="593.6" r="14" fill="#fff5df"/><text x="546.0" y="598.6" text-anchor="middle" font-size="16">2</text>

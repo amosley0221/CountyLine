@@ -13,6 +13,8 @@ public:
     FVector ResidentLocation() const { return GetActorTransform().TransformPosition(FVector(-5350,4930,130)); }
     UPROPERTY() TObjectPtr<class UCapsuleComponent> ResidentCollision;
     UPROPERTY() TObjectPtr<class USkeletalMeshComponent> ResidentMesh;
+    FVector ClerkLocation() const { return GetActorTransform().TransformPosition(FVector(-3900,1400,145)); }
+    UPROPERTY() TObjectPtr<class UCapsuleComponent> ClerkCollision;
     FVector RegisterLocation() const { return FVector(-3900,-2200,107); }
     UPROPERTY() TObjectPtr<class UStaticMeshComponent> GuestRegister;
 private:
