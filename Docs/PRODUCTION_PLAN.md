@@ -48,3 +48,7 @@ Only expand toward the full county and multi-year campaign after a reviewed play
 - Data assets/tables: names, facts, closing lines, thresholds, remarks, and newspaper templates.
 
 Build only the dependencies needed by the current stage. Reference class names are proposals, not a requirement to generate empty systems up front.
+
+## Current priority - 21 September 2026
+
+Per user direction, prioritize a visually finished Court Street benchmark and the cast's authored appearance before expanding mission content. Character creation means the existing cast, not player customization. Establish and approve the street/character visual standard, then expand toward the full open county. Keep the freight mission isolated as a disposable test. See STREET_VISUAL_BENCHMARK.md.

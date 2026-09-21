@@ -487,7 +487,7 @@ void ACLPrototypeGameMode::CaptureTownReview()
     const FVector Targets[]={FVector(-3300,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230),FVector(-6550,1400,210),FVector(-950,2400,240),FVector(-4700,-150,85),FVector(-5350,4930,130)};
     const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png"),TEXT("WestMarketStreet.png"),TEXT("CourtStreetShops.png"),TEXT("SquareSeating.png"),TEXT("NorthLaneResident.png")};
     const int32 View=TownReviewStep/2;
-    if(View>=UE_ARRAY_COUNT(Positions)+17) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
+    if(View>=UE_ARRAY_COUNT(Positions)+(FParse::Param(FCommandLine::Get(),TEXT("CLStreetReview"))?0:17)) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
     if(View>=UE_ARRAY_COUNT(Positions))
     {
         // Capture the actual Slate conversation and Book in the isolated fixture.

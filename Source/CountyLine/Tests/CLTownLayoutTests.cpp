@@ -8,6 +8,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Kismet/GameplayStatics.h"
 
 // Town layout regressions that need no world: zone classification across the
@@ -209,7 +210,9 @@ bool FCLShopFrontageTest::RunTest(const FString& Parameters)
         {
             const USceneComponent* Component = Part(*(Name + Suffix));
             if (!Component) return false;
-            const FVector Offset = Composed(Component).GetTranslation() - Frame.GetTranslation();
+            const auto* MeshComponent=Cast<UStaticMeshComponent>(Component);
+            const FVector Centre=MeshComponent && MeshComponent->GetStaticMesh()?MeshComponent->GetStaticMesh()->GetBounds().Origin:FVector::ZeroVector;
+            const FVector Offset = Composed(Component).TransformPosition(Centre) - Frame.GetTranslation();
             OutAlong = FVector::DotProduct(Offset, Facing);
             OutSideways = FVector::DotProduct(Offset, Sideways);
             return true;
@@ -222,7 +225,7 @@ bool FCLShopFrontageTest::RunTest(const FString& Parameters)
         }
         if (TestTrue(*(Name + TEXT(" has a boardwalk")), Ahead(TEXT("Boardwalk"), WalkAlong, WalkSide)))
             TestTrue(*FString::Printf(TEXT("%s boardwalk lies beyond its door"), Shop.Name), WalkAlong > DoorAlong);
-        if (TestTrue(*(Name + TEXT(" has a porch roof")), Ahead(TEXT("PorchRoof"), PorchAlong, PorchSide)))
+        if (TestTrue(*(Name + TEXT(" has a canvas awning")), Ahead(TEXT("CanvasAwning"), PorchAlong, PorchSide)))
             TestTrue(*FString::Printf(TEXT("%s porch covers the frontage"), Shop.Name), PorchAlong > DoorAlong);
         if (TestTrue(*(Name + TEXT(" has a sign board")), Ahead(TEXT("SignBoard"), SignAlong, SignSide)))
             TestTrue(*FString::Printf(TEXT("%s sign hangs over the front"), Shop.Name), SignAlong > 300.0);

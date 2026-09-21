@@ -10,6 +10,14 @@
 #include "Animation/AnimSequence.h"
 #include "Materials/MaterialInterface.h"
 
+UStaticMeshComponent* ACLPecosBend::StreetMesh(const FString& Name,const TCHAR* Asset,FVector P,FRotator Rotation,FVector Scale)
+{
+    auto* C=CreateDefaultSubobject<UStaticMeshComponent>(*Name);C->SetupAttachment(ConstructionParent?ConstructionParent:RootComponent.Get());
+    C->SetRelativeLocation(P);C->SetRelativeRotation(Rotation);C->SetRelativeScale3D(Scale);
+    C->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*FString::Printf(TEXT("/Game/Art/Town/StreetKit/%s.%s"),Asset,Asset)));
+    C->SetCollisionEnabled(ECollisionEnabled::NoCollision);return C;
+}
+
 UStaticMeshComponent* ACLPecosBend::Shape(const FString& Name,FVector P,FVector Size,const TCHAR* Material,const TCHAR* Mesh,bool Collision)
 {
     auto* C=CreateDefaultSubobject<UStaticMeshComponent>(*Name);C->SetupAttachment(ConstructionParent?ConstructionParent:RootComponent.Get());
@@ -28,7 +36,7 @@ UStaticMeshComponent* ACLPecosBend::Shape(const FString& Name,FVector P,FVector 
     else if(Kind==TEXT("Iron")) Finish=TEXT("Metal");
     else if(Kind==TEXT("Plaster")) Finish=TEXT("Stone");
     if(!Finish.IsEmpty())
-        if(auto* TownMaterial=LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Art/Town/Materials/M_Town%s.M_Town%s"),*Finish,*Finish))) C->SetMaterial(0,TownMaterial);
+        if(auto* TownMaterial=LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Art/Town/StreetFinishes/M_StreetFinish%s.M_StreetFinish%s"),*Finish,*Finish))) C->SetMaterial(0,TownMaterial);
     C->SetCollisionEnabled(Collision?ECollisionEnabled::QueryAndPhysics:ECollisionEnabled::NoCollision);C->SetCollisionResponseToAllChannels(ECR_Block);
     return C;
 }
@@ -60,8 +68,9 @@ void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,floa
     }
     Shape(Name+TEXT("SignBoard"),P+FVector(0,-370,Height-65),FVector(Width-60,15,78),TEXT("Timber"));
     Sign(Name+TEXT("Lettering"),Title,P+FVector(0,-380,Height-65),-90,32);
-    Shape(Name+TEXT("PorchRoof"),P+FVector(0,-470,275),FVector(Width+30,300,15),TEXT("Timber"));
-    for(int32 Side:{-1,1}) Shape(Name+FString::Printf(TEXT("PorchPost%d"),Side),P+FVector(Side*(Width/2-20),-600,135),FVector(12,12,270),TEXT("Timber"));
+    StreetMesh(Name+TEXT("CanvasAwning"),TEXT("SM_StreetAwning"),P,FRotator::ZeroRotator,FVector(Width/1000.f,1,1));
+    // Retain simple post collision; the authored kit supplies their visible shape.
+    for(int32 Side:{-1,1}) Shape(Name+FString::Printf(TEXT("PorchPost%d"),Side),P+FVector(Side*(Width*.488f),-645,130),FVector(8,8,260),TEXT("Iron"))->SetVisibility(false);
     Shape(Name+TEXT("Boardwalk"),P+FVector(0,-490,2),FVector(Width+30,340,8),TEXT("Timber"));
     for(int32 Side:{-1,1})
     {
@@ -70,6 +79,22 @@ void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,floa
     }
     Shape(Name+TEXT("DoorTransom"),P+FVector(0,-375,245),FVector(100,10,32),TEXT("Iron"),TEXT("Cube"),false);
     Shape(Name+TEXT("DoorHandle"),P+FVector(34,-374,112),FVector(5,8,24),TEXT("Brass"),TEXT("Cube"),false);
+    // Recessed panels and divided shopfronts add readable depth at walking distance.
+    for(int32 Side:{-1,1})
+    {
+        const float X=Side*Width*.28f;
+        Shape(Name+FString::Printf(TEXT("WindowRail%d"),Side),FVector(X,-379,176),FVector(Width*.28f-12,8,7),TEXT("Timber"),TEXT("Cube"),false);
+        Shape(Name+FString::Printf(TEXT("KickPanel%d"),Side),FVector(X,-380,38),FVector(Width*.28f-5,12,44),TEXT("Timber"),TEXT("Cube"),false);
+        Shape(Name+FString::Printf(TEXT("KickInset%d"),Side),FVector(X,-387,38),FVector(Width*.28f-30,4,24),TEXT("Iron"),TEXT("Cube"),false);
+        for(int32 Dentil=0;Dentil<12;++Dentil)
+            Shape(Name+FString::Printf(TEXT("CorniceDentil%d_%d"),Side,Dentil),FVector(Side*(25+Dentil*Width/25),-380,Height-22),FVector(14,28,18),TEXT("Plaster"),TEXT("Cube"),false);
+        Shape(Name+FString::Printf(TEXT("SignFrame%d"),Side),FVector(0,-382,Height-65+Side*38),FVector(Width-54,10,5),TEXT("Brass"),TEXT("Cube"),false);
+    }
+    StreetMesh(Name+TEXT("StockBarrel"),TEXT("SM_StreetBarrel"),FVector(Width*.40f,-465,6));
+    Shape(Name+TEXT("StockBarrelBlock"),FVector(Width*.40f,-465,51),FVector(70,70,90),TEXT("Timber"),TEXT("Cylinder"))->SetVisibility(false);
+    if(Name==TEXT("Grocer")) StreetMesh(Name+TEXT("ProduceDisplay"),TEXT("SM_StreetDisplay"),FVector(-Width*.28f,-440,6));
+    if(Name==TEXT("Drugs")) Sign(Name+TEXT("WindowService"),TEXT("PRESCRIPTIONS\nSODA WATER"),FVector(-Width*.28f,-385,153),-90,14);
+    if(Name==TEXT("PostOffice")) Sign(Name+TEXT("WindowService"),TEXT("LETTERS\nPARCELS"),FVector(-Width*.28f,-385,153),-90,17);
     ConstructionParent=nullptr;
 }
 
@@ -237,9 +262,9 @@ ACLPecosBend::ACLPecosBend()
     for(int32 Side:{-1,1}) for(int32 End:{-1,1})
     {
         const FVector Seat(-3900+Side*800,End<0?-150:2600,0);
-        Shape(FString::Printf(TEXT("SquareSeat%d_%d"),Side,End),Seat+FVector(0,0,46),FVector(190,60,12),TEXT("Timber"));
-        Shape(FString::Printf(TEXT("SquareSeatBack%d_%d"),Side,End),Seat+FVector(0,-End*26,82),FVector(190,10,70),TEXT("Timber"));
-        for(int32 Leg:{-1,1}) Shape(FString::Printf(TEXT("SquareSeatLeg%d_%d_%d"),Side,End,Leg),Seat+FVector(Leg*65,0,20),FVector(12,45,40),TEXT("Iron"));
+        Shape(FString::Printf(TEXT("SquareSeat%d_%d"),Side,End),Seat+FVector(0,0,46),FVector(190,60,12),TEXT("Timber"))->SetVisibility(false);
+        Shape(FString::Printf(TEXT("SquareSeatBack%d_%d"),Side,End),Seat+FVector(0,-End*26,82),FVector(190,10,70),TEXT("Timber"))->SetVisibility(false);
+        StreetMesh(FString::Printf(TEXT("SquareSlatBench%d_%d"),Side,End),TEXT("SM_StreetBench"),Seat,FRotator(0,End<0?0:180,0));
     }
     Sign(TEXT("CourtEntryText"),TEXT("RIVAS COUNTY\nCOURTHOUSE"),Court+FVector(0,-810,410),-90,30);
     for(int32 Floor=0;Floor<2;++Floor) for(int32 Bay=-3;Bay<=3;++Bay)
@@ -336,9 +361,15 @@ ACLPecosBend::ACLPecosBend()
     const FVector Trees[]={FVector(-2800,-100,0),FVector(-5100,-100,0),FVector(-2700,2400,0),FVector(-5200,2400,0),FVector(-1100,650,0)};
     for(int32 I=0;I<5;++I)
     {
-        Shape(FString::Printf(TEXT("SquareTreeTrunk%d"),I),Trees[I]+FVector(0,0,240),FVector(35,35,480),TEXT("Timber"),TEXT("Cylinder"));
-        for(int32 J=0;J<4;++J)
-            Shape(FString::Printf(TEXT("SquareTreeCrown%d_%d"),I,J),Trees[I]+FVector((J%2)*130-65,(J/2)*130-65,450+(J%2)*65),FVector(250,250,300),J%2?TEXT("LeafLight"):TEXT("Leaf"),TEXT("Sphere"),false);
+        Shape(FString::Printf(TEXT("SquareTreeTrunk%d"),I),Trees[I]+FVector(0,0,240),FVector(35,35,480),TEXT("Timber"),TEXT("Cylinder"))->SetVisibility(false);
+        StreetMesh(FString::Printf(TEXT("SquareCottonwood%d"),I),TEXT("SM_StreetCottonwood"),Trees[I],FRotator(0,I*71,0),FVector(1.f+(I%3)*.12f));
+    }
+    // Flush, divided walks keep the approved roads and entry approaches clear.
+    for(int32 I=0;I<23;++I)
+    {
+        const float Y=700+I*120;
+        Shape(FString::Printf(TEXT("CourtPaving%d"),I),FVector(-1750,Y,.5f),FVector(300,117,3),TEXT("Plaster"),TEXT("Cube"),false);
+        Shape(FString::Printf(TEXT("CourtCurb%d"),I),FVector(-1910,Y,1),FVector(18,118,4),TEXT("Plaster"),TEXT("Cube"),false);
     }
     // The Enterprise fronts the square's southern approach beside Lang's.
     Shape(TEXT("EnterpriseFloor"),FVector(-2650,-2450,-12),FVector(900,1000,24),TEXT("Timber"));
