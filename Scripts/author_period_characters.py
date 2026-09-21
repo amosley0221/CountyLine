@@ -3,7 +3,7 @@
 Requires export_character_base.py first. Clothing, faces and hats are original
 procedural models; the existing licensed Epic skeleton supplies animation.
 """
-import bpy, bmesh, math
+import bpy, bmesh, math, sys
 from pathlib import Path
 from mathutils import Vector
 
@@ -80,7 +80,8 @@ def body_weight(p):
    t=(p.z-a)/(b-a);return {an:1-t,bn:t}
  return {'spine_03':1}
 
-for kind in ['Reed','Salazar']:
+reed_only='--reed-only' in sys.argv
+for kind in (['Reed'] if reed_only else ['Reed','Salazar']):
  f=Figure('SK_'+kind+'_Period');coat='OliveWool' if kind=='Reed' else 'BrownWool'
  # Torso and high-waisted trousers.
  f.torso([(0.9,.145,.105,.025),(1.06,.155,.10,.025),(1.23,.157,.103,.028),(1.43,.188,.095,.035),(1.51,.18,.073,.038),(1.57,.075,.052,.038),(1.595,.05,.048,.038)],'Shirt' if kind=='Reed' else 'Linen')
@@ -95,6 +96,12 @@ for kind in ['Reed','Salazar']:
   f.face([(side*.01,-.066,1.54),(side*.07,-.065,1.52),(side*.049,-.09,1.445)],'Shirt' if kind=='Reed' else 'Linen',{'spine_03':1})
   for z in ([1.08,1.2,1.32] if kind=='Reed' else [1.08,1.2]):
    f.ellipsoid((side*.065,-.10,z),(.011,.006,.011),'Leather','spine_01' if z<1.2 else 'spine_02',10,5)
+ # Reed garment construction: pocket flaps, hem seam, buckle and boot lacing.
+ if kind=='Reed':
+  for side in (-1,1):
+   f.face([(side*.09,-.104,1.055),(side*.17,-.073,1.055),(side*.17,-.078,1.016),(side*.09,-.109,1.016)],coat,body_weight)
+   f.tube([(side*.09,-.109,1.051),(side*.17,-.079,1.051)],[.002,.002],'HatBand',body_weight,6)
+  f.face([(-.026,-.087,1.06),(.026,-.087,1.06),(.026,-.089,1.031),(-.026,-.089,1.031)],'Brass',{'pelvis':1})
  # Tie / neckerchief.
  f.ellipsoid((0,-.063,1.496),(.021,.018,.022),'Hair','spine_03',10,5)
  f.face([(-.018,-.081,1.48),(.018,-.081,1.48),(.025,-.091,1.31),(0,-.093,1.275),(-.024,-.091,1.31)],'Hair',body_weight)
@@ -119,6 +126,12 @@ for kind in ['Reed','Salazar']:
   f.tube([thigh,thigh.lerp(knee,.3),knee,knee.lerp(foot,.8),foot],[.096,.092,.068,.06,.058],'Trouser' if kind=='Reed' else 'BrownWool',leg_weight)
   f.ellipsoid((foot.x,foot.y-.057,.065),(.071,.154,.059),'Leather','foot_'+side,16,8)
   f.tube([foot,foot+Vector((0,0,.13))],[.061,.061],'Leather',{'calf_'+side:1})
+  if kind=='Reed':
+   for j in range(5):
+    z=.11+j*.017
+    f.tube([(foot.x-.022,foot.y-.064,z),(foot.x+.022,foot.y-.064,z+.010)],[.002,.002],'HatBand',{'foot_'+side:1},6)
+    f.tube([(foot.x+.022,foot.y-.066,z),(foot.x-.022,foot.y-.066,z+.010)],[.002,.002],'HatBand',{'foot_'+side:1},6)
+   f.ellipsoid((foot.x,foot.y-.052,.021),(.073,.153,.018),'HatBand','foot_'+side,20,6)
   # Hand and articulated fingers follow their original bones.
   palm=hand.lerp(bones['middle_01_'+side],.42)
   f.ellipsoid(palm,(.044,.039,.072),'Skin','hand_'+side)
@@ -144,5 +157,5 @@ for kind in ['Reed','Salazar']:
   f.torso([(1.812,.153,.178,.035),(1.824,.153,.178,.035),(1.825,.085,.098,.035),(1.914,.072,.08,.035),(1.95,.04,.065,.035),(1.951,.001,.001,.035)],'HatFelt',weights={'head':1})
   f.torso([(1.827,.086,.099,.035),(1.851,.083,.096,.035)],'HatBand',weights={'head':1})
  ob=f.finish();ob.hide_set(True)
-bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'PeriodCharacters.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=str(OUT/('ReedAppearance.blend' if reed_only else 'PeriodCharacters.blend')))
 print('CL_CHARACTERS_AUTHORED')

@@ -30,4 +30,6 @@ For each cast member, the eventual approval set should include front/profile/thr
 
 ## Review
 
-Run the regular prototype tests, then launch the editor commandlet with `-game -CLSmokeTest -CLTownReview -CLStreetReview -Multiprocess -RenderOffscreen -unattended -ResX=1280 -ResY=720`. It checks the normal gameplay routes and captures the ten existing town cameras without the subsequent dialogue captures. Player saves remain bypassed. Compare CourtStreetShops, SquareSeating and CourthouseDetail with prior revisions.
+Run the regular prototype tests, then launch the editor commandlet with `-game -CLSmokeTest -CLTownReview -CLStreetReview -Multiprocess -RenderOffscreen -unattended -ResX=1280 -ResY=720`. It checks the normal gameplay routes and captures thirteen town and appearance cameras without the subsequent dialogue captures. Player saves remain bypassed. Compare CourtStreetShops, SquareSeating and CourthouseDetail with prior revisions.
+
+The subsequent [shopfront identity pass](SHOPFRONT_IDENTITY.md) adds recessed displays, road edge wear and Reed-specific materials. The earlier limitations above describe this initial benchmark.

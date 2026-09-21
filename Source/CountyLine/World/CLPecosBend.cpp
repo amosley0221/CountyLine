@@ -35,6 +35,10 @@ UStaticMeshComponent* ACLPecosBend::Shape(const FString& Name,FVector P,FVector 
     else if(Kind==TEXT("Timber")) Finish=TEXT("Wood");
     else if(Kind==TEXT("Iron")) Finish=TEXT("Metal");
     else if(Kind==TEXT("Plaster")) Finish=TEXT("Stone");
+    if(Name.Contains(TEXT("DisplayInnerBack")))
+        if(auto* Backing=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Art/Town/ShopDetails/M_DisplayBacking.M_DisplayBacking"))) C->SetMaterial(0,Backing);
+    if(Kind==TEXT("RoadDust"))
+        if(auto* Road=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Art/Town/ShopDetails/M_WornRoadV2.M_WornRoadV2"))) C->SetMaterial(0,Road);
     if(!Finish.IsEmpty())
         if(auto* TownMaterial=LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Art/Town/StreetFinishes/M_StreetFinish%s.M_StreetFinish%s"),*Finish,*Finish))) C->SetMaterial(0,TownMaterial);
     C->SetCollisionEnabled(Collision?ECollisionEnabled::QueryAndPhysics:ECollisionEnabled::NoCollision);C->SetCollisionResponseToAllChannels(ECR_Block);
@@ -56,14 +60,64 @@ void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,floa
     auto* Block=CreateDefaultSubobject<USceneComponent>(*(Name+TEXT("Block")));
     Block->SetupAttachment(RootComponent);Block->SetRelativeLocation(P);Block->SetRelativeRotation(FRotator(0,Yaw,0));
     ConstructionParent=Block;P=FVector::ZeroVector;
-    Shape(Name+TEXT("Walls"),P+FVector(0,0,Height/2),FVector(Width,700,Height),TEXT("Brick"));
+    // Closed-shop collision envelope remains unchanged; visible masonry leaves real display bays.
+    Shape(Name+TEXT("Walls"),P+FVector(0,0,Height/2),FVector(Width,700,Height),TEXT("Brick"))->SetVisibility(false);
+    Shape(Name+TEXT("RearMass"),FVector(0,70,Height/2),FVector(Width,560,Height),TEXT("Brick"),TEXT("Cube"),false);
+    Shape(Name+TEXT("FrontHeader"),FVector(0,-280,(Height+260)/2),FVector(Width,140,Height-260),TEXT("Brick"),TEXT("Cube"),false);
+    Shape(Name+TEXT("FrontBase"),FVector(0,-280,34),FVector(Width,140,68),TEXT("Brick"),TEXT("Cube"),false);
+    Shape(Name+TEXT("DoorPier"),FVector(0,-280,164),FVector(Width*.28f,140,192),TEXT("Brick"),TEXT("Cube"),false);
     Shape(Name+TEXT("Cornice"),P+FVector(0,0,Height),FVector(Width+35,735,35),TEXT("Plaster"));
     Shape(Name+TEXT("Parapet"),P+FVector(0,-350,Height+65),FVector(Width,35,120),TEXT("Brick"));
     Shape(Name+TEXT("Door"),P+FVector(0,-355,112),FVector(100,12,224),TEXT("Timber"));
     for(int32 Side:{-1,1})
     {
-        Shape(Name+FString::Printf(TEXT("Frame%d"),Side),P+FVector(Side*Width*.28f,-360,160),FVector(Width*.28f,18,180),TEXT("Plaster"));
-        Shape(Name+FString::Printf(TEXT("Glass%d"),Side),P+FVector(Side*Width*.28f,-372,160),FVector(Width*.28f-20,6,160),TEXT("Iron"));
+        const float X=Side*Width*.28f, Bay=Width*.28f;
+        Shape(Name+FString::Printf(TEXT("OuterPier%d"),Side),FVector(Side*Width*.46f,-280,164),FVector(Width*.08f,140,192),TEXT("Brick"),TEXT("Cube"),false);
+        Shape(Name+FString::Printf(TEXT("DisplayInnerBack%d"),Side),FVector(X,-218,160),FVector(Bay,8,180),TEXT("Linen"),TEXT("Cube"),false);
+        for(int32 Edge:{-1,1})
+        {
+            Shape(Name+FString::Printf(TEXT("FrameJamb%d_%d"),Side,Edge),FVector(X+Edge*(Bay/2-5),-360,160),FVector(10,18,180),TEXT("Timber"),TEXT("Cube"),false);
+            Shape(Name+FString::Printf(TEXT("FrameRail%d_%d"),Side,Edge),FVector(X,-360,160+Edge*85),FVector(Bay,18,10),TEXT("Timber"),TEXT("Cube"),false);
+        }
+        auto* Pane=Shape(Name+FString::Printf(TEXT("DisplayPane%d"),Side),FVector(X,-369,160),FVector(Bay-20,2,160),TEXT("Iron"),TEXT("Cube"),false);
+        if(auto* Glass=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Art/Town/ShopDetails/M_DisplayGlass.M_DisplayGlass"))) Pane->SetMaterial(0,Glass);
+        Pane->SetCastShadow(false);
+        Shape(Name+FString::Printf(TEXT("DisplayLamp%d"),Side),FVector(X,-290,240),FVector(18,18,8),TEXT("Linen"),TEXT("Sphere"),false);
+        auto* DisplayLight=CreateDefaultSubobject<UPointLightComponent>(*(Name+FString::Printf(TEXT("DisplayLight%d"),Side)));
+        DisplayLight->SetupAttachment(Block);DisplayLight->SetRelativeLocation(FVector(X,-300,222));
+        DisplayLight->SetIntensity(350);DisplayLight->SetAttenuationRadius(240);
+        DisplayLight->SetLightColor(FLinearColor(1.f,.91f,.77f));DisplayLight->SetCastShadows(false);
+        DisplayLight->SetMobility(EComponentMobility::Movable);
+        for(int32 Row=0;Row<2;++Row)
+        {
+            Shape(Name+FString::Printf(TEXT("DisplayShelf%d_%d"),Side,Row),FVector(X,-285,90+Row*70),FVector(Bay-24,115,5),TEXT("Timber"),TEXT("Cube"),false);
+            for(int32 Item=0;Item<5;++Item)
+            {
+                const FString Id=Name+FString::Printf(TEXT("Stock%d_%d_%d"),Side,Row,Item);
+                const FVector At(X+(Item-2)*(Bay-45)/5,-285+(Item%2)*15,106+Row*70);
+                if(Name==TEXT("Drugs"))
+                {
+                    Shape(Id,At,FVector(16,16,28),TEXT("BottleGlass"),TEXT("Cylinder"),false);
+                    Shape(Id+TEXT("Stopper"),At+FVector(0,0,17),FVector(8,8,7),TEXT("Timber"),TEXT("Cylinder"),false);
+                    Shape(Id+TEXT("Label"),At+FVector(0,-8,0),FVector(11,1,12),TEXT("PaperLabel"),TEXT("Cube"),false);
+                }
+                else if(Name==TEXT("DryGoods"))
+                {
+                    Shape(Id,At,FVector(34,50,18),Item%2?TEXT("Linen"):TEXT("BrownWool"),TEXT("Cube"),false);
+                    Shape(Id+TEXT("Fold"),At+FVector(0,0,13),FVector(32,47,7),TEXT("Shirt"),TEXT("Cube"),false);
+                }
+                else if(Name==TEXT("ClosedShop"))
+                {
+                    Shape(Id,At,FVector(32,12,9),TEXT("Iron"),TEXT("Cube"),false);
+                    Shape(Id+TEXT("Handle"),At+FVector(0,0,18),FVector(6,6,30),TEXT("Timber"),TEXT("Cube"),false);
+                }
+                else
+                {
+                    Shape(Id,At,FVector(30,37,26),TEXT("PaperLabel"),TEXT("Cube"),false);
+                    Shape(Id+TEXT("Twine"),At+FVector(0,-19,0),FVector(2,1,26),TEXT("Linen"),TEXT("Cube"),false);
+                }
+            }
+        }
         Shape(Name+FString::Printf(TEXT("Mullion%d"),Side),P+FVector(Side*Width*.28f,-377,160),FVector(6,6,160),TEXT("Timber"),TEXT("Cube"),false);
     }
     Shape(Name+TEXT("SignBoard"),P+FVector(0,-370,Height-65),FVector(Width-60,15,78),TEXT("Timber"));
@@ -90,9 +144,25 @@ void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,floa
             Shape(Name+FString::Printf(TEXT("CorniceDentil%d_%d"),Side,Dentil),FVector(Side*(25+Dentil*Width/25),-380,Height-22),FVector(14,28,18),TEXT("Plaster"),TEXT("Cube"),false);
         Shape(Name+FString::Printf(TEXT("SignFrame%d"),Side),FVector(0,-382,Height-65+Side*38),FVector(Width-54,10,5),TEXT("Brass"),TEXT("Cube"),false);
     }
-    StreetMesh(Name+TEXT("StockBarrel"),TEXT("SM_StreetBarrel"),FVector(Width*.40f,-465,6));
-    Shape(Name+TEXT("StockBarrelBlock"),FVector(Width*.40f,-465,51),FVector(70,70,90),TEXT("Timber"),TEXT("Cylinder"))->SetVisibility(false);
-    if(Name==TEXT("Grocer")) StreetMesh(Name+TEXT("ProduceDisplay"),TEXT("SM_StreetDisplay"),FVector(-Width*.28f,-440,6));
+    if(Name==TEXT("Grocer"))
+    {
+        StreetMesh(Name+TEXT("ProduceDisplay"),TEXT("SM_StreetDisplay"),FVector(-Width*.28f,-440,6));
+        Shape(Name+TEXT("ProduceBlock"),FVector(-Width*.28f,-440,30),FVector(210,90,48),TEXT("Timber"))->SetVisibility(false);
+        StreetMesh(Name+TEXT("StockBarrel"),TEXT("SM_StreetBarrel"),FVector(Width*.40f,-465,6));
+        Shape(Name+TEXT("StockBarrelBlock"),FVector(Width*.40f,-465,51),FVector(70,70,90),TEXT("Timber"),TEXT("Cylinder"))->SetVisibility(false);
+    }
+    if(Name==TEXT("PostOffice"))
+    {
+        Shape(Name+TEXT("LetterBox"),FVector(Width*.43f,-399,132),FVector(45,44,65),TEXT("Iron"));
+        Shape(Name+TEXT("LetterSlot"),FVector(Width*.43f,-422,150),FVector(31,2,4),TEXT("Hair"),TEXT("Cube"),false);
+        Sign(Name+TEXT("Collection"),TEXT("LETTERS"),FVector(Width*.43f,-424,131),-90,7);
+    }
+    if(Name==TEXT("ClosedShop"))
+    {
+        Shape(Name+TEXT("RepairBench"),FVector(-Width*.29f,-440,82),FVector(175,75,10),TEXT("Timber"));
+        for(int32 Leg:{-1,1}) Shape(Name+FString::Printf(TEXT("RepairLeg%d"),Leg),FVector(-Width*.29f+Leg*65,-440,43),FVector(12,60,80),TEXT("Timber"));
+        Shape(Name+TEXT("Vise"),FVector(-Width*.29f+45,-454,96),FVector(32,36,20),TEXT("Iron"),TEXT("Cube"),false);
+    }
     if(Name==TEXT("Drugs")) Sign(Name+TEXT("WindowService"),TEXT("PRESCRIPTIONS\nSODA WATER"),FVector(-Width*.28f,-385,153),-90,14);
     if(Name==TEXT("PostOffice")) Sign(Name+TEXT("WindowService"),TEXT("LETTERS\nPARCELS"),FVector(-Width*.28f,-385,153),-90,17);
     ConstructionParent=nullptr;
@@ -368,8 +438,8 @@ ACLPecosBend::ACLPecosBend()
     for(int32 I=0;I<23;++I)
     {
         const float Y=700+I*120;
-        Shape(FString::Printf(TEXT("CourtPaving%d"),I),FVector(-1750,Y,.5f),FVector(300,117,3),TEXT("Plaster"),TEXT("Cube"),false);
-        Shape(FString::Printf(TEXT("CourtCurb%d"),I),FVector(-1910,Y,1),FVector(18,118,4),TEXT("Plaster"),TEXT("Cube"),false);
+        Shape(FString::Printf(TEXT("CourtPaving%d"),I),FVector(-1750+(I%3-1)*2,Y,3.f+(I%4)*.12f),FVector(300,115+(I%3),3),TEXT("Plaster"),TEXT("Cube"),false);
+        Shape(FString::Printf(TEXT("CourtCurb%d"),I),FVector(-1910,Y,3),FVector(18,118,4),TEXT("Plaster"),TEXT("Cube"),false);
     }
     // The Enterprise fronts the square's southern approach beside Lang's.
     Shape(TEXT("EnterpriseFloor"),FVector(-2650,-2450,-12),FVector(900,1000,24),TEXT("Timber"));
