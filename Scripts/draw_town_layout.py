@@ -39,6 +39,9 @@ buildings = [('Courthouse','Courthouse (clerk lobby)',court[0],court[1],court_si
              ('Jail','Jail office',0,0,1120,900),
              ("Lang","Lang’s (lobby open)",lang[0],lang[1],lang_size[0],lang_size[1])]
 fronts = {'Courthouse': (0,-1), 'Jail': (-1,0), 'Lang': (0,1)}
+enterprise, enterprise_size = shape('EnterpriseFloor')
+buildings.append(('Enterprise','The Enterprise (office open)',enterprise[0],enterprise[1],enterprise_size[0],enterprise_size[1]))
+fronts['Enterprise']=(0,1)
 for name, title, pos, width, yaw in re.findall(r'Store\(TEXT\("([^"]+)"\),TEXT\("([^"]+)"\),FVector\(([^)]+)\),([\d.]+),[\d.]+,(-?[\d.]+)\)', source):
     p = numbers(pos)
     angle=math.radians(float(yaw))
@@ -81,10 +84,10 @@ for label,x,y in [('Market Street',-5650,1400),('Service lane',-7250,1600),('Cou
 
 parts += ['<text x="680" y="150" font-size="23">N ↑</text>',
           '<text x="680" y="207" font-size="19">EXISTING BUILDINGS</text>',
-          '<text x="680" y="710" font-size="16">Interiors open only where noted</text>',
-          '<text x="680" y="740" font-size="16">and at the jail office.</text>',
-          '<text x="680" y="785" font-size="16" fill="#245d75">Blue arrows: building fronts</text>',
-          '<text x="680" y="815" font-size="16" fill="#3f6645">Green arrows: benches face this way</text>']
+          '<text x="680" y="745" font-size="16">Interiors open only where noted</text>',
+          '<text x="680" y="770" font-size="16">and at the jail office.</text>',
+          '<text x="680" y="815" font-size="16" fill="#245d75">Blue arrows: building fronts</text>',
+          '<text x="680" y="845" font-size="16" fill="#3f6645">Green arrows: benches face this way</text>']
 sx,sy = point(1000,-800)
 parts += [f'<path d="M {sx-70} {sy} H {sx+35} l -10 -6 m 10 6 l -10 6" fill="none" stroke="#352f25" stroke-width="3"/>',
           f'<text x="{sx-35}" y="{sy+32}" font-size="14">East road → Bend Lateral</text>',

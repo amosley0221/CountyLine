@@ -15,6 +15,7 @@ See [the current footprint map](Maps/PecosBend-layout.svg). Solid footprints rep
 | Landmark | Current centre X, Y | Role |
 | --- | --- | --- |
 | Courthouse | -3900, 1200 | Main visual anchor; ground-floor clerk lobby open |
+| The Enterprise | -2650, -2450 | Newspaper office and outdoor notice board open |
 | Jail office | 0, 0 | Report, deputy and manual save |
 | Lang's | -4200, -2200 | Accessible lobby and register |
 | Court Street | -2200, -100 | North/south walking spine |

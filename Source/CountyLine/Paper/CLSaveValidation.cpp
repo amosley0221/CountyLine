@@ -11,6 +11,7 @@ ECLSaveRejection CLSaveValidation::Validate(const USaveGame* Save)
     const FCLReportState& R=Prototype->Report;
     if(static_cast<uint8>(R.FollowupLead)>static_cast<uint8>(ECLFollowupLead::Finder) ||
        static_cast<uint8>(R.FollowupOutcome)>static_cast<uint8>(ECLFollowupOutcome::RequestInquiry)) return ECLSaveRejection::InvalidFollowup;
+    if(R.bEnterpriseReviewed && (!R.bRead || R.Status==ECLReportStatus::Draft)) return ECLSaveRejection::InvalidEnterprise;
     TSet<FName> Seen;
     for(FName Fact:R.FollowupFacts)
     {
@@ -63,6 +64,7 @@ const TCHAR* CLSaveValidation::RejectionText(ECLSaveRejection Rejection)
     case ECLSaveRejection::InvalidClosingLine: return TEXT("invalid closing line");
     case ECLSaveRejection::InvalidStatus: return TEXT("invalid report status");
     case ECLSaveRejection::InvalidFollowup: return TEXT("invalid follow-up record");
+    case ECLSaveRejection::InvalidEnterprise: return TEXT("invalid Enterprise handoff");
     case ECLSaveRejection::InvalidWorldState: return TEXT("invalid world state");
     default: return TEXT("unknown");
     }

@@ -164,10 +164,36 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
     if(FieldAction>=0)
     {
         const bool bInspect=Owner->IsInspecting();
-        Line(FieldAction==7?TEXT("COURTHOUSE / COUNTY CLERK"):FieldAction==6?TEXT("PECOS BEND / NORTH LANE"):FieldAction==5?TEXT("PECOS BEND / LANG'S BOARDINGHOUSE"):TEXT("BEND LATERAL / FIELD STUDY"),18,true);
-        const TCHAR* Titles[]={TEXT("Back to Pecos Bend"),TEXT("Salazar's account"),TEXT("A bottle by the bank"),TEXT("The ditch bank"),TEXT("The road to Bend Lateral"),TEXT("Rooms and board"),TEXT("A River Road account"),TEXT("The clerk's counter")};
+        Line(FieldAction>=8?TEXT("PECOS BEND / THE ENTERPRISE"):FieldAction==7?TEXT("COURTHOUSE / COUNTY CLERK"):FieldAction==6?TEXT("PECOS BEND / NORTH LANE"):FieldAction==5?TEXT("PECOS BEND / LANG'S BOARDINGHOUSE"):TEXT("BEND LATERAL / FIELD STUDY"),18,true);
+        const TCHAR* Titles[]={TEXT("Back to Pecos Bend"),TEXT("Salazar's account"),TEXT("A bottle by the bank"),TEXT("The ditch bank"),TEXT("The road to Bend Lateral"),TEXT("Rooms and board"),TEXT("A River Road account"),TEXT("The clerk's counter"),TEXT("Mara Holt"),TEXT("The posted copy")};
         Line(Titles[FieldAction],bInspect?32:40);
-        if(FieldAction==7)
+        if(FieldAction==8)
+        {
+            if(Report.Status==ECLReportStatus::Draft)
+                Line(TEXT("MARA HOLT\nAn unsigned draft isn't your account on the record, Sheriff. Bring me the carbon after you sign it or hold it. I won't make that choice for you."),24);
+            else if(!Report.bEnterpriseReviewed)
+            {
+                Line(Report.Status==ECLReportStatus::Signed?TEXT("MARA HOLT\nI'll work from the signed carbon. What you left off that sheet won't turn into a fact in my copy."):TEXT("MARA HOLT\nHeld for inquiry? Let me see the carbon. If you've held the matter, I'll hold the story."),24);
+                Line(TEXT("Showing the carbon lets Mara post a notice outside. Write the date at the jail desk to save this change."),20,true);
+                Page->AddSlot().AutoHeight()[Button(TEXT("SHOW MARA THE CARBON"),[this]{Owner->Case()->Report.ShareWithEnterprise();Rebuild(0);})];
+            }
+            else
+            {
+                Line(Report.Status==ECLReportStatus::Signed?TEXT("MARA HOLT\nThe copy is on the board outside. It's your signed account, not every word said in town."):TEXT("MARA HOLT\nThe story is still held. Your carbon doesn't settle what happened at the lateral."),24);
+                Line(State->IsCurrentStateSaved()?TEXT("The date is written. The Enterprise notice is saved."):TEXT("Return to the jail desk and write the date to save the notice."),20,true);
+                Page->AddSlot().AutoHeight()[Button(TEXT("READ THE NOTICE"),[this]{FieldAction=9;NewsPage=0;Rebuild(0);})];
+            }
+        }
+        else if(FieldAction==9)
+        {
+            Line(Report.EnterpriseHeadline(),22,true);
+            TArray<FString> Lines;Report.EnterpriseCopy().ParseIntoArrayLines(Lines);
+            const int32 LastPage=FMath::Max(0,(Lines.Num()-1)/5);NewsPage=FMath::Clamp(NewsPage,0,LastPage);
+            for(int32 I=NewsPage*5;I<FMath::Min(Lines.Num(),NewsPage*5+5);++I) Line(Lines[I],22);
+            if(NewsPage<LastPage) Page->AddSlot().AutoHeight()[Button(TEXT("CONTINUE READING"),[this]{++NewsPage;Rebuild(0);})];
+            if(NewsPage>0) Page->AddSlot().AutoHeight()[Button(TEXT("PREVIOUS PAGE"),[this]{--NewsPage;Rebuild(0);})];
+        }
+        else if(FieldAction==7)
         {
             if(Report.Status==ECLReportStatus::Draft || ConversationStep>0)
             {
@@ -424,6 +450,7 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
         Line(TEXT("STREET"),19,true); Line(Report.FieldNotes.Contains(TEXT("SalazarStatement"))?TEXT("I heard Salazar. He did not see the man enter the water."):TEXT("Salazar found him. I have not heard him out."));
         if(Report.FollowupOutcome!=ECLFollowupOutcome::None) Line(Report.FollowupOutcome==ECLFollowupOutcome::RequestInquiry?TEXT("I gave Pruitt the questions still unanswered. Salazar's account will have to be heard with care."):TEXT("I put the observations on record but gave no new inquiry order. A filed paper is not an answer for the people at the lateral."),22);
         Line(TEXT("CAPITAL"),19,true); Line(TEXT("No entry yet."));
+        if(Report.bEnterpriseReviewed) Line(Report.Status==ECLReportStatus::Signed?TEXT("THE ENTERPRISE / Mara posted copy from my signed carbon. Omitted facts are absent from the newspaper account."):TEXT("THE ENTERPRISE / Mara holds the story while my report remains held for inquiry."),22);
         Line(TEXT("HOME"),19,true); Line(TEXT("A room at Lang's. The rest can wait."));
     }
     else if(ActivePage==1)
@@ -434,6 +461,7 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
         Line(TEXT("PLACES ENTERED IN THE BOOK"),20,true);
         for(FName Id : {FName(TEXT("JailOffice")),FName(TEXT("CourtStreet")),FName(TEXT("LangHouse")),FName(TEXT("CountyRoad")),FName(TEXT("BendLateral"))})
             if(State->World.IsLocationDiscovered(Id)) Line(Id==TEXT("JailOffice")?TEXT("Jail office / Pecos Bend"):Id==TEXT("CourtStreet")?TEXT("Court Street / courthouse square"):Id==TEXT("LangHouse")?TEXT("Lang's / rooms and board"):Id==TEXT("CountyRoad")?TEXT("Road to Bend Lateral"):TEXT("Bend Lateral / irrigation bank"),22);
+        Line(TEXT("The Enterprise stands beside Lang's, south of the square. Mara works inside; the notice board is beside the front door."),20);
         Line(TEXT("The courthouse south entrance opens from the square. Inez Padilla is at the clerk counter inside."),20);
         Line(TEXT("North Lane runs behind the courthouse and shops. The resident is at the west house, north of the market row."),20);
         Line(TEXT("Discoveries are kept when you write the date at the desk. This first route is a compact study of the county."),18,true);
@@ -441,6 +469,7 @@ void SCLCountyBook::Rebuild(int32 FocusOverride)
     else if(ActivePage==3)
     {
         Line(TEXT("People in the book"),30);
+        Line(TEXT("MARA HOLT / The Enterprise\nAt the newspaper office beside Lang's, south of the square. She works from the submitted carbon."));
         if(Report.FieldNotes.Contains(TEXT("ResidentAccount"))) Line(TEXT("RIVER ROAD RESIDENT / Met on North Lane\nSays families use the bank path to reach fields. Did not witness the death. Account entered with the Bend Lateral notes."));
         Line(TEXT("SAM REED  /  Acting Sheriff\nThe name on the door is mine, for now."));
         Line(TEXT("PRUITT  /  Deputy\nWaiting in the jail office. He brought the report to my attention."));

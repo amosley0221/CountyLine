@@ -101,6 +101,35 @@ bool FCLReportState::FileFollowup(ECLFollowupOutcome Outcome)
     SupplementFacts=FollowupFacts;FollowupOutcome=Outcome;return true;
 }
 
+bool FCLReportState::ShareWithEnterprise()
+{
+    if(bEnterpriseReviewed || !bRead || (Status!=ECLReportStatus::Signed && Status!=ECLReportStatus::Held)) return false;
+    bEnterpriseReviewed=true;return true;
+}
+
+FString FCLReportState::EnterpriseHeadline() const
+{
+    if(!bEnterpriseReviewed) return TEXT("BEND LATERAL / COPY AWAITED");
+    return Status==ECLReportStatus::Held?TEXT("BEND LATERAL / STORY HELD"):TEXT("BEND LATERAL / REED SIGNS REPORT");
+}
+
+FString FCLReportState::EnterpriseCopy() const
+{
+    if(!bEnterpriseReviewed) return TEXT("No carbon has been shown to The Enterprise. Speak with Mara Holt inside.");
+    if(Status==ECLReportStatus::Held) return TEXT("MARA HOLT\nHeld for inquiry. Then I hold the story. I won't turn your unanswered questions into a settled account. Bring me a signed finding when there is one.\n\nNo account of the death has been posted. Your original held report remains unchanged.");
+    FString Copy=TEXT("THE ENTERPRISE / FROM THE SIGNED CARBON\nActing Sheriff S. Reed has signed a report concerning the man found at Bend Lateral. The report does not establish a cause of death.");
+    if(IncludedFacts.Contains(TEXT("SalazarFoundBody"))) Copy+=TEXT("\nThe report names Salazar as the finder.");
+    if(IncludedFacts.Contains(TEXT("BottleReported"))) Copy+=TEXT("\nA bottle was reported at the scene; the carbon does not establish its owner or use.");
+    if(IncludedFacts.Contains(TEXT("SalazarStatement"))) Copy+=TEXT("\nSalazar said he did not see the man enter the water.");
+    if(IncludedFacts.Contains(TEXT("BottleObserved"))) Copy+=TEXT("\nReed observed a bottle beside the bank.");
+    if(IncludedFacts.Contains(TEXT("BankExamined"))) Copy+=TEXT("\nReed inspected the bank; the means of entry remained unestablished.");
+    if(IncludedFacts.Contains(TEXT("ResidentAccount"))) Copy+=TEXT("\nA resident said families use the bank path. The resident did not witness the death.");
+    if(IncludedFacts.Contains(TEXT("BottleSealed"))) Copy+=TEXT("\nReed recorded a full bottle with its seal intact.");
+    if(IncludedFacts.Contains(TEXT("PrintsAboveWater"))) Copy+=TEXT("\nBoot prints were observed above the waterline; their owner was not identified.");
+    if(IncludedFacts.Contains(TEXT("NoWetClothes"))) Copy+=TEXT("\nSalazar described dry clothing. This is his account, not a medical finding.");
+    return Copy;
+}
+
 FString FCLReportState::ClerkResponse() const
 {
     if(Status==ECLReportStatus::Draft)

@@ -43,7 +43,7 @@ void ACLPlayerController::BeginPlay()
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24,24,24,88)
         [SNew(SBorder).Padding(14).BorderBackgroundColor(FLinearColor(0.035f,0.03f,0.02f,0.9f))
             .Visibility_Lambda([this]{return (bPromptAvailable||bDeputyAvailable||ReachableFieldAction()>=0)&&!IsBookOpen()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
-            [SNew(STextBlock).Text_Lambda([this]{const int32 Field=ReachableFieldAction();if(Field>=0) {const TCHAR* Names[]={TEXT("Return to the jail office"),TEXT("Speak with Salazar"),TEXT("Inspect the bottle"),TEXT("Examine the ditch bank"),TEXT("Read the road directions"),TEXT("Read the guest register"),TEXT("Speak with the River Road resident"),TEXT("Speak with Inez Padilla")};return FText::FromString(FString(TEXT("[ E / A ]   "))+Names[Field]);}return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
+            [SNew(STextBlock).Text_Lambda([this]{const int32 Field=ReachableFieldAction();if(Field>=0) {const TCHAR* Names[]={TEXT("Return to the jail office"),TEXT("Speak with Salazar"),TEXT("Inspect the bottle"),TEXT("Examine the ditch bank"),TEXT("Read the road directions"),TEXT("Read the guest register"),TEXT("Speak with the River Road resident"),TEXT("Speak with Inez Padilla"),TEXT("Speak with Mara Holt"),TEXT("Read The Enterprise notice")};return FText::FromString(FString(TEXT("[ E / A ]   "))+Names[Field]);}return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24)
         [SNew(STextBlock).Text(FText::FromString(TEXT("WASD / LS  Walk     Mouse / RS  Look\nE / A  Interact     Tab / View  Book     Esc / Menu  Pause"))).Justification(ETextJustify::Center).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.93f,0.88f,0.77f))];
     GEngine->GameViewport->AddViewportWidgetContent(HUD.ToSharedRef(),0);
@@ -83,6 +83,7 @@ void ACLPlayerController::PlayerTick(float DeltaSeconds)
         if(GetPawn()->GetActorLocation().Z < -200) RestoreSafePosition();
         UpdateWorldProgress();
     }
+    if(Town.IsValid() && Case()) Town->RefreshEnterpriseNotice(Case()->Report);
     bPromptAvailable=CanReachReport();
     bDeputyAvailable=CanReachDeputy();
 }
@@ -249,6 +250,17 @@ int32 ACLPlayerController::ReachableFieldAction() const
 {
     if(!GetPawn() || !Bend.IsValid()) return -1;
     FVector Eye; FRotator View; GetPlayerViewPoint(Eye,View);
+    if(Town.IsValid())
+    {
+        const FVector Targets[]={Town->MaraLocation(),Town->NewsLocation()};
+        for(int32 I=0;I<2;++I)
+        {
+            if(!WithinInteractionGate(GetPawn()->GetActorLocation(),Eye,View.Vector(),Targets[I])) continue;
+            FHitResult Hit;FCollisionQueryParams Params(SCENE_QUERY_STAT(EnterpriseInteraction),false,GetPawn());
+            const bool bHit=GetWorld()->LineTraceSingleByChannel(Hit,Eye,Targets[I],ECC_Visibility,Params);
+            if(!bHit || (I==0 && Hit.GetComponent()==Town->MaraCollision) || (I==1 && Hit.GetComponent()==Town->NewsBoard)) return 8+I;
+        }
+    }
     if(CanReachClerk()) return 7;
     if(CanReachResident()) return 6;
     if(Town.IsValid() && WithinInteractionGate(GetPawn()->GetActorLocation(),Eye,View.Vector(),Town->RegisterLocation()))

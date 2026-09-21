@@ -1,4 +1,5 @@
 #include "World/CLPecosBend.h"
+#include "Paper/CLCaseState.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
 #include "Components/PointLightComponent.h"
@@ -339,6 +340,58 @@ ACLPecosBend::ACLPecosBend()
         for(int32 J=0;J<4;++J)
             Shape(FString::Printf(TEXT("SquareTreeCrown%d_%d"),I,J),Trees[I]+FVector((J%2)*130-65,(J/2)*130-65,450+(J%2)*65),FVector(250,250,300),J%2?TEXT("LeafLight"):TEXT("Leaf"),TEXT("Sphere"),false);
     }
+    // The Enterprise fronts the square's southern approach beside Lang's.
+    Shape(TEXT("EnterpriseFloor"),FVector(-2650,-2450,-12),FVector(900,1000,24),TEXT("Timber"));
+    Shape(TEXT("EnterpriseBack"),FVector(-2650,-2940,175),FVector(900,20,350),TEXT("Brick"));
+    for(int32 Side:{-1,1})
+    {
+        Shape(FString::Printf(TEXT("EnterpriseSide%d"),Side),FVector(-2650+Side*440,-2450,175),FVector(20,1000,350),TEXT("Brick"));
+        Shape(FString::Printf(TEXT("EnterpriseFront%d"),Side),FVector(-2650+Side*275,-1950,175),FVector(350,20,350),TEXT("Brick"));
+        Shape(FString::Printf(TEXT("EnterpriseInnerSide%d"),Side),FVector(-2650+Side*426,-2450,170),FVector(6,950,340),TEXT("Plaster"),TEXT("Cube"),false);
+    }
+    Shape(TEXT("EnterpriseInnerBack"),FVector(-2650,-2926,170),FVector(850,6,340),TEXT("Plaster"),TEXT("Cube"),false);
+    Shape(TEXT("EnterpriseHeader"),FVector(-2650,-1950,305),FVector(200,20,90),TEXT("Brick"));
+    Shape(TEXT("EnterpriseRoof"),FVector(-2650,-2450,365),FVector(960,1060,30),TEXT("Iron"));
+    Shape(TEXT("EnterpriseParapet"),FVector(-2650,-1950,420),FVector(900,40,100),TEXT("Brick"));
+    Sign(TEXT("EnterpriseSign"),TEXT("THE ENTERPRISE"),FVector(-2650,-1927,420),90,35);
+    Shape(TEXT("EnterprisePorch"),FVector(-2650,-1840,-1),FVector(960,220,2),TEXT("Timber"));
+    Shape(TEXT("MaraDesk"),FVector(-2650,-2440,47),FVector(360,80,94),TEXT("Timber"));
+    Shape(TEXT("MaraDeskTop"),FVector(-2650,-2440,99),FVector(380,94,10),TEXT("Timber"));
+    Shape(TEXT("EnterpriseTypewriter"),FVector(-2750,-2440,113),FVector(60,40,20),TEXT("Iron"));
+    Shape(TEXT("EnterpriseTypePaper"),FVector(-2750,-2455,137),FVector(25,3,28),TEXT("PaperLabel"),TEXT("Cube"),false);
+    Sign(TEXT("MaraDeskName"),TEXT("MARA HOLT / EDITOR"),FVector(-2650,-2390,70),90,14);
+    auto* EnterpriseLight=CreateDefaultSubobject<UPointLightComponent>(TEXT("EnterpriseLight"));
+    EnterpriseLight->SetupAttachment(RootComponent);EnterpriseLight->SetRelativeLocation(FVector(-2650,-2350,300));
+    EnterpriseLight->SetIntensity(1800);EnterpriseLight->SetAttenuationRadius(1000);EnterpriseLight->SetMobility(EComponentMobility::Movable);
+    const FVector Mara(-2650,-2550,0);
+    MaraCollision=CreateDefaultSubobject<UCapsuleComponent>(TEXT("MaraCollision"));MaraCollision->SetupAttachment(RootComponent);
+    MaraCollision->SetRelativeLocation(Mara+FVector(0,0,84));MaraCollision->InitCapsuleSize(28,84);MaraCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+    auto MaraFigure=[this,Mara](const TCHAR* Name,FVector Offset,FVector Size,const TCHAR* Material,const TCHAR* Mesh=TEXT("Sphere"))
+    {return Shape(Name,Mara+FVector(Offset.X,-Offset.Y,Offset.Z)*1.037f,Size*1.037f,Material,Mesh,false);};
+    MaraFigure(TEXT("MaraSkirt"),FVector(0,0,53),FVector(48,37,90),TEXT("Trouser"),TEXT("Cone"));
+    MaraFigure(TEXT("MaraBlouse"),FVector(0,0,110),FVector(42,28,48),TEXT("BrownWool"));
+    MaraFigure(TEXT("MaraNeck"),FVector(0,0,139),FVector(10,10,13),TEXT("Skin"));
+    MaraFigure(TEXT("MaraHead"),FVector(0,0,149),FVector(19,18,25),TEXT("Skin"));
+    MaraFigure(TEXT("MaraHair"),FVector(0,3,154),FVector(20,17,17),TEXT("Hair"));
+    MaraFigure(TEXT("MaraBun"),FVector(0,12,148),FVector(12,10,12),TEXT("Hair"));
+    MaraFigure(TEXT("MaraNose"),FVector(0,-9,148),FVector(4,5,6),TEXT("Skin"));
+    MaraFigure(TEXT("MaraMouth"),FVector(0,-8.5,142),FVector(6,1.5,1.5),TEXT("Mouth"));
+    for(int32 Side:{-1,1})
+    {
+        MaraFigure(*FString::Printf(TEXT("MaraEye%d"),Side),FVector(Side*4,-8,152),FVector(3,2,2),TEXT("EyeWhite"));
+        MaraFigure(*FString::Printf(TEXT("MaraIris%d"),Side),FVector(Side*4,-9,152),FVector(1.5,1,1.5),TEXT("Iris"));
+        MaraFigure(*FString::Printf(TEXT("MaraSleeve%d"),Side),FVector(Side*24,-5,111),FVector(13,15,38),TEXT("BrownWool"));
+        MaraFigure(*FString::Printf(TEXT("MaraHand%d"),Side),FVector(Side*24,-12,92),FVector(8,11,13),TEXT("Skin"));
+        MaraFigure(*FString::Printf(TEXT("MaraShoe%d"),Side),FVector(Side*10,-4,6),FVector(12,25,12),TEXT("Leather"));
+    }
+
+    NewsBoard=Shape(TEXT("EnterpriseNoticeBoard"),FVector(-2360,-1925,150),FVector(185,12,190),TEXT("Timber"));
+    Shape(TEXT("EnterpriseNoticePaper"),FVector(-2360,-1917,150),FVector(172,2,176),TEXT("PaperLabel"),TEXT("Cube"),false);
+    NewsLettering=CreateDefaultSubobject<UTextRenderComponent>(TEXT("EnterpriseNoticeText"));NewsLettering->SetupAttachment(RootComponent);
+    NewsLettering->SetRelativeLocation(FVector(-2360,-1914,155));NewsLettering->SetRelativeRotation(FRotator(0,90,0));
+    NewsLettering->SetHorizontalAlignment(EHTA_Center);NewsLettering->SetVerticalAlignment(EVRTA_TextCenter);NewsLettering->SetWorldSize(13);NewsLettering->SetTextRenderColor(FColor(45,36,25));
+    NewsLettering->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
     // Town edge: visible rail barriers around the compact authored footprint.
     for(int32 I=0;I<24;++I) for(int32 Side:{-1,1})
     {
@@ -356,4 +409,14 @@ void ACLPecosBend::BeginPlay()
     Super::BeginPlay();
     if(UAnimSequence* Idle=LoadObject<UAnimSequence>(nullptr,TEXT("/Game/Art/Animations/A_FieldIdle.A_FieldIdle")))
         ResidentMesh->PlayAnimation(Idle,true);
+}
+
+void ACLPecosBend::RefreshEnterpriseNotice(const FCLReportState& Report)
+{
+    const FString Headline=Report.EnterpriseHeadline();
+    if(Headline==LastEnterpriseHeadline) return;
+    LastEnterpriseHeadline=Headline;
+    FString Printed=Headline.Replace(TEXT(" / "),TEXT("\n"));
+    Printed=Printed.Replace(TEXT("REED SIGNS REPORT"),TEXT("REED SIGNS\nREPORT"));
+    NewsLettering->SetText(FText::FromString(Printed+TEXT("\n\nREAD THE NOTICE")));
 }

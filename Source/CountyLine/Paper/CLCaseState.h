@@ -38,6 +38,11 @@ struct FCLReportState
     UPROPERTY() TArray<FName> FollowupFacts;
     UPROPERTY() ECLFollowupOutcome FollowupOutcome = ECLFollowupOutcome::None;
     UPROPERTY() TArray<FName> SupplementFacts;
+    // Older version-1 saves default to no newspaper handoff.
+    UPROPERTY() bool bEnterpriseReviewed = false;
+    bool ShareWithEnterprise();
+    FString EnterpriseHeadline() const;
+    FString EnterpriseCopy() const;
     bool CanPursue(ECLFollowupLead Lead) const;
     bool Pursue(ECLFollowupLead Lead);
     bool CanCompleteFollowup(int32 FieldAction) const;

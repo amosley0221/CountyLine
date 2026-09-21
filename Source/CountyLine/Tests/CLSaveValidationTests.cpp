@@ -54,7 +54,7 @@ namespace CLSaveValidationTestUtil
         R.Pursue(ECLFollowupLead::Bottle);
         R.CompleteFollowup(2);
         if (Status == ECLReportStatus::Draft) R.Pursue(ECLFollowupLead::Bank);
-        else R.FileFollowup(ECLFollowupOutcome::FileSupplement);
+        else {R.FileFollowup(ECLFollowupOutcome::FileSupplement);R.ShareWithEnterprise();}
         return R;
     }
 
@@ -206,6 +206,7 @@ bool FCLSaveValidationCopyTest::RunTest(const FString& Parameters)
                 const bool bUnreachable = Status == ECLReportStatus::Draft
                     ? Field == GET_MEMBER_NAME_CHECKED(FCLReportState, Status) ||
                       Field == GET_MEMBER_NAME_CHECKED(FCLReportState, FollowupOutcome) ||
+                      Field == GET_MEMBER_NAME_CHECKED(FCLReportState, bEnterpriseReviewed) ||
                       Field == GET_MEMBER_NAME_CHECKED(FCLReportState, SupplementFacts)
                     : Field == GET_MEMBER_NAME_CHECKED(FCLReportState, FollowupLead);
                 if (bUnreachable) continue;

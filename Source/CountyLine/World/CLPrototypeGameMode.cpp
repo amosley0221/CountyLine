@@ -15,6 +15,7 @@
 #include "Paper/CLCaseState.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/StaticMesh.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -427,6 +428,34 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Check(!PC->CanReachClerk(),TEXT("Clerk rejects interaction beyond counter range"));
         WalkRoute(FVector(-3900,100,92));WalkRoute(FVector(-3900,-800,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-100,-180,92));WalkRoute(FVector(-20,-110,92));
         Check(bRouteClear && PC->IsAtDesk() && FCLReportState::StaticStruct()->CompareScriptStruct(&PC->Case()->Report,&BeforePruitt,0),TEXT("Clerk visit returns to the jail desk with the full report unchanged"));
+        WalkRoute(FVector(-350,-180,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-2650,-800,92));WalkRoute(FVector(-2650,-1700,92));WalkRoute(FVector(-2650,-2320,92));
+        Check(bRouteClear,TEXT("Enterprise doorway and desk connect to the square without obstruction"));
+        const bool bNewsLag=Reed->CameraArm->bEnableCameraLag;Reed->CameraArm->bEnableCameraLag=false;
+        PC->SetControlRotation(FRotator(-5,-90,0));Reed->CameraArm->TickComponent(1.f,LEVELTICK_All,nullptr);PC->PlayerCameraManager->UpdateCamera(1.f);Reed->CameraArm->bEnableCameraLag=bNewsLag;
+        Check(PC->ReachableFieldAction()==8,TEXT("Mara is reachable at her desk through the normal interaction gate"));
+        for(const ECLReportStatus Status:{ECLReportStatus::Draft,ECLReportStatus::Signed,ECLReportStatus::Held})
+        {
+            FCLReportState Fixture;Fixture.bRead=true;if(Status!=ECLReportStatus::Draft) Fixture.Submit(Status);PC->Case()->Report=Fixture;
+            PC->Interact();Press(EKeys::Gamepad_FaceButton_Right);
+            Check(!PC->Case()->Report.bEnterpriseReviewed,TEXT("Leaving Mara without showing the carbon changes nothing"));
+            PC->Interact();Press(EKeys::Gamepad_FaceButton_Bottom);
+            Check(PC->Case()->Report.bEnterpriseReviewed==(Status!=ECLReportStatus::Draft),TEXT("Controller handoff posts only a submitted report"));
+            if(PC->IsBookOpen()) Press(EKeys::Gamepad_FaceButton_Right);
+            Town->RefreshEnterpriseNotice(PC->Case()->Report);
+            const FString Printed=Town->NewsLettering->Text.ToString();
+            Check(Printed.Contains(Status==ECLReportStatus::Draft?TEXT("COPY AWAITED"):Status==ECLReportStatus::Signed?TEXT("REED SIGNS"):TEXT("STORY HELD")),TEXT("Physical Enterprise board reflects the submitted disposition"));
+            const bool bShared=PC->Case()->Report.bEnterpriseReviewed;PC->Case()->Report.bEnterpriseReviewed=false;
+            Check(FCLReportState::StaticStruct()->CompareScriptStruct(&PC->Case()->Report,&Fixture,0),TEXT("Newspaper interaction changes no original report field"));PC->Case()->Report.bEnterpriseReviewed=bShared;
+        }
+        WalkRoute(FVector(-2650,-1700,92));WalkRoute(FVector(-2360,-1710,92));
+        Reed->CameraArm->bEnableCameraLag=false;PC->SetControlRotation(FRotator(-5,-90,0));Reed->CameraArm->TickComponent(1.f,LEVELTICK_All,nullptr);PC->PlayerCameraManager->UpdateCamera(1.f);Reed->CameraArm->bEnableCameraLag=bNewsLag;
+        Check(PC->ReachableFieldAction()==9,TEXT("Posted notice is readable from the public pavement"));
+        PC->Interact();Check(PC->IsBookOpen(),TEXT("Enterprise notice opens for reading"));Press(EKeys::Gamepad_FaceButton_Right);
+        Check(!PC->IsMoveInputIgnored(),TEXT("Leaving the newspaper notice restores walking"));
+        WalkRoute(FVector(-2650,-1700,92));WalkRoute(FVector(-2650,-800,92));WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-100,-180,92));WalkRoute(FVector(-20,-110,92));
+        Check(bRouteClear && PC->IsAtDesk(),TEXT("Enterprise visit returns to the manual save desk"));
+        PC->Case()->Report=BeforePruitt;
+
 
 
 
@@ -458,7 +487,7 @@ void ACLPrototypeGameMode::CaptureTownReview()
     const FVector Targets[]={FVector(-3300,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230),FVector(-6550,1400,210),FVector(-950,2400,240),FVector(-4700,-150,85),FVector(-5350,4930,130)};
     const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png"),TEXT("WestMarketStreet.png"),TEXT("CourtStreetShops.png"),TEXT("SquareSeating.png"),TEXT("NorthLaneResident.png")};
     const int32 View=TownReviewStep/2;
-    if(View>=UE_ARRAY_COUNT(Positions)+12) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
+    if(View>=UE_ARRAY_COUNT(Positions)+17) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
     if(View>=UE_ARRAY_COUNT(Positions))
     {
         // Capture the actual Slate conversation and Book in the isolated fixture.
@@ -491,7 +520,7 @@ void ACLPrototypeGameMode::CaptureTownReview()
                 if(Page>5) Fixture.Submit(Page==6?ECLReportStatus::Signed:ECLReportStatus::Held);
                 PC->Case()->Report=Fixture;PC->ShowBook(false,false,true);
             }
-            else
+            else if(Page<12)
             {
                 PC->CloseBook();
                 TownReviewCamera->SetActorLocationAndRotation(FVector(-4100,770,185),(FVector(-3900,1400,145)-FVector(-4100,770,185)).Rotation());
@@ -503,12 +532,24 @@ void ACLPrototypeGameMode::CaptureTownReview()
                     if(Page>9) Press(EKeys::Gamepad_FaceButton_Bottom);
                 }
             }
+            else
+            {
+                PC->CloseBook();
+                const FVector Camera=Page==12?FVector(-2650,-1030,220):FVector(-2480,-2070,185);
+                const FVector Target=Page==12?FVector(-2650,-1950,220):FVector(-2650,-2550,148);
+                TownReviewCamera->SetActorLocationAndRotation(Camera,(Target-Camera).Rotation());
+                FCLReportState Fixture;Fixture.bRead=true;Fixture.FieldNotes={TEXT("SalazarStatement"),TEXT("BottleObserved"),TEXT("BankExamined"),TEXT("ResidentAccount")};
+                if(Page>=14) {Fixture.Submit(Page==16?ECLReportStatus::Held:ECLReportStatus::Signed);Fixture.ShareWithEnterprise();}
+                PC->Case()->Report=Fixture;
+                for(TActorIterator<ACLPecosBend> TownIt(GetWorld());TownIt;++TownIt) {TownIt->RefreshEnterpriseNotice(Fixture);break;}
+                if(Page>=14) {PC->ShowBook(false,false,false,9);if(Page==15) Press(EKeys::Gamepad_FaceButton_Bottom);}
+            }
             PC->SetPause(false); // Let the QA capture timer advance; normal dialogue stays paused.
         }
         else
         {
-            const TCHAR* Pages[]={TEXT("ResidentGreeting.png"),TEXT("ResidentAccount.png"),TEXT("ResidentHandwritten.png"),TEXT("ResidentBook.png"),TEXT("ResidentPeople.png"),TEXT("PruittResidentDraft.png"),TEXT("PruittResidentSigned.png"),TEXT("PruittResidentHeld.png"),TEXT("ClerkLobby.png"),TEXT("ClerkDraft.png"),TEXT("ClerkSigned.png"),TEXT("ClerkHeld.png")};
-            FScreenshotRequest::RequestScreenshot(FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("Screenshots/TownReview"),Pages[Page]),Page!=8,false);
+            const TCHAR* Pages[]={TEXT("ResidentGreeting.png"),TEXT("ResidentAccount.png"),TEXT("ResidentHandwritten.png"),TEXT("ResidentBook.png"),TEXT("ResidentPeople.png"),TEXT("PruittResidentDraft.png"),TEXT("PruittResidentSigned.png"),TEXT("PruittResidentHeld.png"),TEXT("ClerkLobby.png"),TEXT("ClerkDraft.png"),TEXT("ClerkSigned.png"),TEXT("ClerkHeld.png"),TEXT("EnterpriseFront.png"),TEXT("EnterpriseOffice.png"),TEXT("EnterpriseCopy.png"),TEXT("EnterpriseCopyContinued.png"),TEXT("EnterpriseHeld.png")};
+            FScreenshotRequest::RequestScreenshot(FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("Screenshots/TownReview"),Pages[Page]),Page!=8 && Page!=12 && Page!=13,false);
         }
         ++TownReviewStep;return;
     }

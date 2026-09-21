@@ -15,7 +15,8 @@ enum class ECLSaveRejection : uint8
     InvalidClosingLine,
     InvalidStatus,
     InvalidFollowup,
-    InvalidWorldState
+    InvalidWorldState,
+    InvalidEnterprise
 };
 
 // Version 1 base-report acceptance remains unchanged (a signed report with no

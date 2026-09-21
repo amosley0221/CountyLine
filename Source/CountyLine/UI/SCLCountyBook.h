@@ -22,6 +22,7 @@ private:
     bool bPause = false;
     bool bConversation = false;
     int32 ConversationStep = 0;
+    int32 NewsPage = 0;
     bool bGeneralPruittBusiness = false;
     int32 FieldAction = -1;
     int32 PendingFollowup = 0;
