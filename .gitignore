@@ -1,23 +1,16 @@
-# Unreal generated output
-Binaries/
-DerivedDataCache/
-Intermediate/
-Saved/
-.vs/
-.idea/
-*.sln
-*.suo
-*.VC.db
-*.VC.opendb
-*.opensdf
-*.sdf
-*.VC.db-shm
-*.VC.db-wal
-# Local tooling and credentials
+# Created by Mosslight
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Test builds (shared through Mosslight instead)
+Builds/
+builds/
+*.apk
+*.aab
+
+# Web / tooling
+node_modules/
+dist/
 .env
 .env.*
-!.env.example
-.claude/settings.local.json
-# Blender's automatic previous-save copies; authored .blend sources are tracked.
-*.blend1
-*.blend2
