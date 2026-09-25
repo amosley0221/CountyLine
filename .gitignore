@@ -26,3 +26,7 @@ Saved/
 Artifacts/
 *.keystore
 *.jks
+
+# Generated Android packaging sources and cook ordering
+/Build/Android/src/
+/Build/Android_ASTC/FileOpenOrder/
