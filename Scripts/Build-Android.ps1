@@ -32,7 +32,7 @@ try {
     $env:ANDROID_HOME=$SdkRoot; $env:JAVA_HOME=$JavaRoot; $env:NDKROOT=Join-Path $SdkRoot "ndk/$($requirements.ndk)"
     $archive=Join-Path $projectRoot 'Artifacts/Android'
     $startTime=Get-Date
-    $uatArguments=@('BuildCookRun',"-project=$projectPath",'-noP4','-unattended','-utf8output','-platform=Android','-cookflavor=ASTC','-clientconfig=Development','-build','-cook','-map=/Game/Maps/L_JailOffice','-stage','-pak','-iostore','-compressed','-package','-archive',"-archivedirectory=$archive")
+    $uatArguments=@('BuildCookRun',"-project=$projectPath",'-noP4','-unattended','-utf8output','-platform=Android','-cookflavor=ASTC','-clientconfig=Development','-build','-ubtargs=-NoUBA -NoHotReloadFromIDE','-cook','-map=/Game/Maps/L_JailOffice','-stage','-pak','-iostore','-compressed','-package','-archive',"-archivedirectory=$archive")
     & (Join-Path $EngineRoot 'Engine/Build/BatchFiles/RunUAT.bat') @uatArguments
     if ($LASTEXITCODE -ne 0) { throw "Android packaging failed with exit code $LASTEXITCODE." }
     $apks=@(Get-ChildItem -LiteralPath $archive -Recurse -Filter '*.apk' | Where-Object LastWriteTime -GE $startTime)

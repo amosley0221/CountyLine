@@ -8,7 +8,7 @@ Samsung Galaxy Z Fold8, both unfolded and cover-screen landscape. ARM64, ASTC te
 
 ## Build
 
-Enable Android in Epic Games Launcher > Library > UE 5.8 > Options > Target Platforms. Install JDK 21 and the SDK/NDK versions listed in the installed engine's Engine/Config/Android/Android_SDK.json. The current local 5.8.2 installation requests API 36, build-tools 36.0.0 and NDK 27.2.12479018. These local requirements differ from portions of Epic's web documentation; follow the installed engine configuration.
+Enable Android in Epic Games Launcher > Library > UE 5.8 > Options > Target Platforms. Install JDK 21 and the SDK/NDK versions listed in the installed engine's Engine/Config/Android/Android_SDK.json. The current local 5.8.3 installation requests API 36, build-tools 36.0.0 and NDK 27.2.12479018. These local requirements differ from portions of Epic's web documentation; follow the installed engine configuration.
 
 Run Scripts/Build-Android.ps1 with -SdkRoot and -JavaRoot pointing to those installations. -CheckOnly checks prerequisites without claiming a build. The full script builds, cooks, and packages a Development APK with data included into Artifacts/Android, prints its path and SHA-256, and fails if no fresh APK exists. This is for direct device testing, not a Play Store release. Never commit signing keys or SDK installations.
 
@@ -42,3 +42,25 @@ Win64 editor compilation succeeded. All 20 existing Unreal automation suites, 10
 APK preflight currently stops at the missing UE Android target component (Engine/Binaries/Android/UnrealGame.target). The SDK file checks pass. The engine Turnkey VerifySdk command returned exit 0 but reported no available Android platform to verify; that exit code is NOT evidence of an Android-ready engine. No APK has been produced and no phone was listed by adb devices. There is no Android performance, rendering or physical-touch validation yet.
 
 The final desktop touch preview ran at 1280x960 with -windowed -ForceRes -CLMobilePreview -faketouches and exited 0; its 134 runtime smoke checks passed. The INTERACT, BOOK, JOG/WALK and PAUSE labels are legible and the two virtual sticks are visible. Evidence: Verification/Android/DesktopTouchPreview-1280x960.png. The town-review camera is letterboxed; this is a Windows-rendered interface check, not an Android screenshot or a physical touch/multitouch test.
+
+## APK build attempt (2026-09-25)
+
+The Launcher Android component is installed for UE 5.8.3 and Scripts/Build-Android.ps1 -CheckOnly passes. The first build linked the Android game module, but the editor build stalled inside UBA. Packaging now passes -NoUBA and -NoHotReloadFromIDE to UnrealBuildTool; the retry compiled successfully and entered the Android ASTC cook. Final packaging results are recorded below when available.
+
+### Packaged result
+
+UE 5.8.3 BuildCookRun completed successfully (exit 0) on 2026-09-25. The first successful run took 42m 19s, primarily initial mobile shader compilation (9,142 shader jobs). The content cook reported 0 errors and 0 warnings. Gradle reported SDK XML schema and engine Java/manifest notices; packaging still succeeded.
+
+- APK: Artifacts/Android/CountyLine-arm64.apk (184,673,667 bytes; approximately 176 MiB).
+- Convenient transfer copy: F:/The County Line/The-County-Line-Android-Test.apk.
+- SHA-256: 3D89769D0B9338483DCD5A77F70BD14C2D2A92616B2E601D08319C8573ADFB8A.
+- Package: com.amosley0221.countyline; version 0.1-android-test, code 1; ARM64 only; minimum API 29, target API 36.
+- APK signature verification passed (v2); zipalign 16 KB page alignment check passed.
+- The APK contains lib/arm64-v8a/libUnreal.so and assets/main.obb.png, so game data is embedded.
+- adb reported no attached device. Installation, launch, touch, graphics, performance, fold/unfold and save persistence remain untested on Android. This is a Development test build, not a release candidate. Cross-device cloud save remains unimplemented.
+
+### Installing the test
+
+Copy The-County-Line-Android-Test.apk to the phone and open it from the phone's file manager. Follow Android's installation prompt for that file. Alternatively, with the phone connected and authorized for USB debugging, use the installed platform-tools/adb.exe with `install -r` and the full APK path. Use replacement installs to preserve app data; do not uninstall the app as part of routine updates. The generated Unreal installer scripts are not required for this self-contained APK.
+
+Start with walk/look/jog, desk/Book interaction, and save/relaunch. Send the exact error or a screenshot if installation or launch fails. Test both screens and controller input after the initial launch check.
