@@ -21,3 +21,8 @@ Saved/
 # Blender's automatic previous-save copies; authored .blend sources are tracked.
 *.blend1
 *.blend2
+
+# Local packaged builds and Android signing material
+Artifacts/
+*.keystore
+*.jks

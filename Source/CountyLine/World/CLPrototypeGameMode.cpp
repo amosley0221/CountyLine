@@ -564,6 +564,6 @@ void ACLPrototypeGameMode::CaptureTownReview()
         TownReviewCamera->SetActorLocationAndRotation(Positions[View],(Targets[View]-Positions[View]).Rotation());
         TownReviewCamera->GetCameraComponent()->SetFieldOfView(View==2?85.f:70.f);
     }
-    else FScreenshotRequest::RequestScreenshot(FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("Screenshots/TownReview"),Names[View]),false,false);
+    else FScreenshotRequest::RequestScreenshot(FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("Screenshots/TownReview"),Names[View]),FParse::Param(FCommandLine::Get(),TEXT("CLMobilePreview")),false);
     ++TownReviewStep;
 }

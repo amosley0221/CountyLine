@@ -2,13 +2,32 @@
   "FileVersion": 3,
   "EngineAssociation": "5.8",
   "Category": "Games",
-  "Description": "The County Line — a third-person PC narrative lawman game, 1926–1928.",
+  "Description": "The County Line \u2014 a third-person PC narrative lawman game, 1926\u20131928.",
   "Modules": [
-    { "Name": "CountyLine", "Type": "Runtime", "LoadingPhase": "Default" }
+    {
+      "Name": "CountyLine",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
   ],
-  "TargetPlatforms": ["Windows"],
+  "TargetPlatforms": [
+    "Windows",
+    "Android"
+  ],
   "Plugins": [
-    { "Name": "PythonScriptPlugin", "Enabled": true, "TargetAllowList": ["Editor"] },
-    { "Name": "EditorScriptingUtilities", "Enabled": true, "TargetAllowList": ["Editor"] }
+    {
+      "Name": "PythonScriptPlugin",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "EditorScriptingUtilities",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    }
   ]
 }

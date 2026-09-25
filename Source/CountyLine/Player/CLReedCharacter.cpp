@@ -1,4 +1,5 @@
 #include "Player/CLReedCharacter.h"
+#include "Player/CLPlayerController.h"
 #include "World/CLCountyRoad.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -100,7 +101,9 @@ void ACLReedCharacter::Jog(float Value)
 {
     // An axis is refreshed every input frame, including zero on release/focus flush.
     // Paper screens also reset it explicitly because UI-only input stops pawn bindings.
-    GetCharacterMovement()->MaxWalkSpeed = Value>0.f && Controller && !Controller->IsMoveInputIgnored()?360.f:180.f;
+    const auto* PC=Cast<ACLPlayerController>(Controller);
+    const bool bJog=Value>0.f || (PC && PC->IsMobileJogging());
+    GetCharacterMovement()->MaxWalkSpeed = bJog && Controller && !Controller->IsMoveInputIgnored()?360.f:180.f;
 }
 void ACLReedCharacter::Forward(float V) { if (Controller) AddMovementInput(FRotationMatrix(FRotator(0, Controller->GetControlRotation().Yaw, 0)).GetUnitAxis(EAxis::X), V); }
 void ACLReedCharacter::Right(float V) { if (Controller) AddMovementInput(FRotationMatrix(FRotator(0, Controller->GetControlRotation().Yaw, 0)).GetUnitAxis(EAxis::Y), V); }

@@ -12,6 +12,14 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Widgets/SOverlay.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Layout/SSafeZone.h"
+#include "Widgets/Layout/SDPIScaler.h"
+#include "Widgets/Layout/SUniformGridPanel.h"
+#include "Widgets/SBoxPanel.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "Misc/CoreDelegates.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -44,18 +52,34 @@ void ACLPlayerController::BeginPlay()
     if(!IsLocalController() || !GEngine || !GEngine->GameViewport) return;
     HUD=SNew(SOverlay)
         +SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(32)
-        [SNew(STextBlock).Text_Lambda([this]{return FText::FromString(FString(TEXT("THE COUNTY LINE\n"))+ObjectiveText());}).WrapTextAt(Trial?1050.f:0.f).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.88f,0.82f,0.68f))]
+        [SNew(STextBlock).Text_Lambda([this]{return FText::FromString(FString(TEXT("THE COUNTY LINE\n"))+ObjectiveText());}).WrapTextAt(UsesMobileControls()?560.f:(Trial?1050.f:0.f)).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.88f,0.82f,0.68f))]
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24,24,24,88)
         [SNew(SBorder).Padding(14).BorderBackgroundColor(FLinearColor(0.035f,0.03f,0.02f,0.9f))
             .Visibility_Lambda([this]{return (Trial?!Trial->Prompt(this).IsEmpty():(bPromptAvailable||bDeputyAvailable||ReachableFieldAction()>=0))&&!IsBookOpen()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
-            [SNew(STextBlock).Text_Lambda([this]{if(Trial) return FText::FromString(Trial->Prompt(this));const int32 Field=ReachableFieldAction();if(Field>=0) {const TCHAR* Names[]={TEXT("Return to the jail office"),TEXT("Speak with Salazar"),TEXT("Inspect the bottle"),TEXT("Examine the ditch bank"),TEXT("Read the road directions"),TEXT("Read the guest register"),TEXT("Speak with the River Road resident"),TEXT("Speak with Inez Padilla"),TEXT("Speak with Mara Holt"),TEXT("Read The Enterprise notice")};return FText::FromString(FString(TEXT("[ E / A ]   "))+Names[Field]);}return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
+            [SNew(STextBlock).Text_Lambda([this]{if(Trial) return FText::FromString(Trial->Prompt(this));const int32 Field=ReachableFieldAction();if(Field>=0) {const TCHAR* Names[]={TEXT("Return to the jail office"),TEXT("Speak with Salazar"),TEXT("Inspect the bottle"),TEXT("Examine the ditch bank"),TEXT("Read the road directions"),TEXT("Read the guest register"),TEXT("Speak with the River Road resident"),TEXT("Speak with Inez Padilla"),TEXT("Speak with Mara Holt"),TEXT("Read The Enterprise notice")};return FText::FromString(FString(UsesMobileControls()?TEXT("[ INTERACT ]   "):TEXT("[ E / A ]   "))+Names[Field]);}return FText::FromString(bDeputyAvailable?TEXT("[ E / A ]   Talk   ·   Deputy Pruitt"):TEXT("[ E / A ]   Read   ·   Reed's report"));}).Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(FLinearColor(0.95f,0.86f,0.65f))]]
         +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24)
-        [SNew(STextBlock).Text(FText::FromString(TEXT("WASD / LS  Walk     Shift / LB  Jog     Mouse / RS  Look\nE / A  Interact     Tab / View  Book     Esc / Menu  Pause"))).Justification(ETextJustify::Center).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.93f,0.88f,0.77f))];
+        [SNew(STextBlock).Visibility_Lambda([this]{return UsesMobileControls()?EVisibility::Collapsed:EVisibility::HitTestInvisible;}).Text(FText::FromString(TEXT("WASD / LS  Walk     Shift / LB  Jog     Mouse / RS  Look\nE / A  Interact     Tab / View  Book     Esc / Menu  Pause"))).Justification(ETextJustify::Center).Font(FCoreStyle::GetDefaultFontStyle("Regular",20)).ShadowOffset(FVector2D(1,1)).ColorAndOpacity(FLinearColor(0.93f,0.88f,0.77f))];
+    if(UsesMobileControls())
+    {
+        const TSharedRef<SWidget> Content=HUD.ToSharedRef();
+        HUD=SNew(SDPIScaler).DPIScale_Lambda([this]{int32 W=0,H=0;GetViewportSize(W,H);return FMath::Clamp(FMath::Min(W/1280.f,H/720.f),.75f,2.f);})
+            [SNew(SSafeZone).IsTitleSafe(true)[Content]];
+    }
     GEngine->GameViewport->AddViewportWidgetContent(HUD.ToSharedRef(),0);
+    if(UsesMobileControls())
+    {
+        bEnableTouchEvents=true;
+        BuildMobileControls();
+        SetVirtualJoystickVisibility(true);
+        MobileBackgroundHandle=FCoreDelegates::ApplicationWillEnterBackgroundDelegate.AddUObject(this,&ACLPlayerController::HandleMobileBackground);
+    }
 }
 
 void ACLPlayerController::EndPlay(const EEndPlayReason::Type Reason)
 {
+    FCoreDelegates::ApplicationWillEnterBackgroundDelegate.Remove(MobileBackgroundHandle);
+    if(MobileControls.IsValid() && GEngine && GEngine->GameViewport) GEngine->GameViewport->RemoveViewportWidgetContent(MobileControls.ToSharedRef());
+    MobileControls.Reset();
     EndInspection();
     if(InspectionCamera) InspectionCamera->Destroy();
     if(GEngine && GEngine->GameViewport)
@@ -194,6 +218,8 @@ void ACLPlayerController::ShowBook(bool bReportCover,bool bPause,bool bConversat
 {
     if(IsBookOpen() || !GEngine || !GEngine->GameViewport) return;
     if(Trial) {FieldAction=10;bReportCover=false;bPause=false;bConversation=false;}
+    bMobileJog=false;
+    if(UsesMobileControls()) SetVirtualJoystickVisibility(false);
     if(ACLReedCharacter* Reed=Cast<ACLReedCharacter>(GetPawn())) Reed->Jog(0.f);
     if(ACharacter* C=Cast<ACharacter>(GetPawn())) C->GetCharacterMovement()->StopMovementImmediately();
     SetIgnoreMoveInput(true);SetIgnoreLookInput(true);
@@ -216,6 +242,7 @@ void ACLPlayerController::CloseBook()
     if(HUD.IsValid()) HUD->SetVisibility(EVisibility::HitTestInvisible);
     ResetIgnoreMoveInput();ResetIgnoreLookInput();bShowMouseCursor=false;
     SetInputMode(FInputModeGameOnly());
+    if(UsesMobileControls()) SetVirtualJoystickVisibility(true);
     FSlateApplication::Get().SetAllUserFocusToGameViewport();
 }
 
@@ -343,4 +370,43 @@ void ACLPlayerController::EndInspection()
     if(GetPawn()) {GetPawn()->SetActorHiddenInGame(bPawnWasHidden);SetViewTarget(GetPawn());}
     if(Bend.IsValid()) Bend->SetWitnessSpeaking(false);
     InspectionAction=-1;
+}
+
+// Touch uses the same interaction and journal actions as PC and controller input.
+bool ACLPlayerController::UsesMobileControls() const
+{
+    return PLATFORM_ANDROID || FParse::Param(FCommandLine::Get(),TEXT("CLMobilePreview"));
+}
+
+void ACLPlayerController::HandleMobileBackground()
+{
+    bMobileJog=false;
+    if(auto* Reed=Cast<ACLReedCharacter>(GetPawn())) Reed->Jog(0.f);
+    if(!IsBookOpen()) ShowBook(false,true);
+    else SetPause(true);
+}
+
+void ACLPlayerController::BuildMobileControls()
+{
+    auto Actions=SNew(SUniformGridPanel).SlotPadding(4);
+    int32 SlotIndex=0;
+    auto Add=[this,Actions,&SlotIndex](const TCHAR* Label,TFunction<void()> Action)
+    {
+        Actions->AddSlot(SlotIndex%2,SlotIndex/2)
+        [SNew(SBox).WidthOverride(146).HeightOverride(60)
+            [SNew(SButton).IsFocusable(false).OnClicked_Lambda([Action]{Action();return FReply::Handled();})
+                [SNew(STextBlock).Text_Lambda([this,Label]{return FText::FromString(FString(Label)==TEXT("JOG") && bMobileJog?TEXT("WALK"):Label);}).Justification(ETextJustify::Center).Font(FCoreStyle::GetDefaultFontStyle("Bold",19))]]];
+        ++SlotIndex;
+    };
+    Add(TEXT("INTERACT"),[this]{Interact();});
+    Add(TEXT("BOOK"),[this]{ToggleBook();});
+    Add(TEXT("JOG"),[this]{bMobileJog=!bMobileJog;});
+    Add(TEXT("PAUSE"),[this]{PauseMenu();});
+    MobileControls=SNew(SDPIScaler).DPIScale_Lambda([this]{int32 W=0,H=0;GetViewportSize(W,H);return FMath::Clamp(FMath::Min(W/1280.f,H/720.f),.75f,2.f);})
+        [SNew(SSafeZone).IsTitleSafe(true)
+        [SNew(SOverlay).Visibility(EVisibility::SelfHitTestInvisible)
+            +SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(16)
+            [Actions]]];
+    MobileControls->SetVisibility(TAttribute<EVisibility>::CreateLambda([this]{return IsBookOpen()?EVisibility::Collapsed:EVisibility::SelfHitTestInvisible;}));
+    GEngine->GameViewport->AddViewportWidgetContent(MobileControls.ToSharedRef(),5);
 }

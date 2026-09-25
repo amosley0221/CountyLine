@@ -14,6 +14,8 @@ public:
     virtual void EndPlay(const EEndPlayReason::Type Reason) override;
     virtual void SetupInputComponent() override;
     virtual void PlayerTick(float DeltaSeconds) override;
+    bool UsesMobileControls() const;
+    bool IsMobileJogging() const { return bMobileJog; }
     bool CanReachReport() const;
     bool CanReachDeputy() const;
     bool CanReachResident() const;
@@ -37,6 +39,11 @@ public:
     class ACLTestMission* TestMission() const { return Trial; }
     static bool WithinInteractionGate(FVector PawnPosition, FVector Eye, FVector Forward, FVector Target);
 private:
+    void BuildMobileControls();
+    void HandleMobileBackground();
+    bool bMobileJog = false;
+    FDelegateHandle MobileBackgroundHandle;
+    TSharedPtr<class SWidget> MobileControls;
     UPROPERTY() TObjectPtr<class ACLTestMission> Trial;
     void BeginInspection(int32 Action);
     void EndInspection();
