@@ -64,3 +64,14 @@ UE 5.8.3 BuildCookRun completed successfully (exit 0) on 2026-09-25. The first s
 Copy The-County-Line-Android-Test.apk to the phone and open it from the phone's file manager. Follow Android's installation prompt for that file. Alternatively, with the phone connected and authorized for USB debugging, use the installed platform-tools/adb.exe with `install -r` and the full APK path. Use replacement installs to preserve app data; do not uninstall the app as part of routine updates. The generated Unreal installer scripts are not required for this self-contained APK.
 
 Start with walk/look/jog, desk/Book interaction, and save/relaunch. Send the exact error or a screenshot if installation or launch fails. Test both screens and controller input after the initial launch check.
+## Touch routing repair (2026-09-25, version 0.1.1-touch-fix / code 2)
+
+The first device test launched and allowed Pause/Book, but the sticks did not respond. The full-screen informational HUD was hit-testable, and the mobile button layer's full-screen SSafeZone was also hit-testable despite its outer wrapper being SelfHitTestInvisible. Both could obscure the underlying SVirtualJoystick. The HUD is now HitTestInvisible at startup (as it already was after closing the Book), and the button safe-zone is SelfHitTestInvisible so its buttons remain interactive while empty space passes touches through.
+
+A rendered smoke regression checks actual Slate hit paths at both lower stick positions and the upper action button. Before the fix, both joystick checks failed and the button check passed. After the fix, all 137 smoke checks passed at 1280x960; the final source also passed all 137 at 1280x720. These are desktop rendered input-routing checks, not physical Android multitouch validation.
+
+The Android non-unity compile also exposed five existing first-actor loops whose increments were unreachable; equivalent if-initializer checks now pass Clang's warning-as-error policy. Packaging builds the editor explicitly with -NoPCH, because UAT's UbtArgs only applied that flag to the game target and the editor PCH build stalled. Final APK packaging succeeded; signature and 16 KB zip alignment checks passed. The signing certificate matches version 1 for in-place updates.
+
+Updated APK: F:/The County Line/The-County-Line-Android-Touch-Fix.apk (184,667,843 bytes).
+SHA-256: 3250B0D3144C3A7C7B0D1A4F7651EEA4035CA70BF7B4AEB1F0CC887ECA3B4619.
+Install over the existing app; no uninstall is needed. Device acceptance: move and look simultaneously, jog while moving, open/close Book and Pause then move again, and test folding/resume. Awaiting user verification on the phone.

@@ -40,7 +40,7 @@ void ACLPlayerController::BeginPlay()
     if(ACLTestMission::IsEnabled()) Trial=GetWorld()->SpawnActor<ACLTestMission>(FVector(30000,0,0),FRotator::ZeroRotator);
     else
     {
-    for(TActorIterator<ACLJailOffice> It(GetWorld());It;++It) {Office=*It;break;}
+    if(TActorIterator<ACLJailOffice> It(GetWorld());It) {Office=*It;}
     Bend=GetWorld()->SpawnActor<ACLBendLateral>(FVector(10000,0,0),FRotator::ZeroRotator);
     GetWorld()->SpawnActor<ACLCountyRoad>();
     Town=GetWorld()->SpawnActor<ACLPecosBend>();
@@ -65,6 +65,8 @@ void ACLPlayerController::BeginPlay()
         HUD=SNew(SDPIScaler).DPIScale_Lambda([this]{int32 W=0,H=0;GetViewportSize(W,H);return FMath::Clamp(FMath::Min(W/1280.f,H/720.f),.75f,2.f);})
             [SNew(SSafeZone).IsTitleSafe(true)[Content]];
     }
+    // The informational HUD must never intercept the virtual joysticks below it.
+    HUD->SetVisibility(EVisibility::HitTestInvisible);
     GEngine->GameViewport->AddViewportWidgetContent(HUD.ToSharedRef(),0);
     if(UsesMobileControls())
     {
@@ -403,7 +405,7 @@ void ACLPlayerController::BuildMobileControls()
     Add(TEXT("JOG"),[this]{bMobileJog=!bMobileJog;});
     Add(TEXT("PAUSE"),[this]{PauseMenu();});
     MobileControls=SNew(SDPIScaler).DPIScale_Lambda([this]{int32 W=0,H=0;GetViewportSize(W,H);return FMath::Clamp(FMath::Min(W/1280.f,H/720.f),.75f,2.f);})
-        [SNew(SSafeZone).IsTitleSafe(true)
+        [SNew(SSafeZone).IsTitleSafe(true).Visibility(EVisibility::SelfHitTestInvisible)
         [SNew(SOverlay).Visibility(EVisibility::SelfHitTestInvisible)
             +SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(16)
             [Actions]]];

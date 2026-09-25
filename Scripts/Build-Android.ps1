@@ -32,7 +32,11 @@ try {
     $env:ANDROID_HOME=$SdkRoot; $env:JAVA_HOME=$JavaRoot; $env:NDKROOT=Join-Path $SdkRoot "ndk/$($requirements.ndk)"
     $archive=Join-Path $projectRoot 'Artifacts/Android'
     $startTime=Get-Date
-    $uatArguments=@('BuildCookRun',"-project=$projectPath",'-noP4','-unattended','-utf8output','-platform=Android','-cookflavor=ASTC','-clientconfig=Development','-build','-ubtargs=-NoUBA -NoHotReloadFromIDE','-cook','-map=/Game/Maps/L_JailOffice','-stage','-pak','-iostore','-compressed','-package','-archive',"-archivedirectory=$archive")
+    # UAT's UbtArgs apply to the game target, not its editor target. Build the
+    # editor explicitly so the no-PCH workaround applies to both platforms.
+    & (Join-Path $EngineRoot 'Engine/Build/BatchFiles/Build.bat') CountyLineEditor Win64 Development "-Project=$projectPath" -NoUBA -NoPCH -NoHotReloadFromIDE
+    if ($LASTEXITCODE -ne 0) { throw "Editor build failed with exit code $LASTEXITCODE." }
+    $uatArguments=@('BuildCookRun',"-project=$projectPath",'-noP4','-unattended','-utf8output','-platform=Android','-cookflavor=ASTC','-clientconfig=Development','-build','-nocompileeditor','-ubtargs=-NoUBA -NoPCH -NoHotReloadFromIDE','-cook','-map=/Game/Maps/L_JailOffice','-stage','-pak','-iostore','-compressed','-package','-archive',"-archivedirectory=$archive")
     & (Join-Path $EngineRoot 'Engine/Build/BatchFiles/RunUAT.bat') @uatArguments
     if ($LASTEXITCODE -ne 0) { throw "Android packaging failed with exit code $LASTEXITCODE." }
     $apks=@(Get-ChildItem -LiteralPath $archive -Recurse -Filter '*.apk' | Where-Object LastWriteTime -GE $startTime)

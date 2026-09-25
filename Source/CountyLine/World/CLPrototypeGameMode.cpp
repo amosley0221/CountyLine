@@ -32,6 +32,9 @@
 #include "Animation/BlendSpace.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
+#include "Engine/GameViewportClient.h"
+#include "Widgets/SViewport.h"
+#include "Layout/WidgetPath.h"
 
 ACLPrototypeGameMode::ACLPrototypeGameMode()
 {
@@ -76,6 +79,24 @@ void ACLPrototypeGameMode::RunSmokeTest()
     ACLPlayerController* PC=Cast<ACLPlayerController>(UGameplayStatics::GetPlayerController(this,0));
     ACLReedCharacter* Reed=PC?Cast<ACLReedCharacter>(PC->GetPawn()):nullptr;
     Check(PC && Reed,TEXT("Game mode creates Reed and County Line controller"));
+    // Run with -CLMobilePreview -faketouches and a rendered viewport. Check actual
+    // hit paths: visible full-screen wrappers can silently intercept both sticks.
+    if(FParse::Param(FCommandLine::Get(),TEXT("CLMobilePreview")))
+    {
+        const auto Viewport=GetWorld()->GetGameViewport()->GetGameViewportWidget();
+        const FGeometry Geometry=Viewport->GetCachedGeometry();
+        auto Hits=[&Geometry](FVector2D Fraction,const TCHAR* Type)
+        {
+            auto& Slate=FSlateApplication::Get();
+            const auto Path=Slate.LocateWindowUnderMouse(Geometry.LocalToAbsolute(Geometry.GetLocalSize()*Fraction),Slate.GetInteractiveTopLevelWindows());
+            for(int32 I=0;I<Path.Widgets.Num();++I)
+                if(Path.Widgets[I].Widget->GetTypeAsString()==Type) return true;
+            return false;
+        };
+        Check(Hits(FVector2D(.15f,.85f),TEXT("SVirtualJoystick")),TEXT("Mobile left-stick touch reaches virtual joystick"));
+        Check(Hits(FVector2D(.85f,.85f),TEXT("SVirtualJoystick")),TEXT("Mobile right-stick touch reaches virtual joystick"));
+        Check(Hits(FVector2D(.93f,.065f),TEXT("SButton")),TEXT("Mobile action button remains touchable"));
+    }
     if(Reed)
     {
         Check(Reed->GetActorLocation().X-SmokeStart.X>80,TEXT("Movement input advances character across floor"));
@@ -128,7 +149,7 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Reed->SetActorLocation(Initial);
         Check(!PC->IsAtDesk(),TEXT("Save station rejects distant pawn"));
         ACLJailOffice* Office=nullptr;
-        for(TActorIterator<ACLJailOffice> It(GetWorld());It;++It) {Office=*It;break;}
+        if(TActorIterator<ACLJailOffice> It(GetWorld());It) {Office=*It;}
         Check(Office && Office->DeputyMesh->GetSkeletalMeshAsset() && Office->DeputyMesh->GetSingleNodeInstance(),TEXT("Pruitt has a mesh and idle animation"));
         auto Press=[](FKey Key)
         {
@@ -203,7 +224,7 @@ void ACLPrototypeGameMode::RunSmokeTest()
         Check(PC->RestoreSafePosition() && PC->IsInField(),TEXT("Recovery returns Reed to the last safe authored location"));
         Check(PC->Case()->World.DiscoveredLocations==WorldBeforeRestore.DiscoveredLocations && PC->Case()->Report.IncludedFacts==Carbon,TEXT("Recovery preserves discoveries and the original report"));
         ACLBendLateral* Bend=nullptr;
-        for(TActorIterator<ACLBendLateral> It(GetWorld());It;++It) {Bend=*It;break;}
+        if(TActorIterator<ACLBendLateral> It(GetWorld());It) {Bend=*It;}
         Check(Bend && Bend->Markers.Num()==4 && Bend->Salazar->GetSingleNodeInstance(),TEXT("Bend Lateral has interaction targets and animated witness"));
         if(Bend)
         {
@@ -323,7 +344,7 @@ void ACLPrototypeGameMode::RunSmokeTest()
         WalkRoute(FVector(-850,-800,92));WalkRoute(FVector(-850,-180,92));WalkRoute(FVector(-350,-180,92));
         Check(bRouteClear && PC->Case()->World.LastSafeLocation==TEXT("JailOffice"),TEXT("Eastern storefront walk connects North Lane and the jail without crossing a shop"));
         ACLPecosBend* Town=nullptr;
-        for(TActorIterator<ACLPecosBend> It(GetWorld());It;++It) {Town=*It;break;}
+        if(TActorIterator<ACLPecosBend> It(GetWorld());It) {Town=*It;}
         auto Part=[Town](const FString& Name)->UStaticMeshComponent*
         {
             return Town?FindObjectFast<UStaticMeshComponent>(Town,FName(*Name)):nullptr;
@@ -541,7 +562,7 @@ void ACLPrototypeGameMode::CaptureTownReview()
                 FCLReportState Fixture;Fixture.bRead=true;Fixture.FieldNotes={TEXT("SalazarStatement"),TEXT("BottleObserved"),TEXT("BankExamined"),TEXT("ResidentAccount")};
                 if(Page>=14) {Fixture.Submit(Page==16?ECLReportStatus::Held:ECLReportStatus::Signed);Fixture.ShareWithEnterprise();}
                 PC->Case()->Report=Fixture;
-                for(TActorIterator<ACLPecosBend> TownIt(GetWorld());TownIt;++TownIt) {TownIt->RefreshEnterpriseNotice(Fixture);break;}
+                if(TActorIterator<ACLPecosBend> TownIt(GetWorld());TownIt) {TownIt->RefreshEnterpriseNotice(Fixture);}
                 if(Page>=14) {PC->ShowBook(false,false,false,9);if(Page==15) Press(EKeys::Gamepad_FaceButton_Bottom);}
             }
             PC->SetPause(false); // Let the QA capture timer advance; normal dialogue stays paused.
