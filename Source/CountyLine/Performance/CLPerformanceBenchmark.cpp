@@ -4,6 +4,7 @@
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/App.h"
 #include "Misc/CommandLine.h"
@@ -319,6 +320,12 @@ FString UCLPerformanceBenchmark::WriteResults() const
     if (GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
         Resolution = GEngine->GameViewport->Viewport->GetSizeXY();
 
+    // Without a viewport - a -nullrhi plumbing check - there is no resolution to
+    // report, so it stays unavailable rather than becoming 0x0.
+    const FString ResolutionText = Resolution.X > 0 && Resolution.Y > 0
+        ? FString::Printf(TEXT("{\"width\": %d, \"height\": %d}"), Resolution.X, Resolution.Y)
+        : TEXT("null");
+
     // Mobile preview is a PC renderer approximation and is labelled as such.
     const bool bMobilePreview = FParse::Param(FCommandLine::Get(), TEXT("CLMobilePreview"));
     const FString PlatformLabel = FString(FPlatformProperties::IniPlatformName()) + (bMobilePreview ? TEXT(" (mobile preview on PC, not a physical Android measurement)") : TEXT(""));
@@ -338,7 +345,7 @@ FString UCLPerformanceBenchmark::WriteResults() const
         "  \"build_version\": %s,\n"
         "  \"engine_version\": %s,\n"
         "  \"configuration\": %s,\n"
-        "  \"resolution\": {\"width\": %d, \"height\": %d},\n"
+        "  \"resolution\": %s,\n"
         "  \"gpu_brand\": %s,\n"
         "  \"device_make_model\": %s,\n"
         "  \"cpu_brand\": %s,\n"
@@ -371,7 +378,7 @@ FString UCLPerformanceBenchmark::WriteResults() const
         bMobilePreview ? TEXT("true") : TEXT("false"),
         *QuotedOrNull(FApp::GetBuildVersion()), *QuotedOrNull(FEngineVersion::Current().ToString()),
         *Quoted(LexToString(FApp::GetBuildConfiguration())),
-        Resolution.X, Resolution.Y,
+        *ResolutionText,
         *QuotedOrNull(FPlatformMisc::GetPrimaryGPUBrand()), *QuotedOrNull(FPlatformMisc::GetDeviceMakeAndModel()),
         *QuotedOrNull(FPlatformMisc::GetCPUBrand()), *QuotedOrNull(FrameCapText()),
         *Number(WarmUpSeconds), *Number(SegmentScale), *Segments,

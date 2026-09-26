@@ -142,6 +142,34 @@ No part of this is automated and no thermal value is recorded — the phone's ow
 
 These tests do not need Unreal. They are not registered in `Scripts/Test-Prototype.ps1`, which is outside this task's scope, so **run them explicitly** or add them to the runner separately. No Unreal automation suite was added, for the same reason: that runner fails on any CountyLine suite it does not list.
 
+## Example output
+
+A real rendered capture, 26 September 2026, route version 1, 1280x720 windowed, uncapped, on an RTX 4060 with a Ryzen 5 3600. Development editor build, not a packaged one:
+
+```
+  measured frames 8782
+  elapsed         42.000 s
+  mean FPS        209.09  (frames / elapsed)
+  median          4.573 ms
+  p95             6.030 ms
+  p99             6.934 ms
+  min / max       2.063 / 109.239 ms
+  over 33.33 ms   23
+  over 50 ms      18
+  over 100 ms     1
+  engine delta    4.783 ms mean
+  GPU time        unavailable
+
+  per segment:
+    JailOffice            950 frames  158.39 FPS mean
+    NorthLane            1423 frames  237.05 FPS mean
+  warning: 880 warm-up row(s) excluded
+```
+
+The interior is the slowest leg and the open lane the fastest. The 23 frames over 33 ms, one of them over 100 ms, are streaming and shader hitches on a Development build with a partly cold cache; a second run on the same machine is the way to tell a real cost from a first-visit cost. **These are this machine's numbers on this build, not a target.**
+
+`device_make_model` comes from `FPlatformMisc::GetDeviceMakeAndModel()`, which on Windows reports CPU identity rather than a device model; on Android it is the phone's make and model, which is where the field matters.
+
 ## Overhead and limitations
 
 - Per frame the harness stores one 40-byte sample and does a few arithmetic operations; files are written once at the end. The measurable cost is a fraction of a millisecond per frame, but it is not zero, and it is inside the numbers reported.
@@ -152,3 +180,17 @@ These tests do not need Unreal. They are not registered in `Scripts/Test-Prototy
 - The route visits exteriors and the jail interior only. Lang's lobby, Bend Lateral and the freight fixture are not covered.
 - One capture is one sample of one machine state. Repeat runs, and only compare captures with the same route version, resolution and frame cap.
 - Android numbers require a packaged APK on hardware. Nothing in this harness, and no PC run, establishes Android performance.
+
+## What has actually been run
+
+Reported separately, because a script existing is not a measurement:
+
+- **Built**: `CountyLineEditor Win64 Development` with `-NoUBA -NoPCH -NoHotReloadFromIDE`, succeeded, no warnings. The no-PCH build is worth keeping: it caught a missing `GameFramework/Pawn.h` include in this harness that the shared PCH had hidden.
+- **Parser tests**: 25 of 25 passing.
+- **PC rendered capture**: the example above, produced by `Run-Benchmark.ps1` end to end (launch, capture, summarize).
+- **Headless plumbing check**: a `-nullrhi` run produced 4896 samples across all seven segments and wrote both files. Its frame times are meaningless as performance data.
+- **Fail-safe check**: `-CLPerfBenchmark -CLSmokeTest` logged `CL_PERF_ABORT` and left the smoke test to finish normally (`CL_SMOKE_RESULT=PASS`).
+- **Save isolation check**: no save file was created or touched by any of the runs above.
+- **Not run**: anything on a physical Android device. `Get-AndroidCapture.ps1`, the `adb` commands and the 20-minute heat and resume checklist are **untested** — no phone was attached. No thermal or sustained-frame-rate figure exists for any device.
+
+One behaviour worth knowing: on a cold derived-data cache the first run in a fresh worktree ticks only every few seconds while assets compile. The harness detects this and ends with `CL_PERF_SHORT` and a sample count rather than reporting a made-up frame rate. Run it twice and use the second capture.
