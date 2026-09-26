@@ -41,7 +41,7 @@ $mapExit=$LASTEXITCODE
 $ErrorActionPreference=$previousPreference
 if ($mapExit -ne 0) { throw 'Town layout map generator tests failed.' }
 Write-Output 'Town layout map generator tests passed.'
-& $commandlet $projectPath -unattended -nullrhi -nosplash '-ExecCmds=Automation RunTests CountyLine' '-TestExit=Automation Test Queue Empty' "-abslog=$testLog"
+& $commandlet $projectPath -forcelogflush -unattended -nullrhi -nosplash '-ExecCmds=Automation RunTests CountyLine' '-TestExit=Automation Test Queue Empty' "-abslog=$testLog"
 if ($LASTEXITCODE -ne 0) { throw 'Unreal automation tests failed; inspect PrototypeTests.log.' }
 $completed=@{}
 foreach ($match in (Select-String -LiteralPath $testLog -Pattern 'Test Completed\. Result=\{(\w+)\} Name=\{[^}]*\} Path=\{([^}]+)\}')) {
@@ -62,7 +62,7 @@ if ($problems.Count -gt 0) {
     throw "CountyLine automation problems (inspect PrototypeTests.log):`n  $($problems -join "`n  ")"
 }
 Write-Output "All $($expectedTests.Count) expected CountyLine automation tests succeeded."
-& $commandlet $projectPath '/Game/Maps/L_JailOffice' -game -CLSmokeTest -unattended -nullrhi -nosplash "-abslog=$smokeLog"
+& $commandlet $projectPath '/Game/Maps/L_JailOffice' -forcelogflush -game -CLSmokeTest -unattended -nullrhi -nosplash "-abslog=$smokeLog"
 if ($LASTEXITCODE -ne 0 -or -not (Select-String -LiteralPath $smokeLog -SimpleMatch 'CL_SMOKE_RESULT=PASS' -Quiet)) {
     throw 'Runtime smoke test failed; inspect PrototypeSmoke.log.'
 }

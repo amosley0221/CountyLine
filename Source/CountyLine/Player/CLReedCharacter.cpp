@@ -35,7 +35,7 @@ ACLReedCharacter::ACLReedCharacter()
     FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
     FollowCamera->SetupAttachment(CameraArm);
     FollowCamera->FieldOfView = 70.f;
-    static ConstructorHelpers::FObjectFinder<USkeletalMesh> Body(TEXT("/Game/Art/Characters/SK_Reed_Period.SK_Reed_Period"));
+    static ConstructorHelpers::FObjectFinder<USkeletalMesh> Body(TEXT("/Game/Art/Characters/SK_Reed_Benchmark.SK_Reed_Benchmark"));
     static ConstructorHelpers::FObjectFinder<UBlendSpace> Locomotion(TEXT("/Game/Art/Animations/BS_Reed_FieldLocomotion.BS_Reed_FieldLocomotion"));
     Footsteps=CreateDefaultSubobject<UAudioComponent>(TEXT("Footsteps"));
     Footsteps->SetupAttachment(RootComponent);Footsteps->bAutoActivate=false;

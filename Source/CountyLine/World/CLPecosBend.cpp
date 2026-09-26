@@ -55,6 +55,7 @@ UStaticMeshComponent* ACLPecosBend::Shape(const FString& Name,FVector P,FVector 
         if(Paint)
             if(auto* M=LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Art/Town/ShopDetails/M_ShopPaint%s.M_ShopPaint%s"),Paint,Paint))) C->SetMaterial(0,M);
     }
+    if(Name.StartsWith(TEXT("DrugsStock"))) C->SetVisibility(false);
     C->SetCollisionEnabled(Collision?ECollisionEnabled::QueryAndPhysics:ECollisionEnabled::NoCollision);C->SetCollisionResponseToAllChannels(ECR_Block);
     return C;
 }
@@ -190,6 +191,16 @@ void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,floa
         {
             Shape(Name+FString::Printf(TEXT("HangingTool%d"),Tool),FVector(-Width*.28f-50+Tool*33,-397,171),FVector(6,5,40),TEXT("Iron"),TEXT("Cube"),false);
             Shape(Name+FString::Printf(TEXT("ToolGrip%d"),Tool),FVector(-Width*.28f-50+Tool*33,-397,148),FVector(9,8,16),TEXT("Timber"),TEXT("Cube"),false);
+        }
+    }
+    if(Name==TEXT("Drugs"))
+    {
+        // Combined bevelled joinery and display stock; keep existing collision and glass.
+        for(const TCHAR* Asset:{TEXT("SM_DrugstoreJoinery"),TEXT("SM_DrugstoreStock")})
+        {
+            auto* Detail=CreateDefaultSubobject<UStaticMeshComponent>(*(Name+Asset));Detail->SetupAttachment(Block);
+            Detail->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*FString::Printf(TEXT("/Game/Art/Town/DrugstoreBenchmark/%s.%s"),Asset,Asset)));
+            Detail->SetCollisionEnabled(ECollisionEnabled::NoCollision);
         }
     }
     if(Name==TEXT("Drugs")) Sign(Name+TEXT("WindowService"),TEXT("PRESCRIPTIONS\nSODA WATER"),FVector(-Width*.28f,-385,153),-90,14);

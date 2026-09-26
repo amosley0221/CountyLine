@@ -46,3 +46,9 @@ Six separate procedural street finishes are created by Scripts/build_street_mate
 `Scripts/author_supporting_cast.py` authors Pruitt and an unnamed North Lane resident on the existing Epic rig. Editable geometry is in `SourceAssets/Authored/Characters/SupportingCast.blend`, with separate FBX exports and corresponding skeletal meshes under `Content/Art/Characters`. Pruitt follows the user-supplied IMG_1934.JPG silhouette/palette; the resident is an original provisional waistcoat-and-cap design. These remain stylized prototype models, not final likenesses. Dedicated materials live under `Content/Art/Characters/Supporting`.
 
 `Scripts/build_shop_paints.py` creates five original opaque procedural paint finishes under `Content/Art/Town/ShopDetails`. No downloaded textures or meshes were introduced. See `Docs/STREET_SUPPORTING_CAST.md` for reproduction and verification.
+
+## Reed and drugstore benchmark candidate (26 September 2026)
+
+`SourceAssets/Authored/ReedBenchmark` preserves the editable Blender scene, FBX, mesh statistics and original baked base-color/roughness-metallic atlases produced by `Scripts/author_reed_benchmark.py`. The mesh derives from the previously authored Reed geometry and the existing Epic rig. It introduces no downloaded mesh or texture. Unreal assets are `SK_Reed_Benchmark` and `Content/Art/Characters/ReedBenchmark`; the previous Reed asset is retained.
+
+`SourceAssets/Authored/DrugstoreBenchmark` preserves original bevelled joinery and apothecary display stock authored by `Scripts/author_drugstore_benchmark.py`. Runtime meshes/materials live under `Content/Art/Town/DrugstoreBenchmark`. See `Docs/REED_DRUGSTORE_BENCHMARK.md` for scope, reproduction, remaining likeness/topology work and device evaluation.

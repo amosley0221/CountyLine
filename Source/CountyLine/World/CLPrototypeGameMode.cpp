@@ -101,7 +101,7 @@ void ACLPrototypeGameMode::RunSmokeTest()
     {
         Check(Reed->GetActorLocation().X-SmokeStart.X>80,TEXT("Movement input advances character across floor"));
         const USkeletalMesh* ReedArt=Reed->GetMesh()->GetSkeletalMeshAsset();
-        Check(ReedArt && ReedArt->GetName()==TEXT("SK_Reed_Period"),TEXT("Reed period character mesh loaded"));
+        Check(ReedArt && ReedArt->GetName()==TEXT("SK_Reed_Benchmark"),TEXT("Reed period character mesh loaded"));
         Check(ReedArt && ReedArt->GetBounds().BoxExtent.Z>75.f && ReedArt->GetBounds().BoxExtent.Z<110.f,TEXT("Imported Reed mesh retains human scale"));
         bool bReedMaterials=Reed->GetMesh()->GetNumMaterials()>0;
         for(int32 I=0;I<Reed->GetMesh()->GetNumMaterials();++I) bReedMaterials &= Reed->GetMesh()->GetMaterial(I)!=nullptr;
@@ -504,9 +504,9 @@ void ACLPrototypeGameMode::CaptureTownReview()
 {
     // Engine-rendered QA artifacts, isolated by the required CLSmokeTest run.
     // These cameras do not alter the player's saved location or normal view.
-    const FVector Positions[]={FVector(-11000,-8500,9500),FVector(-1600,-480,260),FVector(-4340,-1820,190),FVector(-7600,2800,2500),FVector(-4400,-1400,450),FVector(-6250,4250,220),FVector(-5350,-150,210),FVector(-2350,550,210),FVector(-4400,-900,180),FVector(-5350,4570,180),FVector(-1900,1500,155),FVector(-5430,2250,155),FVector(-2460,1200,145),FVector(-2750,-1300,180),FVector(-2290,1090,180),FVector(-70,-30,155)};
-    const FVector Targets[]={FVector(-3300,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230),FVector(-6550,1400,210),FVector(-950,2400,240),FVector(-4700,-150,85),FVector(-5350,4930,130),FVector(-1220,1500,155),FVector(-6320,2300,155),FVector(-2100,1200,105),FVector(-2300,-950,0),FVector(-2100,1200,158),FVector(-120,-310,115)};
-    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png"),TEXT("WestMarketStreet.png"),TEXT("CourtStreetShops.png"),TEXT("SquareSeating.png"),TEXT("NorthLaneResident.png"),TEXT("DrugstoreDisplay.png"),TEXT("DryGoodsDisplay.png"),TEXT("ReedAppearance.png"),TEXT("GroundTransition.png"),TEXT("ReedPortrait.png"),TEXT("PruittAppearance.png")};
+    const FVector Positions[]={FVector(-11000,-8500,9500),FVector(-1600,-480,260),FVector(-4340,-1820,190),FVector(-7600,2800,2500),FVector(-4400,-1400,450),FVector(-6250,4250,220),FVector(-5350,-150,210),FVector(-2350,550,210),FVector(-4400,-900,180),FVector(-5350,4570,180),FVector(-1900,1500,155),FVector(-5430,2250,155),FVector(-2460,1200,145),FVector(-2750,-1300,180),FVector(-2290,1090,180),FVector(-70,-30,155),FVector(-2460,1200,145),FVector(-2460,1200,145),FVector(-2290,1090,180)};
+    const FVector Targets[]={FVector(-3300,1700,250),FVector(-560,0,260),FVector(-4000,-2330,110),FVector(-2700,5650,150),FVector(-3900,1200,650),FVector(-5500,5550,230),FVector(-6550,1400,210),FVector(-950,2400,240),FVector(-4700,-150,85),FVector(-5350,4930,130),FVector(-1220,1500,155),FVector(-6320,2300,155),FVector(-2100,1200,105),FVector(-2300,-950,0),FVector(-2100,1200,158),FVector(-120,-310,115),FVector(-2100,1200,105),FVector(-2100,1200,105),FVector(-2100,1200,158)};
+    const TCHAR* Names[]={TEXT("TownOverview.png"),TEXT("JailFrontage.png"),TEXT("LangLobby.png"),TEXT("ResidentialLane.png"),TEXT("CourthouseDetail.png"),TEXT("HomeDetail.png"),TEXT("WestMarketStreet.png"),TEXT("CourtStreetShops.png"),TEXT("SquareSeating.png"),TEXT("NorthLaneResident.png"),TEXT("DrugstoreDisplay.png"),TEXT("DryGoodsDisplay.png"),TEXT("ReedAppearance.png"),TEXT("GroundTransition.png"),TEXT("ReedPortrait.png"),TEXT("PruittAppearance.png"),TEXT("ReedWalk.png"),TEXT("ReedJog.png"),TEXT("ReedMobileLOD.png")};
     const int32 View=TownReviewStep/2;
     if(View>=UE_ARRAY_COUNT(Positions)+(FParse::Param(FCommandLine::Get(),TEXT("CLStreetReview"))?0:17)) {GetWorldTimerManager().ClearTimer(TownReviewTimer);FPlatformMisc::RequestExitWithStatus(false,0);return;}
     if(View>=UE_ARRAY_COUNT(Positions))
@@ -581,6 +581,14 @@ void ACLPrototypeGameMode::CaptureTownReview()
             {
                 Pawn->SetActorHiddenInGame(false);
                 Pawn->SetActorLocationAndRotation(FVector(-2100,1200,96),FRotator(0,180,0));
+            }
+        if(View>=16)
+            if(auto* Reed=Cast<ACLReedCharacter>(UGameplayStatics::GetPlayerPawn(this,0)))
+            {
+                Reed->SetActorTickEnabled(false);
+                Reed->SetActorLocationAndRotation(FVector(-2100,1200,96),FRotator(0,180,0));
+                Reed->GetMesh()->SetForcedLOD(View==18?2:1);
+                if(auto* Anim=Reed->GetMesh()->GetSingleNodeInstance()) Anim->SetBlendSpacePosition(FVector(View==16?180.f:View==17?420.f:0.f,0,0));
             }
         TownReviewCamera->SetActorLocationAndRotation(Positions[View],(Targets[View]-Positions[View]).Rotation());
         TownReviewCamera->GetCameraComponent()->SetFieldOfView(View==2?85.f:70.f);
