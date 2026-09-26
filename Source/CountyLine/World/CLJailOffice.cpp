@@ -50,8 +50,9 @@ ACLJailOffice::ACLJailOffice()
     DeputyMesh->SetupAttachment(RootComponent);
     DeputyMesh->SetRelativeLocation(FVector(-120,-310,0));
     DeputyMesh->SetRelativeRotation(FRotator(0,0,0));
+    DeputyMesh->SetRelativeScale3D(FVector(.95f));
     DeputyMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    DeputyMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr,TEXT("/Game/Mannequin/Character/Mesh/SK_Mannequin.SK_Mannequin")));
+    DeputyMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr,TEXT("/Game/Art/Characters/SK_Pruitt_Period.SK_Pruitt_Period")));
     DeputyMesh->SetAnimationMode(EAnimationMode::AnimationSingleNode);
     Shape(TEXT("Floor"), TEXT("Cube"), FVector(0,0,-12), FVector(1120,920,24), TEXT("Wood"));
     for (int32 I = 0; I < 23; ++I)

@@ -48,6 +48,13 @@ UStaticMeshComponent* ACLPecosBend::Shape(const FString& Name,FVector P,FVector 
     }
     if(!Finish.IsEmpty())
         if(auto* TownMaterial=LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Art/Town/StreetFinishes/M_StreetFinish%s.M_StreetFinish%s"),*Finish,*Finish))) C->SetMaterial(0,TownMaterial);
+    const bool bPainted=Name.Contains(TEXT("FrameJamb")) || Name.Contains(TEXT("FrameRail")) || Name.Contains(TEXT("KickPanel")) || Name.EndsWith(TEXT("Door")) || Name.EndsWith(TEXT("SignBoard"));
+    if(bPainted)
+    {
+        const TCHAR* Paint=Name.StartsWith(TEXT("Drugs"))?TEXT("Sage"):Name.StartsWith(TEXT("DryGoods"))?TEXT("Ochre"):Name.StartsWith(TEXT("Grocer"))?TEXT("Oxide"):Name.StartsWith(TEXT("PostOffice"))?TEXT("Slate"):Name.StartsWith(TEXT("ClosedShop"))?TEXT("Umber"):nullptr;
+        if(Paint)
+            if(auto* M=LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Art/Town/ShopDetails/M_ShopPaint%s.M_ShopPaint%s"),Paint,Paint))) C->SetMaterial(0,M);
+    }
     C->SetCollisionEnabled(Collision?ECollisionEnabled::QueryAndPhysics:ECollisionEnabled::NoCollision);C->SetCollisionResponseToAllChannels(ECR_Block);
     return C;
 }
@@ -92,7 +99,7 @@ void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,floa
         Shape(Name+FString::Printf(TEXT("DisplayLamp%d"),Side),FVector(X,-290,240),FVector(18,18,8),TEXT("Linen"),TEXT("Sphere"),false);
         auto* DisplayLight=CreateDefaultSubobject<UPointLightComponent>(*(Name+FString::Printf(TEXT("DisplayLight%d"),Side)));
         DisplayLight->SetupAttachment(Block);DisplayLight->SetRelativeLocation(FVector(X,-300,222));
-        DisplayLight->SetIntensity(350);DisplayLight->SetAttenuationRadius(240);
+        DisplayLight->SetIntensity(180);DisplayLight->SetAttenuationRadius(240);
         DisplayLight->SetLightColor(FLinearColor(1.f,.91f,.77f));DisplayLight->SetCastShadows(false);
         DisplayLight->SetMobility(EComponentMobility::Movable);
         for(int32 Row=0;Row<2;++Row)
@@ -169,6 +176,21 @@ void ACLPecosBend::Store(const FString& Name,const FString& Title,FVector P,floa
         Shape(Name+TEXT("RepairBench"),FVector(-Width*.29f,-440,82),FVector(175,75,10),TEXT("Timber"));
         for(int32 Leg:{-1,1}) Shape(Name+FString::Printf(TEXT("RepairLeg%d"),Leg),FVector(-Width*.29f+Leg*65,-440,43),FVector(12,60,80),TEXT("Timber"));
         Shape(Name+TEXT("Vise"),FVector(-Width*.29f+45,-454,96),FVector(32,36,20),TEXT("Iron"),TEXT("Cube"),false);
+    }
+    if(Name==TEXT("Grocer"))
+    {
+        Shape(Name+TEXT("PriceBoard"),FVector(-Width*.28f,-490,92),FVector(100,5,43),TEXT("Hair"),TEXT("Cube"),false);
+        Sign(Name+TEXT("PriceLettering"),TEXT("FLOUR  /  COFFEE"),FVector(-Width*.28f,-494,92),-90,8);
+    }
+    if(Name==TEXT("DryGoods")) Sign(Name+TEXT("WindowService"),TEXT("CLOTH  &  NOTIONS"),FVector(-Width*.28f,-385,145),-90,12);
+    if(Name==TEXT("ClosedShop"))
+    {
+        Shape(Name+TEXT("ToolRail"),FVector(-Width*.28f,-389,193),FVector(150,8,7),TEXT("Timber"),TEXT("Cube"),false);
+        for(int32 Tool=0;Tool<4;++Tool)
+        {
+            Shape(Name+FString::Printf(TEXT("HangingTool%d"),Tool),FVector(-Width*.28f-50+Tool*33,-397,171),FVector(6,5,40),TEXT("Iron"),TEXT("Cube"),false);
+            Shape(Name+FString::Printf(TEXT("ToolGrip%d"),Tool),FVector(-Width*.28f-50+Tool*33,-397,148),FVector(9,8,16),TEXT("Timber"),TEXT("Cube"),false);
+        }
     }
     if(Name==TEXT("Drugs")) Sign(Name+TEXT("WindowService"),TEXT("PRESCRIPTIONS\nSODA WATER"),FVector(-Width*.28f,-385,153),-90,14);
     if(Name==TEXT("PostOffice")) Sign(Name+TEXT("WindowService"),TEXT("LETTERS\nPARCELS"),FVector(-Width*.28f,-385,153),-90,17);
@@ -251,7 +273,7 @@ ACLPecosBend::ACLPecosBend()
     Home(TEXT("HomeBrick"),FVector(-3650,5650,0),1100,950,TEXT("Brick"));
     Home(TEXT("HomeTimber"),FVector(-1250,5550,0),1000,900,TEXT("Timber"));
     Home(TEXT("HomeEast"),FVector(400,5600,0),850,800,TEXT("Plaster"));
-    // Temporary civilian art; this unnamed River Road visitor is not Salazar.
+    // Dedicated civilian silhouette; this unnamed visitor is not Salazar.
     ResidentCollision=CreateDefaultSubobject<UCapsuleComponent>(TEXT("ResidentCollision"));
     ResidentCollision->SetupAttachment(RootComponent);
     ResidentCollision->SetRelativeLocation(FVector(-5350,4930,105));
@@ -262,7 +284,7 @@ ACLPecosBend::ACLPecosBend()
     ResidentMesh->SetRelativeLocation(FVector(-5350,4930,20));
     ResidentMesh->SetRelativeRotation(FRotator(0,180,0));
     ResidentMesh->SetRelativeScale3D(FVector(.94f));
-    ResidentMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr,TEXT("/Game/Art/Characters/SK_Salazar_Period.SK_Salazar_Period")));
+    ResidentMesh->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr,TEXT("/Game/Art/Characters/SK_NorthLaneResident_Period.SK_NorthLaneResident_Period")));
     ResidentMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     Sign(TEXT("ResidentialSign"),TEXT("HOMES  /  NORTH LANE"),FVector(-1300,3750,180),-90,23);
     Shape(TEXT("ResidentialSignBoard"),FVector(-1300,3760,180),FVector(430,15,60),TEXT("Timber"));

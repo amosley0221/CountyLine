@@ -92,7 +92,7 @@ def body_weight(p):
  return {'spine_03':1}
 
 reed_only='--reed-only' in sys.argv
-for kind in (['Reed'] if reed_only else ['Reed','Salazar']):
+for kind in ([] if '--definitions-only' in sys.argv else ['Reed'] if reed_only else ['Reed','Salazar']):
  f=Figure('SK_'+kind+'_Period');coat='OliveWool' if kind=='Reed' else 'BrownWool'
  # Torso and high-waisted trousers.
  f.torso([(0.9,.145,.105,.025),(1.06,.155,.10,.025),(1.23,.157,.103,.028),(1.43,.188,.095,.035),(1.51,.18,.073,.038),(1.57,.075,.052,.038),(1.595,.05,.048,.038)],'Shirt' if kind=='Reed' else 'Linen')
@@ -180,5 +180,6 @@ for kind in (['Reed'] if reed_only else ['Reed','Salazar']):
   f.torso([(1.812,.153,.178,.035),(1.824,.153,.178,.035),(1.825,.085,.098,.035),(1.914,.072,.08,.035),(1.95,.04,.065,.035),(1.951,.001,.001,.035)],'HatFelt',weights={'head':1})
   f.torso([(1.827,.086,.099,.035),(1.851,.083,.096,.035)],'HatBand',weights={'head':1})
  ob=f.finish();ob.hide_set(True)
-bpy.ops.wm.save_as_mainfile(filepath=str(OUT/('ReedAppearance.blend' if reed_only else 'PeriodCharacters.blend')))
-print('CL_CHARACTERS_AUTHORED')
+if '--definitions-only' not in sys.argv:
+ bpy.ops.wm.save_as_mainfile(filepath=str(OUT/('ReedAppearance.blend' if reed_only else 'PeriodCharacters.blend')))
+ print('CL_CHARACTERS_AUTHORED')

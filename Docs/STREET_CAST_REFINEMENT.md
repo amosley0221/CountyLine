@@ -29,3 +29,5 @@ The existing 20 Unreal automation suites, 10 map tests, and 134 runtime checks p
 Final verification: the corrected mesh passed the 134-check rendered smoke run and 15-camera review with no material compilation errors. Android BuildCookRun exited 0; the cook reported 0 errors and 0 warnings. Version 0.1.2-street-cast (code 3) passes APK signature and 16 KB ZIP alignment checks, with the same signing certificate as 0.1.1. The APK is 184,684,315 bytes. SHA-256: 1F67639C750207F30FC098C9A6E0BE9FA930C98748BF36C46E6F51DDAFD94BCC. The new visual revision still needs user review on the phone; the earlier successful device acceptance belongs to 0.1.1.
 
 Evidence: Docs/Verification/StreetCastRefinement. Local APK: F:/The County Line/The-County-Line-Android-v0.1.2.apk.
+
+User acceptance: after installing v0.1.2, the user reported that its appearance looked fine. This is visual acceptance, not an instrumented performance measurement.
