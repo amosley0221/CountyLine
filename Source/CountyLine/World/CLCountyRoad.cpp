@@ -13,6 +13,13 @@ ACLCountyRoad::ACLCountyRoad()
         C->SetupAttachment(RootComponent);C->SetRelativeLocation(Position);C->SetRelativeScale3D(Size/100.f);
         C->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube.Cube")));
         C->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Art/Materials/M_CL_%s.M_CL_%s"),Material,Material)));
+        if(FString(Material)==TEXT("Soil") || FString(Material)==TEXT("RoadDust"))
+            if(auto* Ground=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Art/Town/StreetFinishes/M_CountyGroundV3.M_CountyGroundV3"))) C->SetMaterial(0,Ground);
+        if(FString(Material)==TEXT("RoadDust"))
+        {
+            C->SetRelativeLocation(FVector(Position.X,Position.Y,-1.9f-Size.Z*.5f));
+            C->SetCastShadow(false);
+        }
         C->SetCollisionEnabled(Collision?ECollisionEnabled::QueryAndPhysics:ECollisionEnabled::NoCollision);
         C->SetCollisionResponseToAllChannels(ECR_Block);
         return C;

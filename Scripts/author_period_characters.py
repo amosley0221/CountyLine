@@ -44,6 +44,17 @@ class Figure:
   for a,b in zip(rings,rings[1:]):
    for i in range(n):self.face([a[i],a[(i+1)%n],b[(i+1)%n],b[i]],mat,bone)
   self.face(list(reversed(rings[0])),mat,bone);self.face(rings[-1],mat,bone)
+ def palm(self,hand,middle,index,pinky,bone):
+  # A tapered palm spans wrist to knuckles, following the actual rig axes.
+  along=(middle-hand).normalized();across=(index-pinky).normalized()
+  normal=along.cross(across).normalized();across=normal.cross(along).normalized()
+  end=(index+pinky)*.5
+  width=(index-pinky).length*.62
+  rows=[(hand-along*.01,.022,.013),(hand.lerp(end,.45),width,.017),(end+along*.009,width,.014)]
+  rings=[[center+across*(w*math.cos(i*math.tau/16))+normal*(d*math.sin(i*math.tau/16)) for i in range(16)] for center,w,d in rows]
+  for a,b in zip(rings,rings[1:]):
+   for i in range(16):self.face([a[i],a[(i+1)%16],b[(i+1)%16],b[i]],'Skin',{bone:1})
+  self.face(list(reversed(rings[0])),'Skin',{bone:1});self.face(rings[-1],'Skin',{bone:1})
  def torso(self,rows,mat,opening=0,weights=None,n=28):
   # Front is -Y in the exported template bind pose.
   weights=weights or body_weight
@@ -104,7 +115,10 @@ for kind in (['Reed'] if reed_only else ['Reed','Salazar']):
   f.face([(-.026,-.087,1.06),(.026,-.087,1.06),(.026,-.089,1.031),(-.026,-.089,1.031)],'Brass',{'pelvis':1})
  # Tie / neckerchief.
  f.ellipsoid((0,-.063,1.496),(.021,.018,.022),'Hair','spine_03',10,5)
- f.face([(-.018,-.081,1.48),(.018,-.081,1.48),(.025,-.091,1.31),(0,-.093,1.275),(-.024,-.091,1.31)],'Hair',body_weight)
+ if kind=='Reed':
+  # The portrait shows two short neckerchief ends, not a long office tie.
+  for s in (-1,1):f.face([(0,-.085,1.49),(s*.014,-.085,1.475),(s*.031,-.092,1.38),(s*.009,-.095,1.40)],'Hair',body_weight)
+ else:f.face([(-.018,-.081,1.48),(.018,-.081,1.48),(.025,-.091,1.31),(0,-.093,1.275),(-.024,-.091,1.31)],'Hair',body_weight)
  # Badge on Reed's left breast, a small original six-point star.
  if kind=='Reed':
   points=[]
@@ -118,8 +132,11 @@ for kind in (['Reed'] if reed_only else ['Reed','Salazar']):
    # Smooth the elbow over a narrow band while preserving a soft sleeve silhouette.
    axis=(c-a).normalized();t=(p-b).dot(axis);u=max(0,min(1,.5+t/.12))
    return {'upperarm_'+s:1-u,'lowerarm_'+s:u}
-  f.tube([upper,upper.lerp(elbow,.35),elbow,elbow.lerp(hand,.7),hand],[.071,.071,.058,.052,.043],coat,sleeve_weight)
-  f.ellipsoid(upper,(.079,.072,.08),coat,'upperarm_'+side)
+  if kind=='Reed':
+   shoulder=upper.lerp(bones['clavicle_'+side],.38)
+   f.tube([shoulder,upper,upper.lerp(elbow,.35),elbow,elbow.lerp(hand,.7),hand],[.062,.073,.069,.058,.052,.039],coat,sleeve_weight,20)
+  else:f.tube([upper,upper.lerp(elbow,.35),elbow,elbow.lerp(hand,.7),hand],[.071,.071,.058,.052,.043],coat,sleeve_weight)
+  if kind!='Reed':f.ellipsoid(upper,(.079,.072,.08),coat,'upperarm_'+side)
   thigh,knee,foot=[bones[n+'_'+side] for n in ['thigh','calf','foot']]
   def leg_weight(p,k=knee,s=side):
    u=max(0,min(1,.5+(k.z-p.z)/.16));return {'thigh_'+s:1-u,'calf_'+s:u}
@@ -134,7 +151,8 @@ for kind in (['Reed'] if reed_only else ['Reed','Salazar']):
    f.ellipsoid((foot.x,foot.y-.052,.021),(.073,.153,.018),'HatBand','foot_'+side,20,6)
   # Hand and articulated fingers follow their original bones.
   palm=hand.lerp(bones['middle_01_'+side],.42)
-  f.ellipsoid(palm,(.044,.039,.072),'Skin','hand_'+side)
+  if kind=='Reed':f.palm(hand,bones['middle_01_'+side],bones['index_01_'+side],bones['pinky_01_'+side],'hand_'+side)
+  else:f.ellipsoid(palm,(.044,.039,.072),'Skin','hand_'+side)
   for finger in ['thumb','index','middle','ring','pinky']:
    names=[finger+'_'+str(i).zfill(2)+'_'+side for i in (1,2,3)]
    if not all(n in bones for n in names):continue
@@ -143,15 +161,20 @@ for kind in (['Reed'] if reed_only else ['Reed','Salazar']):
    end=pts[2]+(pts[2]-pts[1])*.7;f.tube([pts[2],end],[.009,.006],'Skin',{names[2]:1},8)
  # Neck, sculpted head profile, ears and simple facial landmarks.
  f.tube([(0,.04,1.52),(0,.04,1.655)],[.046,.048],'Skin',{'neck_01':1})
- f.torso([(1.625,.046,.05,.027),(1.65,.063,.065,.022),(1.69,.081,.078,.026),(1.745,.085,.081,.028),(1.79,.079,.079,.033),(1.825,.054,.055,.034),(1.84,.001,.001,.034)],'Skin',weights={'head':1})
+ head_rows=[(1.625,.046,.05,.027),(1.65,.063,.065,.022),(1.69,.081,.078,.026),(1.745,.085,.081,.028),(1.79,.079,.079,.033),(1.825,.054,.055,.034),(1.84,.001,.001,.034)]
+ if kind=='Reed':head_rows=[(1.625,.042,.047,.018),(1.642,.06,.055,.014),(1.665,.074,.068,.021),(1.70,.079,.075,.024),(1.735,.08,.076,.027),(1.77,.078,.075,.03),(1.80,.073,.07,.033),(1.825,.052,.05,.034),(1.84,.001,.001,.034)]
+ f.torso(head_rows,'Skin',weights={'head':1},n=40 if kind=='Reed' else 28)
  for s in (-1,1):
   f.ellipsoid((s*.085,.027,1.735),(.014,.016,.03),'Skin','head')
-  f.ellipsoid((s*.034,-.047,1.746),(.018,.01,.008),'EyeWhite','head')
-  f.ellipsoid((s*.034,-.056,1.746),(.006,.003,.006),'Iris','head')
-  f.ellipsoid((s*.034,-.048,1.765),(.023,.012,.006),'Hair','head')
- f.ellipsoid((0,-.059,1.722),(.018,.032,.026),'Skin','head')
+  f.ellipsoid((s*.032,-.043,1.746),(.016,.005,.0045) if kind=='Reed' else (.018,.01,.008),'EyeWhite','head')
+  f.ellipsoid((s*.032,-.048,1.746),(.004,.002,.004) if kind=='Reed' else (.006,.003,.006),'Iris','head')
+  f.ellipsoid((s*.032,-.044,1.761),(.022,.004,.0035) if kind=='Reed' else (.023,.012,.006),'Hair','head')
+ f.ellipsoid((0,-.059,1.724),(.013,.025,.023) if kind=='Reed' else (.018,.032,.026),'Skin','head')
  f.ellipsoid((0,-.055,1.684),(.027,.01,.004),'Mouth','head')
- f.ellipsoid((0,-.059,1.702),(.034,.012,.011),'Hair','head')
+ if kind=='Reed':
+  # A broad moustache follows the upper lip instead of two round lobes.
+  f.ellipsoid((0,-.055,1.702),(.030,.005,.007),'Hair','head',20,8)
+ else:f.ellipsoid((0,-.059,1.702),(.034,.012,.011),'Hair','head')
  f.torso([(1.785,.081,.081,.035),(1.82,.063,.064,.035),(1.846,.001,.001,.035)],'Hair',weights={'head':1})
  if kind=='Reed':
   f.torso([(1.812,.153,.178,.035),(1.824,.153,.178,.035),(1.825,.085,.098,.035),(1.914,.072,.08,.035),(1.95,.04,.065,.035),(1.951,.001,.001,.035)],'HatFelt',weights={'head':1})

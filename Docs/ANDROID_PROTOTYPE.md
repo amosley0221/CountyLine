@@ -75,3 +75,7 @@ The Android non-unity compile also exposed five existing first-actor loops whose
 Updated APK: F:/The County Line/The-County-Line-Android-Touch-Fix.apk (184,667,843 bytes).
 SHA-256: 3250B0D3144C3A7C7B0D1A4F7651EEA4035CA70BF7B4AEB1F0CC887ECA3B4619.
 Install over the existing app; no uninstall is needed. Device acceptance: move and look simultaneously, jog while moving, open/close Book and Pause then move again, and test folding/resume. Awaiting user verification on the phone.
+
+## User device acceptance of 0.1.1
+
+The user reports working touch controls, simultaneous movement/look and menus, saved settings surviving app restart, and no noticed issues during the suggested extended play and folding/resume checks on the Fold. This is user-observed acceptance, not instrumented frame-time, temperature, or battery profiling. The fixed jail checkpoint on reload is expected; exact desk position is not saved.

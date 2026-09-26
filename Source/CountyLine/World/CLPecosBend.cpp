@@ -37,8 +37,15 @@ UStaticMeshComponent* ACLPecosBend::Shape(const FString& Name,FVector P,FVector 
     else if(Kind==TEXT("Plaster")) Finish=TEXT("Stone");
     if(Name.Contains(TEXT("DisplayInnerBack")))
         if(auto* Backing=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Art/Town/ShopDetails/M_DisplayBacking.M_DisplayBacking"))) C->SetMaterial(0,Backing);
+    if(Kind==TEXT("RoadDust") || Name==TEXT("TownGround") || Name==TEXT("ResidentialGround"))
+        if(auto* Ground=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Art/Town/StreetFinishes/M_CountyGroundV3.M_CountyGroundV3"))) C->SetMaterial(0,Ground);
     if(Kind==TEXT("RoadDust"))
-        if(auto* Road=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Art/Town/ShopDetails/M_WornRoadV2.M_WornRoadV2"))) C->SetMaterial(0,Road);
+    {
+        // Paint and ground share one world-space finish. Keep decorative slabs
+        // just above the ground, without raised cutout edges or tiny shadows.
+        C->SetRelativeLocation(FVector(P.X,P.Y,-1.9f-Size.Z*.5f));
+        C->SetCastShadow(false);
+    }
     if(!Finish.IsEmpty())
         if(auto* TownMaterial=LoadObject<UMaterialInterface>(nullptr,*FString::Printf(TEXT("/Game/Art/Town/StreetFinishes/M_StreetFinish%s.M_StreetFinish%s"),*Finish,*Finish))) C->SetMaterial(0,TownMaterial);
     C->SetCollisionEnabled(Collision?ECollisionEnabled::QueryAndPhysics:ECollisionEnabled::NoCollision);C->SetCollisionResponseToAllChannels(ECR_Block);
