@@ -4,6 +4,16 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 
+// Modes that run against an isolated in-memory slot: automated tests, the freight
+// fixture and the opt-in performance benchmark. Each one both skips loading the
+// player's save and refuses to write one.
+static bool IsSlotIsolated()
+{
+    return FParse::Param(FCommandLine::Get(), TEXT("CLSmokeTest")) ||
+        FParse::Param(FCommandLine::Get(), TEXT("CLTestMission")) ||
+        FParse::Param(FCommandLine::Get(), TEXT("CLPerfBenchmark"));
+}
+
 const TCHAR* UCLCaseState::ClosingLines[3] = {
     TEXT("The facts presently known are entered above."),
     TEXT("Further inquiry at Bend Lateral is required."),
@@ -181,8 +191,8 @@ FString FCLReportState::FollowupConsequence() const
 void UCLCaseState::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-    // Test runs must never load or overwrite a player's slot.
-    if ((FParse::Param(FCommandLine::Get(), TEXT("CLSmokeTest")) || FParse::Param(FCommandLine::Get(), TEXT("CLTestMission")))) return;
+    // Test, fixture and benchmark runs must never load or overwrite a player's slot.
+    if (IsSlotIsolated()) return;
     if (!UGameplayStatics::DoesSaveGameExist(TEXT("CountyLine_JailPrototype"), 0)) return;
     const USaveGame* Save = UGameplayStatics::LoadGameFromSlot(TEXT("CountyLine_JailPrototype"), 0);
     if (CLSaveValidation::CopyIfValid(Save, Report, bTypedCopy, World))
@@ -196,7 +206,7 @@ void UCLCaseState::Initialize(FSubsystemCollectionBase& Collection)
 
 bool UCLCaseState::WriteDate()
 {
-    if ((FParse::Param(FCommandLine::Get(), TEXT("CLSmokeTest")) || FParse::Param(FCommandLine::Get(), TEXT("CLTestMission")))) return false;
+    if (IsSlotIsolated()) return false;
     UCLPrototypeSave* Save = Cast<UCLPrototypeSave>(UGameplayStatics::CreateSaveGameObject(UCLPrototypeSave::StaticClass()));
     Save->Report = Report;
     Save->bTypedCopy = bTypedCopy;
